@@ -1,4 +1,4 @@
-# ASCII Art Generator - Configuracao de Agente
+# ASCII Generator - Agent Configuration
 
 ## Visao Geral do Projeto
 Este e um gerador de ASCII Art que cria arte a partir de texto, formas geometricas e padroes. O sistema entende comandos em portugues natural.
@@ -79,6 +79,6 @@ mostra barra de progresso
 - Fontes limitadas a definicoes atuais (small, block, banner, shadow)
 
 ---
-*Projeto: ASCII Art Generator*
+*Projeto: ASCII Generator*
 *Versao: 1.0*
 *Data: 2026-08-02*

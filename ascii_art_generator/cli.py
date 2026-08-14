@@ -1,5 +1,5 @@
 """
-Command Line Interface for ASCII Art Generator
+Command Line Interface for ASCII Generator
 """
 
 import sys
@@ -1009,7 +1009,7 @@ class PTCommandParser:
 class Menu:
     """Interactive menu system."""
     
-    def __init__(self, title: str = "ASCII Art Generator"):
+    def __init__(self, title: str = "ASCII Generator"):
         self.title = title
         self.items: Dict[str, Dict[str, Any]] = {}
         self.exit_option = ('q', 'Quit')
@@ -1617,10 +1617,10 @@ class ENCommandParser:
 
 
 class ASCIIArtCLI:
-    """Main CLI class for ASCII Art Generator."""
+    """Main CLI class for ASCII Generator."""
     
     def __init__(self):
-        self.menu = Menu("ASCII Art Generator")
+        self.menu = Menu("ASCII Generator")
         self.setup_menu()
         self.parser = ENCommandParser()
         self.intelligent_mode = False
@@ -1869,7 +1869,7 @@ class ASCIIArtCLI:
         """Display help."""
         print(f"\n{Colors.HEADER}=== Help ==={Colors.ENDC}")
         print("""
-ASCII Art Generator - Generate ASCII art from text, shapes and patterns
+ASCII Generator - Generate ASCII art from text, shapes and patterns
 
 Features:
 - Convert text to ASCII art with different fonts

@@ -1,5 +1,5 @@
 """
-ASCII Art Generator Module
+ASCII Generator Module
 
 This module contains all the ASCII art generation functions.
 """

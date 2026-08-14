@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-ASCII Art Generator - Start Script
+ASCII Generator - Start Script
 
-This script allows starting the ASCII Art Generator project in multiple ways:
+This script allows starting the ASCII Generator project in multiple ways:
 
 1. Normal mode (menu): python run.py
 2. Intelligent mode: python run.py --intelligent
@@ -54,7 +54,7 @@ def run_command(command: str):
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description='ASCII Art Generator - ASCII Art Generator Tool',
+        description='ASCII Generator - Command Line Tool',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
