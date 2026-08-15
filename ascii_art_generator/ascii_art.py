@@ -382,7 +382,7 @@ def random_animal() -> str:
     """Generate a random ASCII animal."""
     animals = {
         'cat': " /\\_/\\ \n( o.o ) \n > ^ < ",
-        'dog': " /\\__/\\ \n( =.= ) \n (\" ) (\" )",
+        'dog': "  / \\__\n (    @\\___\n /         O\n/   (_____/\n/_____/   U",
         'owl': "  /\\ \n (oo) \n /\\/\\ ",
         'penguin': "  _(__) \n <(.)__ \n  (___)",
         'fish': "  >=====| \n (     ) \n  >=====| ",
