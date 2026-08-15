@@ -46,7 +46,7 @@ command-text: ## Convert text to ASCII
 test: ## Run basic tests
 	@echo "$(BLUE)Running tests...$(NC)"
 	@python -c "from ascii_art_generator.ascii_art import draw_rectangle, draw_circle, draw_heart, draw_diamond, text_to_ascii; print('Import tests: OK')"
-	@python -c "from ascii_art_generator.cli import PTCommandParser; p = PTCommandParser(); print('Parser tests: OK')"
+	@python -c "from ascii_art_generator.cli import ENCommandParser; p = ENCommandParser(); print('Parser tests: OK')"
 	@echo "$(GREEN)All tests passed!$(NC)"
 
 test-shape: ## Test shape generation

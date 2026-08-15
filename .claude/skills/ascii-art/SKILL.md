@@ -1,6 +1,6 @@
 ---
 name: ascii-art
-description: Catálogo de referência das formas, fontes, cores, padrões de preenchimento e estilos de borda deste gerador de ASCII Art. Usar sempre que fores gerar/desenhar arte ASCII, adicionar uma forma nova, ou explicar a sintaxe de comandos PT do projeto.
+description: Catálogo de referência das formas, fontes, cores, padrões de preenchimento e estilos de borda deste gerador de ASCII Art. Usar sempre que fores gerar/desenhar arte ASCII, adicionar uma forma nova, ou explicar a sintaxe de comandos do projeto.
 ---
 
 # Catálogo do ASCII Generator
@@ -13,7 +13,7 @@ funcionalidades novas.
 
 - `ascii_art_generator/ascii_art.py` — formas base, fontes, padrões, banners/caixas, animações, cores ANSI.
 - `ascii_art_generator/smart_generator.py` — formas avançadas (estrela, hexágono, oval, seta, pentágono, borboleta, flor), padrões de preenchimento e bordas ricas, geração "inteligente" (`smart_gen`).
-- `ascii_art_generator/cli.py` — `PTCommandParser` (comandos em português) e `ENCommandParser` (inglês), que convertem linguagem natural nos parâmetros das funções abaixo.
+- `ascii_art_generator/cli.py` — `ENCommandParser`, que converte comandos em inglês (linguagem natural) nos parâmetros das funções abaixo. É o único parser usado pela `ASCIIArtCLI` (o antigo `PTCommandParser`, nunca ligado à aplicação, foi removido).
 
 ## Formas geométricas
 
@@ -54,13 +54,13 @@ funcionalidades novas.
 ## Cores (ANSI) — `get_color_code(color_name)`
 
 `black, red, green, yellow, blue, magenta, cyan, white` + variantes `bright_*`.
-No parser PT há sinónimos (`vermelho→red`, `azul→blue`, `roxo→magenta`, etc.).
+O `ENCommandParser` aceita sinónimos (`crimson/ruby→red`, `azure/cobalt→blue`, `purple/violet→magenta`, `pink→light_red`, etc.).
 
 ## Preenchimento (fill)
 
 Básico (`get_fill_style_pattern` em ascii_art.py): `empty, solid, dotted, striped_h, striped_v, crosshatch, plus, star, random, gradient`.
 
-Avançado (`SmartGenerator.FILL_PATTERNS` em smart_generator.py — 30 padrões):
+Avançado (`SmartGenerator.FILL_PATTERNS` em smart_generator.py — 31 padrões):
 `solid, empty, dotted, striped, horizontal_stripes, vertical_stripes, cross, crosshatch, diagonal, anti_diagonal, x_pattern, grid, checkerboard, dense_checkerboard, random, sparse_random, dense_random, dots, stars, plus_signs, mixed, left_gradient, right_gradient, top_gradient, bottom_gradient, center_gradient, spiral_pattern, concentric, wave, zigzag, honeycomb`.
 
 ## Bordas
@@ -73,23 +73,28 @@ Avançado (`SmartGenerator.BORDER_STYLES`): `none, simple, double, dashed, dotte
 
 `spinner_animation(duration)` e `progress_bar(duration, char)` — bloqueantes, correm no terminal (não devolvem string).
 
-## Sintaxe de comandos (linguagem natural)
+## Sintaxe de comandos (linguagem natural, inglês)
 
-O `PTCommandParser`/`ENCommandParser` aceitam comandos compostos (separados por "e"/"com"/"and"/"with") e extraem número(s), caracter, cor, fonte, estilo e borda do texto livre. Exemplos válidos:
+O `ENCommandParser` extrai número(s), caracter, cor, fonte e estilo do texto livre. Exemplos válidos:
 
 ```
-desenha um retangulo 10x5
-faz um circulo com raio 8 cor azul
-escreve OLA com fonte banner
-faz um coracao de tamanho 2
-faz um circulo com cor azul e um retangulo 10x5 com cor vermelha
-draw a rectangle 10x5 with color blue style dotted
+draw a rectangle 10x5
+make a circle with radius 8 color blue
+write HELLO
+draw a heart size 2
+make a rectangle 8x4 with color cyan
 ```
+
+### Limitações conhecidas do `ENCommandParser`
+
+- **Sem suporte a comandos compostos.** `"a circle ... and a rectangle ..."` só desenha a primeira forma; os tokens da segunda parte são absorvidos como parâmetros errados da primeira (números e cor podem ficar trocados). Não uses "and" para combinar duas formas num único comando.
+- **`"write TEXT with font X"` é frágil.** Se `X` coincidir com o nome de uma forma (ex.: `banner`), o comando é interpretado como criar essa forma em vez de converter texto. E mesmo sem colisão, o sufixo "with font X" pode ser absorvido para dentro do texto convertido.
+- **`"style X"` está mapeado para `font`, não para `fill`.** Para pedir um preenchimento (dotted, striped, ...) em inglês, usa `fill X` em vez de `style X`.
 
 ## Ao adicionar uma forma/estilo novo
 
 1. Implementar a função geradora em `ascii_art.py` (formas base) ou `smart_generator.py` (formas avançadas/padrões).
-2. Registar sinónimos em `PTCommandParser.SHAPE_SYNONYMS` (e `ENCommandParser.SHAPE_SYNONYMS` se aplicável) em `cli.py`.
-3. Adicionar branch de parsing em `_parse_single_command` (PT) / `parse_command` (EN) que constrói o dict `{'command': ..., 'params': {...}}`.
+2. Registar sinónimos em `ENCommandParser.SHAPE_SYNONYMS` em `cli.py`.
+3. Adicionar/ajustar o mapeamento em `shape_to_command` e a lógica de `params` em `parse_command` (EN) que constrói o dict `{'command': ..., 'params': {...}}`.
 4. Atualizar esta skill com a nova entrada na tabela/lista relevante.
 5. Testar com um comando real antes de dar como concluído.
