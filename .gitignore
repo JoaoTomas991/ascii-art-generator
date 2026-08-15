@@ -55,6 +55,4 @@ logs/
 Thumbs.db
 
 # Project specific
-.vibe/
-  .vibe/logs/
-  .vibe/sessions/
+.claude/settings.local.json
