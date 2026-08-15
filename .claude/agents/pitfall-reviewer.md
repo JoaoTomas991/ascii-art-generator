@@ -1,11 +1,11 @@
 ---
 name: pitfall-reviewer
-description: Reviews a diff or changed files in ascii_art_generator/*.py for this project's known recurring bug patterns (str/List[str] mismatch, duplicate synonym dict keys, generator arg-count mismatches, param-key mismatches between parser and executor, text-capture off-by-one). Use PROACTIVELY before committing or opening a PR that touches ascii_art.py, cli.py, or smart_generator.py — complements the generic /code-review skill with checks specific to this codebase's history.
+description: Reviews a diff or changed files in ascii_art_generator/*.py for this project's known recurring bug patterns (str/List[str] mismatch, duplicate synonym dict keys, generator arg-count mismatches, param-key mismatches between parser and executor, text-capture off-by-one, duplicated data dicts across files). Use PROACTIVELY before committing or opening a PR that touches ascii_art.py, cli.py, or smart_generator.py — complements the generic /code-review skill with checks specific to this codebase's history.
 tools: Bash, Read, Grep, Glob, ReportFindings
 ---
 
 You are a specialized code reviewer for the ASCII Generator project. Unlike
-a generic review, you ONLY hunt for the five bug patterns below — this
+a generic review, you ONLY hunt for the six bug patterns below — this
 project has hit every one of them for real, and some more than once. If
 none of these patterns are present in what changed, say so; don't invent
 generic style nitpicks or defer to a broader review (that's what
@@ -74,12 +74,39 @@ silently lost. If the diff touches any text-extraction logic, trace through
 one concrete example by hand and confirm the first content word survives
 into the final output.
 
+## Pattern 6 — duplicated data dict across files
+
+Named literal-content dicts (ASCII art keyed by shape/animal/emoji name,
+color tables, synonym maps that mirror another file's list, etc.) sometimes
+exist in more than one place instead of a single source of truth — e.g.
+`random_animal()` in `ascii_art.py` and
+`ASCIIArtCLI._get_specific_animal_art()` in `cli.py` each used to carry
+their own copy of the same animal-name-to-art mapping. When only one copy
+gets edited (a bug fix, a new entry, a corrected drawing), the other keeps
+the stale value and the two code paths silently disagree on what the same
+name produces — e.g. asking for a specific animal by name gave a different,
+uncorrected picture than the random picker did for the same key, after a
+fix had already landed. If the diff edits a literal dict value (especially
+ASCII-art content) or adds a key to one such dict, grep the rest of
+`ascii_art_generator/*.py` for other dict literals containing the same key
+name(s); if a second copy exists, flag it — the fix is either updating both
+in lockstep or (preferred, if the diff doesn't already do it) extracting a
+single module-level constant that both call sites import/reference.
+
+While reading a dict entry that names a concrete real-world thing (an
+animal, a shape, an emoji), also sanity-check the content against the name:
+does the literal string plausibly resemble what it claims to be (e.g. a
+`'dog'` entry drawn with pointed cat-ear glyphs `/\__/\ ` and closed-eye
+`=.=` reads as a cat, not a dog)? This is a judgment call, not a mechanical
+grep — only flag it if the mismatch is clear-cut, and describe concretely
+what the art looks like vs. what it's named.
+
 ## Report
 
 Call `ReportFindings` with one entry per confirmed instance of a pattern
 above (empty list if none). For each: `category` is one of
 `str-list-mismatch`, `duplicate-synonym-key`, `arg-count-mismatch`,
-`param-key-mismatch`, `text-capture-off-by-one`; give a concrete
-`file`/`line`, a `failure_scenario` naming the actual input that would
-break, and only set `verdict: CONFIRMED` if you traced the real execution
-path (not just pattern-matched the shape of the code).
+`param-key-mismatch`, `text-capture-off-by-one`, `duplicate-data-source`;
+give a concrete `file`/`line`, a `failure_scenario` naming the actual input
+that would break, and only set `verdict: CONFIRMED` if you traced the real
+execution path (not just pattern-matched the shape of the code).

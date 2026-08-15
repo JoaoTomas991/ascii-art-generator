@@ -23,7 +23,7 @@ Gerador de ASCII Art que cria arte a partir de texto, formas geométricas e padr
 - `.claude/agents/generator-tester.md` — subagent fino que invoca a skill acima num contexto isolado e devolve só um relatório PASS/FAIL; invoca-o sempre depois de alterar `ascii_art.py`, `cli.py`, `smart_generator.py` ou `main.py`
 - `.claude/agents/shape-coverage-auditor.md` — subagent que testa exaustivamente todos os sinónimos declarados (todas as formas/cores/fontes) contra o pipeline real, para apanhar formas mortas/inalcançáveis e chaves duplicadas nos dicionários de sinónimos. Usa antes de um release ou depois de adicionar várias formas.
 - `.claude/agents/docs-sync-auditor.md` — subagent que compara as afirmações em README/CLAUDE/AGENTS/skill `ascii-art` (contagens, listas, exemplos, limitações) contra o código real e reporta desvios. Usa antes de publicar o repositório ou cortar um release.
-- `.claude/agents/pitfall-reviewer.md` — subagent de revisão especializado nos 5 padrões de bug já vistos neste projeto (mismatch `str`/`List[str]`, chaves duplicadas, mismatch de argumentos, mismatch de chave de parâmetro, off-by-one na captura de texto). Invoca-o antes de commit/PR que toque em `ascii_art_generator/*.py`.
+- `.claude/agents/pitfall-reviewer.md` — subagent de revisão especializado nos 6 padrões de bug já vistos neste projeto (mismatch `str`/`List[str]`, chaves duplicadas, mismatch de argumentos, mismatch de chave de parâmetro, off-by-one na captura de texto, dicionários de dados duplicados entre ficheiros). Invoca-o antes de commit/PR que toque em `ascii_art_generator/*.py`.
 - `.claude/skills/adr/SKILL.md` — como documentar decisões de arquitetura significativas em `docs/adr/`
 
 ## Capacidades do Projeto
