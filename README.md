@@ -66,10 +66,11 @@ Alternative: `./start.sh` opens a small startup menu (menu mode, intelligent mod
 - **Shapes**: rectangle, circle, triangle, heart, diamond, spiral, tree, star, hexagon, oval, arrow, pentagon, butterfly, flower
 - **Text to ASCII**: 4 fonts — `small`, `block`, `banner`, `shadow`
 - **Patterns**: gradient, checkerboard, abstract/random art
-- **Random generators**: faces, animals (cat, dog, rabbit, bear, fish, penguin, owl, crow), emojis
+- **Random generators**: faces, emojis, animals — naming a specific animal (cat, dog, rabbit, bear, fish, penguin, owl, crow, raven) always draws that animal; asking for "an animal"/"a creature" instead picks one of them at random
 - **Banners and boxes** with custom text
 - **Terminal animations**: spinner, progress bar
 - **Styling**: color (ANSI: red, green, blue, yellow, cyan, magenta, white, black + `bright_*` variants), up to 31 fill patterns, and several border styles — see `.claude/skills/ascii-art/SKILL.md` for the full catalog with functions and files
+- **Moods (teachable)**: `happy`, `sad`, `angry`, `calm`, `sleepy` — recognized anywhere in a command and applied as a default color (unless you already gave one explicitly). Teach new synonyms at runtime in intelligent mode with `teach <word> as <mood>` (e.g. `teach ecstatic as happy`); taught words persist across sessions in `~/.config/ascii_generator/learned_words.json`. See [`docs/adr/0001-taught-mood-synonyms.md`](docs/adr/0001-taught-mood-synonyms.md) for why this is deliberately a small, taught dictionary rather than automatic word detection or NLP.
 
 ### Example commands
 
@@ -83,12 +84,16 @@ make a rectangle 8x4 with color cyan style dotted
 make a spiral 20
 make an emoji
 make a circle with radius 5 color blue and a rectangle 10x5 color red
+draw a happy dog
+teach ecstatic as happy
+draw an ecstatic heart
 ```
 
 ### Known limitations
 
 - No GIF animations (terminal only); colors depend on the terminal's ANSI support.
 - The `"and"` compound-command splitter is word-based, so a color list like `"with color red and blue"` on a single shape may get misread as two shapes.
+- `teach` can only alias a new word to one of the 5 built-in moods — it cannot create a new mood or a new visual effect.
 
 ## Project structure
 
@@ -97,11 +102,13 @@ ascii_art_generator/
 ├── ascii_art.py        # base shapes, fonts, patterns, banners, animations
 ├── cli.py              # ENCommandParser + command-line interface
 ├── smart_generator.py  # advanced shapes, fill/border patterns, random generation
+├── learned_words.py    # persistence for user-taught mood synonyms
 └── main.py             # entry point
 
 run.py       # startup script (menu / intelligent / direct command)
 start.sh     # interactive startup menu
 Makefile     # run and test shortcuts
+docs/adr/    # architecture decision records
 ```
 
 ## Testing
