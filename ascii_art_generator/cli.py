@@ -13,7 +13,7 @@ from .ascii_art import (
     generate_spiral, generate_tree, random_abstract, random_face,
     random_animal, random_emoji, create_banner, create_box,
     get_available_fonts, spinner_animation, progress_bar,
-    get_color_code, get_border_chars, get_fill_style_pattern
+    get_color_code, get_border_chars, get_fill_style_pattern, ANIMALS
 )
 from .smart_generator import (
     smart_gen, apply_fill_pattern, apply_border,
@@ -983,19 +983,7 @@ class ASCIIArtCLI:
     
     def _get_specific_animal_art(self, animal_name: str) -> str:
         """Get ASCII art for a specific animal by name."""
-        animals_art = {
-            'crow': "  _~_ \n /\\  /\\ \n(  .  .  )\n  >=v=< \n /\\  /\\ \n_~_   _~_",
-            'raven': "   .-^~ \n  /   @  @ \\ \n |         |\n  \\  >^<  /\n   '-...-' ",
-            'cat': " /\\_/\\ \n( o.o ) \n > ^ < ",
-            'dog': " /\\__/\\ \n( =.= ) \n (\" ) (\" )",
-            'owl': "  /\\ \n (oo) \n /\\/\\ ",
-            'penguin': "  _(__) \n <(.)__ \n  (___)",
-            'fish': "  >=====| \n (     ) \n  >=====| ",
-            'bear': "  (\\___/) \n  (U^._.^U) \n  /  \\  3 ",
-            'rabbit': "  (\\_)~ \n  (='.'=) \n  (\" _) (\" _)",
-        }
-        
-        return animals_art.get(animal_name, f"Animal '{animal_name}' não encontrado.")
+        return ANIMALS.get(animal_name, f"Animal '{animal_name}' não encontrado.")
     
     def _show_specific_animal(self, animal_name: str) -> None:
         """Show a specific animal by name."""

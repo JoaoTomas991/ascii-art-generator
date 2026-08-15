@@ -378,21 +378,23 @@ def random_face() -> str:
     return random.choice(faces)
 
 
+ANIMALS = {
+    'cat': " /\\_/\\ \n( o.o ) \n > ^ < ",
+    'dog': "  / \\__\n (    @\\___\n /         O\n/   (_____/\n/_____/   U",
+    'owl': "  /\\ \n (oo) \n /\\/\\ ",
+    'penguin': "  _(__) \n <(.)__ \n  (___)",
+    'fish': "  >=====| \n (     ) \n  >=====| ",
+    'bear': "  (\\___/) \n  (U^._.^U) \n  /  \\  3 ",
+    'rabbit': "  (\\_)~ \n  (='.'=) \n  (\" _) (\" _)",
+    'crow': "  _~_ \n /\\  /\\ \n(  .  .  )\n  >=v=< \n /\\  /\\ \n_~_   _~_",
+    'raven': "   .-^~ \n  /   @  @ \\ \n |         |\n  \\  >^<  /\n   '-...-' ",
+}
+
+
 def random_animal() -> str:
     """Generate a random ASCII animal."""
-    animals = {
-        'cat': " /\\_/\\ \n( o.o ) \n > ^ < ",
-        'dog': "  / \\__\n (    @\\___\n /         O\n/   (_____/\n/_____/   U",
-        'owl': "  /\\ \n (oo) \n /\\/\\ ",
-        'penguin': "  _(__) \n <(.)__ \n  (___)",
-        'fish': "  >=====| \n (     ) \n  >=====| ",
-        'bear': "  (\\___/) \n  (U^._.^U) \n  /  \\  3 ",
-        'rabbit': "  (\\_)~ \n  (='.'=) \n  (\" _) (\" _)",
-        'crow': "  _~_ \n /\\  /\\ \n(  .  .  )\n  >=v=< \n /\\  /\\ \n_~_   _~_",
-        'raven': "   .-^~ \n  /   @  @ \\ \n |         |\n  \\  >^<  /\n   '-...-' ",
-    }
-    animal = random.choice(list(animals.keys()))
-    return animals[animal]
+    animal = random.choice(list(ANIMALS.keys()))
+    return ANIMALS[animal]
 
 
 def random_emoji() -> str:
