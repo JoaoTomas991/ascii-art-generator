@@ -21,6 +21,7 @@ from .smart_generator import (
     draw_butterfly, draw_flower, get_available_fill_patterns,
     get_available_border_styles, get_available_shapes
 )
+from .learned_words import load_learned_moods, save_learned_mood
 
 
 class Colors:
@@ -197,7 +198,28 @@ class ENCommandParser:
         'light_cyan': ['light_cyan', 'lightcyan'],
         'light_magenta': ['light_magenta', 'lightmagenta'],
     }
-    
+
+    # Mood synonyms (built-in). Teachable via the "teach <word> as <mood>"
+    # command in intelligent mode; learned synonyms persist across sessions
+    # (see learned_words.py).
+    MOOD_SYNONYMS = {
+        'happy': ['happy', 'joyful', 'cheerful'],
+        'sad': ['sad', 'unhappy', 'gloomy'],
+        'angry': ['angry', 'mad', 'furious'],
+        'calm': ['calm', 'peaceful', 'relaxed'],
+        'sleepy': ['sleepy', 'tired', 'drowsy'],
+    }
+
+    # Default visual effect for each mood, applied only when the user
+    # hasn't already specified that parameter explicitly.
+    MOOD_EFFECTS = {
+        'happy': {'color': 'yellow'},
+        'sad': {'color': 'blue'},
+        'angry': {'color': 'red'},
+        'calm': {'color': 'green'},
+        'sleepy': {'color': 'cyan'},
+    }
+
     # Fill pattern synonyms
     FILL_PATTERN_SYNONYMS = {
         'solid': ['solid', 'filled', 'full'],
@@ -290,7 +312,28 @@ class ENCommandParser:
         for key, synonyms in self.BORDER_STYLE_SYNONYMS.items():
             for syn in synonyms:
                 self.border_to_key[syn.lower()] = key
-    
+
+        self.mood_to_key = {}
+        for key, synonyms in self.MOOD_SYNONYMS.items():
+            for syn in synonyms:
+                self.mood_to_key[syn.lower()] = key
+        for word, canonical in load_learned_moods().items():
+            if canonical in self.MOOD_SYNONYMS:
+                self.mood_to_key[word.lower()] = canonical
+
+    def teach_mood(self, word: str, canonical: str) -> bool:
+        """Register a new mood synonym at runtime and persist it.
+
+        Returns False (and does nothing) if `canonical` isn't a known mood.
+        """
+        word = word.lower().strip()
+        canonical = canonical.lower().strip()
+        if not word or canonical not in self.MOOD_SYNONYMS:
+            return False
+        self.mood_to_key[word] = canonical
+        save_learned_mood(word, canonical)
+        return True
+
     def _remove_accents(self, text: str) -> str:
         """Remove accents from text (not typically needed for English)."""
         return text
@@ -362,6 +405,12 @@ class ENCommandParser:
         # Tokenize command
         tokens = command_lower.split()
 
+        # Mood words are adjectives that typically come *before* the shape
+        # ("happy dog", "a happy heart"), so scan all tokens regardless of
+        # position - same idea as the number extraction above - rather than
+        # only looking after the shape word like most other parameters.
+        mood_key = next((self.mood_to_key[t] for t in tokens if t in self.mood_to_key), None)
+
         # Find action verb
         action = None
         action_idx = -1
@@ -380,6 +429,7 @@ class ENCommandParser:
         # Find shape/object
         shape = None
         shape_idx = -1
+        shape_word = None  # literal token matched (e.g. "dog"), before synonym normalization
 
         # Text-oriented verbs always mean "the object is text", even if a
         # later word happens to coincide with a shape/font name (e.g. "write
@@ -398,6 +448,7 @@ class ENCommandParser:
                 token = tokens[i]
                 if token in self.shape_to_key:
                     shape = self.shape_to_key[token]
+                    shape_word = token
                     shape_idx = i
                     break
 
@@ -405,6 +456,7 @@ class ENCommandParser:
                 if i > 0 and tokens[i-1] in ['a', 'an', 'the']:
                     if token in self.shape_to_key:
                         shape = self.shape_to_key[token]
+                        shape_word = token
                         shape_idx = i
                         break
 
@@ -413,6 +465,7 @@ class ENCommandParser:
             for i, token in enumerate(tokens):
                 if token in self.shape_to_key:
                     shape = self.shape_to_key[token]
+                    shape_word = token
                     shape_idx = i
                     break
         
@@ -516,17 +569,7 @@ class ENCommandParser:
                     params['border'] = self.border_to_key[token]
                     i += 1
                     continue
-                
-                # Extract text content for text commands
-                if shape == 'text' and 'text' not in params:
-                    params['text'] = token
-                    i += 1
-                    # Collect remaining tokens as text
-                    while i < len(remaining):
-                        params['text'] += ' ' + remaining[i]
-                        i += 1
-                    continue
-                
+
                 i += 1
         
         # Map shape to command name
@@ -569,15 +612,6 @@ class ENCommandParser:
             'emoticon': 'random_emoji',
             'animal': 'random_animal',
             'creature': 'random_animal',
-            'crow': 'specific_animal',
-            'raven': 'specific_animal',
-            'cat': 'specific_animal',
-            'dog': 'specific_animal',
-            'rabbit': 'specific_animal',
-            'bear': 'specific_animal',
-            'fish': 'specific_animal',
-            'penguin': 'specific_animal',
-            'owl': 'specific_animal',
             'text': 'text_to_ascii',
             'banner': 'banner',
             'box': 'box',
@@ -603,9 +637,18 @@ class ENCommandParser:
         }
         
         command_name = shape_to_command.get(shape, shape) if shape else None
-        
+
+        # "dog"/"cat"/etc. are synonyms for the generic 'animal' shape key,
+        # but unlike "animal"/"creature" they name one specific animal —
+        # route those to specific_animal so e.g. "dog" always draws a dog
+        # instead of a random pick among all animals.
+        if shape == 'animal' and shape_word not in (None, 'animal', 'creature'):
+            command_name = 'specific_animal'
+
         # Build params with numbers
         final_params = params.copy()
+        if command_name == 'specific_animal' and 'animal' not in final_params:
+            final_params['animal'] = shape_word
         if numbers:
             if command_name in ['rectangle']:
                 if len(numbers) >= 2:
@@ -626,7 +669,15 @@ class ENCommandParser:
             elif command_name in ['checkerboard', 'gradient', 'random_art']:
                 if numbers:
                     final_params['size'] = numbers[0]
-        
+
+        # Apply the mood's default color, unless the user already gave one
+        if mood_key:
+            final_params.setdefault('mood', mood_key)
+            if 'color' not in final_params:
+                effect = self.MOOD_EFFECTS.get(mood_key, {})
+                if 'color' in effect:
+                    final_params['color'] = effect['color']
+
         # Add char if not specified
         if 'char' not in final_params:
             final_params['char'] = '#'
@@ -635,7 +686,15 @@ class ENCommandParser:
         # keyword (e.g. "write HELLO with font small" -> text="HELLO",
         # rather than swallowing "with font small" into the text itself).
         if command_name == 'text_to_ascii' and 'text' not in final_params:
-            text_start = action_idx + 1
+            # For write/type/print/convert, shape_idx was already advanced
+            # past the verb (and any article) to the first content token.
+            # For "draw a text HELLO"-style commands, shape found via the
+            # generic shape_to_key scan, shape_idx still points AT the
+            # "text"/"word"/... keyword itself, so content starts one past it.
+            if action in ['write', 'type', 'print', 'convert']:
+                text_start = shape_idx if shape_idx >= 0 else len(tokens)
+            else:
+                text_start = shape_idx + 1 if shape_idx >= 0 else len(tokens)
             if text_start < len(tokens):
                 if tokens[text_start] in ['a', 'an', 'the']:
                     text_start += 1
@@ -1244,6 +1303,7 @@ INTELLIGENT MODE (type 'i' to activate):
         
         print(f"\n{Colors.OKBLUE}=== INTELLIGENT MODE ==={Colors.ENDC}")
         print(f"{Colors.OKBLUE}Type in natural English (e.g., 'draw a heart' or 'make a rectangle 10x5'){Colors.ENDC}")
+        print(f"{Colors.OKBLUE}Type 'teach <word> as <mood>' to teach a new mood synonym (e.g. 'teach ecstatic as happy').{Colors.ENDC}")
         print(f"{Colors.OKBLUE}Type 'menu' to return to menu or 'q' to quit.{Colors.ENDC}\n")
         
         while True:
@@ -1262,7 +1322,11 @@ INTELLIGENT MODE (type 'i' to activate):
                 if user_input.lower() in ['q', 'quit', 'exit']:
                     print(f"\n{Colors.OKGREEN}Goodbye!{Colors.ENDC}")
                     sys.exit(0)
-                
+
+                if user_input.lower().startswith('teach '):
+                    self._handle_teach_command(user_input)
+                    continue
+
                 # Parse the command
                 parsed = self.parser.parse_command(user_input)
                 
@@ -1283,6 +1347,25 @@ INTELLIGENT MODE (type 'i' to activate):
             except Exception as e:
                 print(f"{Colors.FAIL}Error: {e}{Colors.ENDC}")
     
+    def _handle_teach_command(self, user_input: str) -> None:
+        """Handle 'teach <word> as <mood>' - registers a new mood synonym."""
+        body = user_input[len('teach '):].strip()
+        known_moods = ', '.join(sorted(self.parser.MOOD_SYNONYMS))
+
+        if ' as ' not in body:
+            print(f"{Colors.WARNING}Usage: teach <word> as <mood>{Colors.ENDC}")
+            print(f"  Known moods: {known_moods}")
+            return
+
+        word, _, mood = body.partition(' as ')
+        word = word.strip()
+        mood = mood.strip()
+
+        if self.parser.teach_mood(word, mood):
+            print(f"{Colors.OKGREEN}Learned: '{word}' now means mood '{mood}'.{Colors.ENDC}")
+        else:
+            print(f"{Colors.FAIL}Unknown mood '{mood}'. Known moods: {known_moods}{Colors.ENDC}")
+
     def _suggest_commands(self, user_input: str) -> None:
         """Suggest possible commands based on user input."""
         suggestions = []

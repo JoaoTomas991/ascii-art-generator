@@ -56,6 +56,28 @@ funcionalidades novas.
 `black, red, green, yellow, blue, magenta, cyan, white` + variantes `bright_*`.
 O `ENCommandParser` aceita sinónimos (`crimson/ruby→red`, `azure/cobalt→blue`, `purple/violet→magenta`, `pink→light_red`, etc.).
 
+## Moods (ensináveis)
+
+`ENCommandParser.MOOD_SYNONYMS`/`MOOD_EFFECTS` em cli.py — um mood reconhecido
+em qualquer posição do comando (não só depois da forma, ao contrário de
+cor/fonte/fill) aplica uma cor por omissão, só se o utilizador não tiver
+especificado `color` explicitamente:
+
+| Mood | Sinónimos embutidos | Cor por omissão |
+|---|---|---|
+| happy | happy, joyful, cheerful | yellow |
+| sad | sad, unhappy, gloomy | blue |
+| angry | angry, mad, furious | red |
+| calm | calm, peaceful, relaxed | green |
+| sleepy | sleepy, tired, drowsy | cyan |
+
+Novos sinónimos podem ser ensinados em runtime, sem editar código, com
+`teach <word> as <mood>` no modo inteligente (ex: `teach ecstatic as happy`).
+Ficam persistidos em `~/.config/ascii_generator/learned_words.json`
+(`ascii_art_generator/learned_words.py`) e carregados em todas as sessões
+seguintes. `teach` só aceita um `<mood>` de entre os 5 acima — não cria
+moods/efeitos novos, só sinónimos para os existentes.
+
 ## Preenchimento (fill)
 
 Básico (`get_fill_style_pattern` em ascii_art.py): `empty, solid, dotted, striped_h, striped_v, crosshatch, plus, star, random, gradient`.

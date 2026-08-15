@@ -37,6 +37,7 @@ O projeto suporta:
   - **Cores**: red, green, blue, yellow, cyan, magenta, white, black (e variantes `bright_*`/`light_*`)
   - **Preenchimento**: solid, empty, dotted, striped, crosshatch, checkerboard, gradient, random, entre outros (31 padrões em `smart_generator.py`)
   - **Bordas**: simple, double, dashed, wavy, bold, light, fancy, rounded, entre outras
+- **Moods**: happy, sad, angry, calm, sleepy — cada um aplica uma cor por omissão (a menos que o utilizador já tenha indicado `color`). Novos sinónimos podem ser ensinados em runtime no modo inteligente com `teach <word> as <mood>`, e ficam persistidos entre sessões em `~/.config/ascii_generator/learned_words.json`
 
 Ver a skill `ascii-art` (`.claude/skills/ascii-art/SKILL.md`) para o catálogo completo com funções/ficheiros/assinaturas.
 
@@ -58,6 +59,8 @@ make a rectangle 8x4 with color cyan style dotted
 make a spiral 20
 make an emoji
 make a circle with radius 5 color blue and a rectangle 10x5 color red
+teach ecstatic as happy
+draw an ecstatic heart
 ```
 
 ## Limitações Conhecidas
