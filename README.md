@@ -109,7 +109,3 @@ make test
 ```
 
 Runs a smoke test against the main imports and the command parser.
-
-## Developing with Claude Code
-
-The project includes `CLAUDE.md` with agent conventions, and a skill (`.claude/skills/ascii-art/SKILL.md`) with the full catalog of shapes, fonts, colors, fill patterns, and borders — check them before adding a new shape or style.
