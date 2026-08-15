@@ -74,6 +74,12 @@ broken.
    subagent (isolated context, returns a plain pass/fail report — use this
    when you just want confirmation without spending main-conversation
    context on the run).
+7. Before committing, consider the other audit subagents: `pitfall-reviewer`
+   (reviews the diff for this project's 5 recurring bug patterns — cheap,
+   worth running on most changes), `shape-coverage-auditor` (exhaustive
+   reachability sweep across every synonym — worth it after adding several
+   shapes or before a release), and `docs-sync-auditor` (catches drift
+   between the docs and the code — worth it before publishing).
 
 ## No external dependencies
 
