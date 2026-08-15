@@ -21,6 +21,21 @@ from .ascii_art import (
 )
 
 
+def _normalize_lines(art) -> List[str]:
+    """Normalize a generator's output to a list of lines.
+
+    Several `ascii_art` functions (draw_rectangle, draw_heart, generate_tree,
+    generate_spiral, ...) return a single '\\n'-joined string, while the
+    smart-generation helpers below always expect a List[str]. Iterating a
+    str yields individual characters, so without this normalization the
+    fill/border/color steps silently corrupt the art into one character per
+    line. Call this right after invoking any shape function.
+    """
+    if isinstance(art, str):
+        return art.split('\n')
+    return art
+
+
 # =============================================================================
 # EXTENDED FILL PATTERNS
 # =============================================================================
@@ -531,7 +546,7 @@ class SmartGenerator:
         char = random.choice(['#', '*', '-', '.'])
         color = None
         
-        return self._generate_shape(shape, width // 2, height // 2, fill, border, char, color)
+        return self._generate_shape(shape, min(width, height) // 2, fill, border, char, color)
     
     def _generate_complex_art(self, width: int = 20, height: int = 10) -> List[str]:
         """Generate complex detailed art."""
@@ -633,7 +648,9 @@ class SmartGenerator:
                 art = func(size, char)
             else:
                 art = [f"Unknown shape: {shape}"]
-            
+
+            art = _normalize_lines(art)
+
             # Apply fill pattern
             if fill != 'solid':
                 # Replace solid fill with pattern
@@ -677,7 +694,9 @@ class SmartGenerator:
                 art = func(size, char)
             else:
                 art = func(size, char) if shape in ['star', 'hexagon', 'arrow', 'pentagon', 'butterfly', 'flower'] else [f"Unknown: {shape}"]
-            
+
+            art = _normalize_lines(art)
+
             # Apply border
             if border != 'none':
                 art = apply_border(art, border, char)
@@ -697,18 +716,18 @@ class SmartGenerator:
         font = random.choice(self.FONTS)
         color = random.choice([None, 'red', 'blue', 'green', 'cyan', 'magenta', 'yellow'])
         
-        art = text_to_ascii(text, font)
+        art = _normalize_lines(text_to_ascii(text, font))
         if color:
             art = [self._apply_color(line, color) for line in art]
-        
+
         return art
-    
+
     def _generate_random_pattern(self, width: int = 20, height: int = 10) -> List[str]:
         """Generate random pattern."""
         pattern = random.choice(['checkerboard', 'gradient', 'random_art', 'spiral'])
-        
+
         if pattern == 'checkerboard':
-            art = generate_checkerboard(width, height)
+            art = generate_checkerboard(min(width, height))
         elif pattern == 'gradient':
             art = generate_gradient(width, height)
         elif pattern == 'random_art':
@@ -717,7 +736,8 @@ class SmartGenerator:
             art = generate_spiral(min(width, height), '#')
         else:
             art = apply_fill_pattern(width, height, pattern)
-        
+
+        art = _normalize_lines(art)
         color = random.choice([None, 'red', 'blue', 'green', 'cyan'])
         if color:
             art = [self._apply_color(line, color) for line in art]
@@ -753,17 +773,18 @@ class SmartGenerator:
                     art = draw_hexagon(size, char)
                 else:
                     art = [f"Unknown: {shape}"]
-                
+
+                art = _normalize_lines(art)
                 if color:
                     art = [self._apply_color(line, color) for line in art]
-                
+
                 elements.append(art)
             else:
                 text = random.choice(['HI', 'OK', 'YES', 'NO', 'A', 'B'])
                 font = random.choice(['small', 'block'])
                 color = random.choice([None, 'red', 'blue'])
-                
-                art = text_to_ascii(text, font)
+
+                art = _normalize_lines(text_to_ascii(text, font))
                 if color:
                     art = [self._apply_color(line, color) for line in art]
                 

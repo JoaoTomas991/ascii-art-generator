@@ -4,6 +4,7 @@ ASCII Generator Module
 This module contains all the ASCII art generation functions.
 """
 
+import math
 import random
 import time
 import sys
@@ -310,30 +311,26 @@ def generate_checkerboard(size: int = 8, chars: str = '# ') -> str:
 
 
 def generate_spiral(size: int = 15, char: str = '*') -> str:
-    """Generate a spiral pattern."""
+    """Generate a spiral pattern (Archimedean spiral traced onto a grid)."""
     grid = [[' ' for _ in range(size)] for _ in range(size)]
-    left, right, top, bottom = 0, size - 1, 0, size - 1
-    direction = 0
-    
-    while left <= right and top <= bottom:
-        if direction == 0:
-            for x in range(left, right + 1):
-                grid[top][x] = char
-            top += 1
-        elif direction == 1:
-            for y in range(top, bottom + 1):
-                grid[y][right] = char
-            right -= 1
-        elif direction == 2:
-            for x in range(right, left - 1, -1):
-                grid[bottom][x] = char
-            bottom -= 1
-        elif direction == 3:
-            for y in range(bottom, top - 1, -1):
-                grid[y][left] = char
-            left += 1
-        direction = (direction + 1) % 4
-    
+    center = (size - 1) / 2
+    max_radius = size / 2 - 0.5
+    turns = 2.2
+    arc_step = 0.75
+    max_angle = turns * 2 * math.pi
+
+    theta = 0.0
+    while theta <= max_angle:
+        radius = (theta / max_angle) * max_radius
+        x = center + radius * math.cos(theta)
+        y = center + radius * math.sin(theta)
+        xi, yi = int(round(x)), int(round(y))
+        if 0 <= xi < size and 0 <= yi < size:
+            grid[yi][xi] = char
+        # Keep the arc-length step roughly constant so the curve stays
+        # continuous without over-plotting near the center.
+        theta += arc_step / max(radius, 1.5)
+
     return '\n'.join([''.join(row) for row in grid])
 
 

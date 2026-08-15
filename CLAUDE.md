@@ -16,6 +16,13 @@ Gerador de ASCII Art que cria arte a partir de texto, formas geométricas e padr
 - `ascii_art_generator/main.py` — ponto de entrada
 - `run.py` / `start.sh` — scripts de arranque
 
+## Skills e Subagentes deste Projeto
+- `.claude/skills/ascii-art/SKILL.md` — catálogo completo de formas/fontes/cores/estilos
+- `.claude/skills/generator-core/SKILL.md` — convenções e armadilhas ao editar `ascii_art_generator/*.py` (consulta antes de mexer no core)
+- `.claude/skills/generator-test-battery/SKILL.md` — a bateria de testes de regressão em si (o quê testar); pode ser invocada inline ou pelo subagent abaixo
+- `.claude/agents/generator-tester.md` — subagent fino que invoca a skill acima num contexto isolado e devolve só um relatório PASS/FAIL; invoca-o sempre depois de alterar `ascii_art.py`, `cli.py`, `smart_generator.py` ou `main.py`
+- `.claude/skills/adr/SKILL.md` — como documentar decisões de arquitetura significativas em `docs/adr/`
+
 ## Capacidades do Projeto
 O projeto suporta:
 - **Formas geométricas**: retângulo, círculo, triângulo, coração, diamante, espiral, árvore, estrela, hexágono, oval, seta, pentágono, borboleta, flor
@@ -25,7 +32,7 @@ O projeto suporta:
 - **Banners e Caixas**: com texto personalizado
 - **Estilos**:
   - **Cores**: red, green, blue, yellow, cyan, magenta, white, black (e variantes `bright_*`/`light_*`)
-  - **Preenchimento**: solid, empty, dotted, striped, crosshatch, checkerboard, gradient, random, entre outros (30 padrões em `smart_generator.py`)
+  - **Preenchimento**: solid, empty, dotted, striped, crosshatch, checkerboard, gradient, random, entre outros (31 padrões em `smart_generator.py`)
   - **Bordas**: simple, double, dashed, wavy, bold, light, fancy, rounded, entre outras
 
 Ver a skill `ascii-art` (`.claude/skills/ascii-art/SKILL.md`) para o catálogo completo com funções/ficheiros/assinaturas.
@@ -44,12 +51,14 @@ make a circle with radius 8
 draw a heart size 2
 write HELLO
 make a rectangle 8x4 with color cyan
+make a rectangle 8x4 with color cyan style dotted
+make a spiral 20
+make an emoji
+make a circle with radius 5 color blue and a rectangle 10x5 color red
 ```
 
 ## Limitações Conhecidas
-- `ENCommandParser` **não suporta comandos compostos** ("a circle ... and a rectangle ...") — só a primeira forma é desenhada, e os parâmetros da segunda parte podem contaminar a primeira. Ver `.claude/skills/ascii-art/SKILL.md` para detalhe.
-- `"write TEXT with font X"` é frágil quando `X` coincide com o nome de uma forma (ex.: `banner`).
-- `"style X"` está mapeado para `font`, não para `fill` — usa `fill X` para pedir um preenchimento.
 - Não suporta animações GIF (apenas terminal)
 - Cores dependem de suporte ANSI do terminal
 - Fontes limitadas às definições atuais (small, block, banner, shadow)
+- O separador de comandos compostos (`"and"`) é baseado em palavras — uma lista de cores numa única forma (`"with color red and blue"`) pode ser lida por engano como duas formas

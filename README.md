@@ -79,14 +79,16 @@ make a circle with radius 8 color blue
 draw a heart size 2
 write HELLO
 make a rectangle 8x4 with color cyan
+make a rectangle 8x4 with color cyan style dotted
+make a spiral 20
+make an emoji
+make a circle with radius 5 color blue and a rectangle 10x5 color red
 ```
 
 ### Known limitations
 
-- The English command parser (`ENCommandParser`) **does not support compound commands** — `"a circle ... and a rectangle ..."` only draws the first shape.
-- `"write TEXT with font X"` can misbehave if `X` matches the name of a shape (e.g. `banner`).
-- `"style X"` maps to the font, not the fill — use `fill X` to request a fill pattern instead.
 - No GIF animations (terminal only); colors depend on the terminal's ANSI support.
+- The `"and"` compound-command splitter is word-based, so a color list like `"with color red and blue"` on a single shape may get misread as two shapes.
 
 ## Project structure
 

@@ -5,7 +5,7 @@ Command Line Interface for ASCII Generator
 import sys
 import time
 import re
-from typing import Callable, Dict, Any, Optional, Tuple
+from typing import Callable, Dict, Any, Optional, Tuple, List
 
 from .ascii_art import (
     text_to_ascii, draw_rectangle, draw_triangle, draw_circle,
@@ -130,13 +130,14 @@ class ENCommandParser:
         'pentagon': ['pentagon'],
         'butterfly': ['butterfly'],
         'flower': ['flower'],
+        'spiral': ['spiral', 'snail', 'volute'],
         # Patterns
         'gradient': ['gradient', 'degrade'],
         'checkerboard': ['checkerboard', 'chessboard'],
         'random': ['random'],
-        'abstract': ['abstract', 'art', 'painting'],
         # Random
-        'face': ['face', 'emoji', 'emoticon'],
+        'face': ['face'],
+        'emoji': ['emoji', 'emoticon'],
         'animal': ['animal', 'creature', 'crow', 'raven', 'cat', 'dog', 'rabbit', 'bear', 'fish', 'penguin', 'owl'],
         # Text
         'text': ['text', 'word', 'phrase', 'letter', 'name'],
@@ -148,7 +149,7 @@ class ENCommandParser:
         'complex': ['complex', 'detailed', 'elaborate'],
         'geometric': ['geometric', 'geometry'],
         'nature': ['nature'],
-        'abstract': ['abstract', 'pattern', 'design'],
+        'abstract': ['abstract', 'art', 'painting', 'pattern', 'design'],
     }
     
     # Direction synonyms for triangle
@@ -298,19 +299,69 @@ class ENCommandParser:
         """Parse a natural language command and return structured data."""
         if not command or not command.strip():
             return None
-        
+
         command_lower = command.lower().strip()
-        
+
         # Check for intelligent mode exit commands
         if command_lower in ['menu', 'm', 'exit', 'quit', 'q', 'back']:
             return {'command': command_lower, 'action': command_lower}
-        
-        # Extract numbers first
+
+        # Split compound commands ("a circle ... and a rectangle ...")
+        parts = self._split_compound_command(command)
+        if len(parts) > 1:
+            parsed_parts = [p for p in (self._parse_single_command(part) for part in parts) if p]
+            if parsed_parts:
+                return {'command': 'compound', 'params': {}, 'compound': True, 'parts': parsed_parts}
+            return None
+
+        return self._parse_single_command(command)
+
+    def _split_compound_command(self, command: str) -> List[str]:
+        """Split a compound command like 'X and Y' into individual command strings."""
+        text = re.sub(r'\s*,\s*', ' and ', command)
+        words = text.split()
+        words_lower = [w.lower() for w in words]
+
+        # Words that mean "and" is joining parameter values, not two shapes
+        # (e.g. "with color red and blue"), so we shouldn't split there.
+        param_keywords = {
+            'color', 'colour', 'font', 'style', 'fill', 'filled', 'pattern',
+            'border', 'edge', 'size', 'width', 'height', 'radius', 'base',
+            'diameter', 'direction', 'dir', 'text',
+        }
+
+        split_positions = [
+            i for i, word in enumerate(words_lower)
+            if word == 'and' and not (i + 1 < len(words_lower) and words_lower[i + 1] in param_keywords)
+        ]
+
+        if not split_positions:
+            return [command]
+
+        parts = []
+        start = 0
+        for pos in split_positions:
+            segment = words[start:pos]
+            if segment:
+                parts.append(' '.join(segment))
+            start = pos + 1
+        if start < len(words):
+            parts.append(' '.join(words[start:]))
+
+        return parts if len(parts) > 1 else [command]
+
+    def _parse_single_command(self, command: str) -> Optional[Dict[str, Any]]:
+        """Parse a single (non-compound) command."""
+        command_lower = command.lower().strip()
+        if not command_lower:
+            return None
+
+        # Extract numbers first (scoped to this part only)
         numbers = self.extract_numbers(command_lower)
-        
+
         # Tokenize command
         tokens = command_lower.split()
-        
+
         # Find action verb
         action = None
         action_idx = -1
@@ -319,18 +370,29 @@ class ENCommandParser:
                 action = token
                 action_idx = i
                 break
-        
+
         if action is None:
             # Try to infer action from first token
             if tokens:
                 action = tokens[0]
                 action_idx = 0
-        
+
         # Find shape/object
         shape = None
         shape_idx = -1
-        
-        if action_idx >= 0:
+
+        # Text-oriented verbs always mean "the object is text", even if a
+        # later word happens to coincide with a shape/font name (e.g. "write
+        # HELLO with font banner" must not be read as drawing a banner).
+        if action in ['write', 'type', 'print', 'convert']:
+            shape = 'text'
+            text_start = action_idx + 1
+            if text_start < len(tokens):
+                if tokens[text_start] in ['a', 'an', 'the']:
+                    text_start += 1
+                shape_idx = text_start
+
+        if shape is None and action_idx >= 0:
             # Look for shape in remaining tokens
             for i in range(action_idx + 1, len(tokens)):
                 token = tokens[i]
@@ -338,25 +400,14 @@ class ENCommandParser:
                     shape = self.shape_to_key[token]
                     shape_idx = i
                     break
-                
+
                 # Check for "a/an/the" prefix
                 if i > 0 and tokens[i-1] in ['a', 'an', 'the']:
                     if token in self.shape_to_key:
                         shape = self.shape_to_key[token]
                         shape_idx = i
                         break
-        
-        # If no shape found, check if it's a text command
-        if shape is None and action in ['write', 'type', 'print', 'convert']:
-            shape = 'text'
-            # Find the text content
-            text_start = action_idx + 1
-            if text_start < len(tokens):
-                # Skip "a/an/the" if present
-                if tokens[text_start] in ['a', 'an', 'the']:
-                    text_start += 1
-                shape_idx = text_start
-        
+
         # If still no shape, try to find it differently
         if shape is None:
             for i, token in enumerate(tokens):
@@ -405,16 +456,16 @@ class ENCommandParser:
                         continue
                     
                     # Check for font
-                    elif token in ['font', 'style']:
+                    elif token == 'font':
                         if next_token in self.font_to_key:
                             params['font'] = self.font_to_key[next_token]
                         else:
                             params['font'] = next_token
                         i += 2
                         continue
-                    
-                    # Check for fill
-                    elif token in ['fill', 'filled', 'pattern']:
+
+                    # Check for fill style (e.g. "style dotted")
+                    elif token in ['fill', 'filled', 'pattern', 'style']:
                         if next_token in self.fill_to_key:
                             params['fill'] = self.fill_to_key[next_token]
                         else:
@@ -563,10 +614,10 @@ class ENCommandParser:
                 elif len(numbers) == 1:
                     final_params['width'] = numbers[0]
                     final_params['height'] = numbers[0]
-            elif command_name in ['circle', 'spiral']:
+            elif command_name == 'circle':
                 if numbers:
                     final_params['radius'] = numbers[0]
-            elif command_name in ['triangle', 'diamond', 'tree']:
+            elif command_name in ['triangle', 'diamond', 'tree', 'spiral']:
                 if numbers:
                     final_params['size'] = numbers[0]
             elif command_name == 'heart':
@@ -580,17 +631,37 @@ class ENCommandParser:
         if 'char' not in final_params:
             final_params['char'] = '#'
         
-        # Handle text commands
-        if command_name == 'text_to_ascii':
-            if 'text' not in final_params:
-                # Extract text from command
-                text_start = action_idx + 1
-                if text_start < len(tokens):
-                    if tokens[text_start] in ['a', 'an', 'the']:
-                        text_start += 1
-                    text_end = shape_idx if shape_idx > text_start else len(tokens)
-                    final_params['text'] = ' '.join(tokens[text_start:text_end])
-        
+        # Handle text commands: capture everything up to the next recognized
+        # keyword (e.g. "write HELLO with font small" -> text="HELLO",
+        # rather than swallowing "with font small" into the text itself).
+        if command_name == 'text_to_ascii' and 'text' not in final_params:
+            text_start = action_idx + 1
+            if text_start < len(tokens):
+                if tokens[text_start] in ['a', 'an', 'the']:
+                    text_start += 1
+                stop_words = {'with', 'font', 'style', 'color', 'colour',
+                               'fill', 'filled', 'pattern', 'border', 'edge'}
+                text_end = text_start
+                while text_end < len(tokens) and tokens[text_end] not in stop_words:
+                    text_end += 1
+                if text_end == text_start:
+                    text_end = len(tokens)
+                final_params['text'] = ' '.join(tokens[text_start:text_end]).upper()
+
+        # Handle banner/box commands: same idea, skipping the shape word
+        # itself and the optional "with text" marker before capturing.
+        if command_name in ('banner', 'box') and 'text' not in final_params:
+            text_start = shape_idx + 1
+            while text_start < len(tokens) and tokens[text_start] in ('with', 'text', 'a', 'an', 'the'):
+                text_start += 1
+            stop_words = {'color', 'colour', 'font', 'style', 'fill', 'filled',
+                          'pattern', 'border', 'edge', 'width', 'char', 'character'}
+            text_end = text_start
+            while text_end < len(tokens) and tokens[text_end] not in stop_words:
+                text_end += 1
+            if text_end > text_start:
+                final_params['text'] = ' '.join(tokens[text_start:text_end]).upper()
+
         # Build result dict
         result = {
             'raw': command,

@@ -25,7 +25,7 @@ funcionalidades novas.
 | Coração | `draw_heart(size, char)` | ascii_art.py | size: 1–3 apenas (padrões fixos) |
 | Diamante | `draw_diamond(size, char)` | ascii_art.py | size, char |
 | Árvore | `generate_tree(height, char)` | ascii_art.py | height, char |
-| Espiral | `generate_spiral(size, char)` | ascii_art.py | size, char |
+| Espiral | `generate_spiral(size, char)` | ascii_art.py | size, char (espiral de Arquimedes traçada na grelha, não um preenchimento sólido) |
 | Estrela | `draw_star(...)` | smart_generator.py | — |
 | Hexágono | `draw_hexagon(...)` | smart_generator.py | — |
 | Oval | `draw_oval(...)` | smart_generator.py | — |
@@ -39,7 +39,7 @@ funcionalidades novas.
 - `generate_gradient(width, height)` — degradê de densidade de caracteres
 - `generate_checkerboard(size, chars)` — tabuleiro/xadrez
 - `random_abstract(width, height)` — arte abstrata aleatória
-- `random_face()` / `random_animal()` / `random_emoji()` — geradores aleatórios de faces, animais (gato, cão, coruja, pinguim, peixe, urso, coelho, corvo) e emojis
+- `random_face()` / `random_animal()` / `random_emoji()` — geradores aleatórios de faces, animais (gato, cão, coruja, pinguim, peixe, urso, coelho, corvo) e emojis (`face`/`emoji` são chaves de forma distintas em `ENCommandParser.SHAPE_SYNONYMS` — "emoji"/"emoticon" já não caem em `random_face`)
 
 ## Texto para ASCII
 
@@ -75,26 +75,30 @@ Avançado (`SmartGenerator.BORDER_STYLES`): `none, simple, double, dashed, dotte
 
 ## Sintaxe de comandos (linguagem natural, inglês)
 
-O `ENCommandParser` extrai número(s), caracter, cor, fonte e estilo do texto livre. Exemplos válidos:
+O `ENCommandParser` extrai número(s), caracter, cor, fonte e estilo do texto livre, e suporta comandos compostos separados por `"and"` (cada parte é parseada independentemente por `_parse_single_command`, via `_split_compound_command`). Exemplos válidos:
 
 ```
 draw a rectangle 10x5
 make a circle with radius 8 color blue
 write HELLO
+write HELLO with font banner
 draw a heart size 2
-make a rectangle 8x4 with color cyan
+make a rectangle 8x4 with color cyan style dotted
+make a spiral 20
+make an emoji
+make a banner with text COOL
+make a circle with radius 5 color blue and a rectangle 10x5 color red
 ```
 
 ### Limitações conhecidas do `ENCommandParser`
 
-- **Sem suporte a comandos compostos.** `"a circle ... and a rectangle ..."` só desenha a primeira forma; os tokens da segunda parte são absorvidos como parâmetros errados da primeira (números e cor podem ficar trocados). Não uses "and" para combinar duas formas num único comando.
-- **`"write TEXT with font X"` é frágil.** Se `X` coincidir com o nome de uma forma (ex.: `banner`), o comando é interpretado como criar essa forma em vez de converter texto. E mesmo sem colisão, o sufixo "with font X" pode ser absorvido para dentro do texto convertido.
-- **`"style X"` está mapeado para `font`, não para `fill`.** Para pedir um preenchimento (dotted, striped, ...) em inglês, usa `fill X` em vez de `style X`.
+- **O separador `"and"` é baseado em palavras.** Uma lista de cores numa única forma (`"with color red and blue"`) pode ser lida por engano como duas formas — não há forma de desambiguar sem aspas/parâmetros nomeados.
 
 ## Ao adicionar uma forma/estilo novo
 
 1. Implementar a função geradora em `ascii_art.py` (formas base) ou `smart_generator.py` (formas avançadas/padrões).
-2. Registar sinónimos em `ENCommandParser.SHAPE_SYNONYMS` em `cli.py`.
+2. Registar sinónimos em `ENCommandParser.SHAPE_SYNONYMS` em `cli.py` — cuidado com chaves duplicadas no dict (uma chave repetida substitui silenciosamente a anterior em vez de a somar).
 3. Adicionar/ajustar o mapeamento em `shape_to_command` e a lógica de `params` em `parse_command` (EN) que constrói o dict `{'command': ..., 'params': {...}}`.
-4. Atualizar esta skill com a nova entrada na tabela/lista relevante.
-5. Testar com um comando real antes de dar como concluído.
+4. Se a função geradora for usada dentro de `smart_generator.py` (fills/bordas/`smart_gen`), envolve-a em `_normalize_lines(...)` antes de a tratar como lista de linhas — funções de `ascii_art.py` devolvem `str` (`'\n'.join(...)`), enquanto as de `smart_generator.py` devolvem `List[str]`; iterar uma `str` dá caracteres, não linhas.
+5. Atualizar esta skill com a nova entrada na tabela/lista relevante.
+6. Testar com um comando real antes de dar como concluído.
