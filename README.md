@@ -1,46 +1,46 @@
 # ASCII Generator
 
-Gerador de ASCII Art em Python: cria formas geométricas, converte texto em letras ASCII, gera padrões e animações simples de terminal — tudo através de comandos em linguagem natural (inglês) ou de um menu interativo.
+A Python ASCII Art generator: draws geometric shapes, converts text into ASCII letters, generates patterns, and runs simple terminal animations — all through natural-language (English) commands or an interactive menu.
 
-## Requisitos
+## Requirements
 
 - Python 3.10+
-- Sem dependências externas (só biblioteca standard)
+- No external dependencies (standard library only)
 
-## Instalação
+## Installation
 
 ```bash
 git clone https://github.com/JoaoTomas991/ascii_generator.git
 cd ascii_generator
 ```
 
-Não há nada para instalar — corre-se diretamente com `python3`.
+Nothing to install — just run it directly with `python3`.
 
-## Uso
+## Usage
 
-Há três formas de usar o gerador:
+There are three ways to use the generator:
 
-### 1. Modo menu (interativo)
+### 1. Menu mode (interactive)
 
 ```bash
 python3 run.py
-# ou
+# or
 make run
 ```
 
-Mostra um menu com todas as formas, padrões, texto e animações disponíveis.
+Shows a menu with all available shapes, patterns, text, and animations.
 
-### 2. Modo inteligente (linguagem natural, dentro do menu)
+### 2. Intelligent mode (natural language, inside the menu)
 
-No menu, escolhe `i` para entrar em modo inteligente e escreve comandos em inglês livremente:
+From the menu, choose `i` to enter intelligent mode and type commands freely in English:
 
 ```bash
 python3 run.py --intelligent
-# ou
+# or
 make intelligent
 ```
 
-### 3. Comando direto (uma linha, não interativo)
+### 3. Direct command (single line, non-interactive)
 
 ```bash
 python3 run.py "draw a rectangle 10x5"
@@ -48,7 +48,7 @@ python3 run.py "make a circle with radius 8 color blue"
 python3 run.py "write HELLO with font banner"
 ```
 
-Também há atalhos no `Makefile`:
+There are also shortcuts in the `Makefile`:
 
 ```bash
 make command-draw      # draw a rectangle 10x5
@@ -59,19 +59,19 @@ make command-banner    # make a banner with text ASCII ART
 make command-text      # write HELLO with font banner
 ```
 
-Alternativa: `./start.sh` abre um pequeno menu de arranque (modo menu, modo inteligente, comando direto ou ajuda).
+Alternative: `./start.sh` opens a small startup menu (menu mode, intelligent mode, direct command, or help).
 
-## Capacidades
+## Capabilities
 
-- **Formas**: rectangle, circle, triangle, heart, diamond, spiral, tree, star, hexagon, oval, arrow, pentagon, butterfly, flower
-- **Texto para ASCII**: 4 fontes — `small`, `block`, `banner`, `shadow`
-- **Padrões**: gradient, checkerboard, abstract/random art
-- **Aleatórios**: faces, animais (gato, cão, coelho, urso, peixe, pinguim, coruja, corvo), emojis
-- **Banners e caixas** com texto personalizado
-- **Animações de terminal**: spinner, barra de progresso
-- **Estilo**: cor (ANSI: red, green, blue, yellow, cyan, magenta, white, black + variantes `bright_*`), até 31 padrões de preenchimento e várias bordas — ver `.claude/skills/ascii-art/SKILL.md` para o catálogo completo com funções e ficheiros
+- **Shapes**: rectangle, circle, triangle, heart, diamond, spiral, tree, star, hexagon, oval, arrow, pentagon, butterfly, flower
+- **Text to ASCII**: 4 fonts — `small`, `block`, `banner`, `shadow`
+- **Patterns**: gradient, checkerboard, abstract/random art
+- **Random generators**: faces, animals (cat, dog, rabbit, bear, fish, penguin, owl, crow), emojis
+- **Banners and boxes** with custom text
+- **Terminal animations**: spinner, progress bar
+- **Styling**: color (ANSI: red, green, blue, yellow, cyan, magenta, white, black + `bright_*` variants), up to 31 fill patterns, and several border styles — see `.claude/skills/ascii-art/SKILL.md` for the full catalog with functions and files
 
-### Exemplos de comandos
+### Example commands
 
 ```
 draw a rectangle 10x5
@@ -81,35 +81,35 @@ write HELLO
 make a rectangle 8x4 with color cyan
 ```
 
-### Limitações conhecidas
+### Known limitations
 
-- Os comandos em inglês (`ENCommandParser`) **não suportam comandos compostos** — `"a circle ... and a rectangle ..."` só desenha a primeira forma.
-- `"write TEXT with font X"` pode falhar se `X` coincidir com o nome de uma forma (ex.: `banner`).
-- `"style X"` está mapeado para a fonte, não para o preenchimento — usa `fill X` para pedir um padrão de preenchimento.
-- Sem animações GIF (só terminal); cores dependem de suporte ANSI do terminal.
+- The English command parser (`ENCommandParser`) **does not support compound commands** — `"a circle ... and a rectangle ..."` only draws the first shape.
+- `"write TEXT with font X"` can misbehave if `X` matches the name of a shape (e.g. `banner`).
+- `"style X"` maps to the font, not the fill — use `fill X` to request a fill pattern instead.
+- No GIF animations (terminal only); colors depend on the terminal's ANSI support.
 
-## Estrutura do projeto
+## Project structure
 
 ```
 ascii_art_generator/
-├── ascii_art.py        # formas base, fontes, padrões, banners, animações
-├── cli.py              # ENCommandParser + interface de linha de comandos
-├── smart_generator.py  # formas avançadas, padrões de preenchimento/borda, geração aleatória
-└── main.py             # ponto de entrada
+├── ascii_art.py        # base shapes, fonts, patterns, banners, animations
+├── cli.py              # ENCommandParser + command-line interface
+├── smart_generator.py  # advanced shapes, fill/border patterns, random generation
+└── main.py             # entry point
 
-run.py       # script de arranque (menu / inteligente / comando direto)
-start.sh     # menu de arranque interativo
-Makefile     # atalhos de execução e testes
+run.py       # startup script (menu / intelligent / direct command)
+start.sh     # interactive startup menu
+Makefile     # run and test shortcuts
 ```
 
-## Testar
+## Testing
 
 ```bash
 make test
 ```
 
-Corre um smoke test aos imports principais e ao parser de comandos.
+Runs a smoke test against the main imports and the command parser.
 
-## Desenvolvimento com Claude Code
+## Developing with Claude Code
 
-O projeto inclui `CLAUDE.md` com as convenções do agente e uma skill (`.claude/skills/ascii-art/SKILL.md`) com o catálogo completo de formas, fontes, cores, preenchimentos e bordas — consulta-os antes de adicionar uma forma ou estilo novo.
+The project includes `CLAUDE.md` with agent conventions, and a skill (`.claude/skills/ascii-art/SKILL.md`) with the full catalog of shapes, fonts, colors, fill patterns, and borders — check them before adding a new shape or style.
