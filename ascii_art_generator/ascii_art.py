@@ -8,7 +8,7 @@ import math
 import random
 import time
 import sys
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 
 
 # =============================================================================
@@ -395,6 +395,89 @@ def random_animal() -> str:
     """Generate a random ASCII animal."""
     animal = random.choice(list(ANIMALS.keys()))
     return ANIMALS[animal]
+
+
+# Visual families used to pick a plausible fallback drawing for animal
+# words the parser recognizes but that don't have bespoke art of their own
+# (see get_animal_art below) - e.g. "eagle" falls back to a bird we do
+# draw instead of a random animal from any family.
+ANIMAL_FAMILIES: Dict[str, List[str]] = {
+    'bird': ['crow', 'raven', 'owl'],
+    'fish': ['fish'],
+    'cat': ['cat'],
+    'dog': ['dog'],
+    'bear': ['bear'],
+    'rabbit': ['rabbit'],
+    'penguin': ['penguin'],
+}
+
+# Common animal nouns without their own drawing, mapped to the family whose
+# art best represents them. Anything not listed here still resolves (via
+# get_animal_art's fallback) to a random animal instead of failing.
+ANIMAL_WORD_FAMILY: Dict[str, str] = {
+    # birds
+    'bird': 'bird', 'eagle': 'bird', 'hawk': 'bird', 'sparrow': 'bird',
+    'seagull': 'bird', 'dove': 'bird', 'parrot': 'bird', 'peacock': 'bird',
+    'duck': 'bird', 'goose': 'bird', 'swan': 'bird', 'pigeon': 'bird',
+    'falcon': 'bird', 'vulture': 'bird', 'flamingo': 'bird',
+    'woodpecker': 'bird', 'robin': 'bird', 'canary': 'bird', 'stork': 'bird',
+    'pelican': 'bird', 'toucan': 'bird', 'chicken': 'bird', 'hen': 'bird',
+    'rooster': 'bird', 'turkey': 'bird', 'ostrich': 'bird',
+    # fish / sea creatures
+    'shark': 'fish', 'salmon': 'fish', 'tuna': 'fish', 'goldfish': 'fish',
+    'trout': 'fish', 'bass': 'fish', 'carp': 'fish', 'eel': 'fish',
+    'whale': 'fish', 'dolphin': 'fish', 'stingray': 'fish',
+    # cat family
+    'kitten': 'cat', 'kitty': 'cat', 'lion': 'cat', 'tiger': 'cat',
+    'leopard': 'cat', 'panther': 'cat', 'lynx': 'cat', 'jaguar': 'cat',
+    'cheetah': 'cat',
+    # dog family
+    'puppy': 'dog', 'wolf': 'dog', 'fox': 'dog', 'hound': 'dog',
+    'husky': 'dog', 'poodle': 'dog', 'coyote': 'dog', 'jackal': 'dog',
+    # bear family
+    'panda': 'bear', 'koala': 'bear', 'grizzly': 'bear',
+    # rabbit family
+    'bunny': 'rabbit', 'hare': 'rabbit',
+}
+
+# Animal words with no obvious matching family - still recognized as "the
+# user wants an animal", but get_animal_art falls back to a fully random
+# pick among ANIMALS for these.
+UNCATEGORIZED_ANIMAL_WORDS = [
+    'horse', 'snake', 'elephant', 'mouse', 'rat', 'frog', 'toad', 'sheep',
+    'lamb', 'cow', 'bull', 'pig', 'spider', 'turtle', 'tortoise', 'monkey',
+    'ape', 'gorilla', 'chimpanzee', 'chimp', 'giraffe', 'zebra', 'kangaroo',
+    'deer', 'goat', 'hedgehog', 'squirrel', 'camel', 'donkey', 'mule',
+    'bat', 'hippo', 'hippopotamus', 'octopus', 'crab', 'lobster', 'shrimp',
+    'jellyfish', 'ant', 'bee', 'wasp', 'worm', 'alligator', 'crocodile',
+    'seal', 'walrus', 'otter', 'beaver', 'moose', 'buffalo', 'bison',
+    'raccoon', 'skunk', 'mole', 'weasel', 'ferret', 'gecko', 'iguana',
+    'chameleon', 'scorpion', 'centipede',
+]
+
+# Every word the parser should recognize as "the user wants an animal" -
+# both the ones with dedicated art (ANIMALS' own keys) and the broader
+# vocabulary above. Exposed so cli.py's SHAPE_SYNONYMS doesn't need to
+# maintain its own separate copy of this list.
+KNOWN_ANIMAL_WORDS: List[str] = sorted(
+    set(ANIMALS.keys()) | set(ANIMAL_WORD_FAMILY.keys()) | set(UNCATEGORIZED_ANIMAL_WORDS)
+)
+
+
+def get_animal_art(name: str) -> Tuple[str, bool]:
+    """Get ASCII art for an animal by name.
+
+    Returns (art, has_dedicated_art). Many animal words are recognized by
+    the command parser without a bespoke drawing existing for them - in
+    that case this falls back to a drawing from the same visual family when
+    one is known (e.g. "eagle" -> a bird we do draw), or a random animal
+    otherwise, instead of failing outright.
+    """
+    if name in ANIMALS:
+        return ANIMALS[name], True
+    family = ANIMAL_WORD_FAMILY.get(name)
+    pool = ANIMAL_FAMILIES.get(family, list(ANIMALS.keys()))
+    return ANIMALS[random.choice(pool)], False
 
 
 def random_emoji() -> str:

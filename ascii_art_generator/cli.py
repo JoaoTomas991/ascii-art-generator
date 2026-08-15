@@ -13,7 +13,8 @@ from .ascii_art import (
     generate_spiral, generate_tree, random_abstract, random_face,
     random_animal, random_emoji, create_banner, create_box,
     get_available_fonts, spinner_animation, progress_bar,
-    get_color_code, get_border_chars, get_fill_style_pattern, ANIMALS
+    get_color_code, get_border_chars, get_fill_style_pattern,
+    get_animal_art, KNOWN_ANIMAL_WORDS
 )
 from .smart_generator import (
     smart_gen, apply_fill_pattern, apply_border,
@@ -139,7 +140,11 @@ class ENCommandParser:
         # Random
         'face': ['face'],
         'emoji': ['emoji', 'emoticon'],
-        'animal': ['animal', 'creature', 'crow', 'raven', 'cat', 'dog', 'rabbit', 'bear', 'fish', 'penguin', 'owl'],
+        # 'animal'/'creature' pick a fully random animal; every other word
+        # here names one specific animal and is recognized even when it has
+        # no bespoke drawing of its own - see get_animal_art in ascii_art.py
+        # for the fallback that picks a plausible substitute in that case.
+        'animal': ['animal', 'creature'] + KNOWN_ANIMAL_WORDS,
         # Text
         'text': ['text', 'word', 'phrase', 'letter', 'name'],
         'banner': ['banner'],
@@ -981,14 +986,17 @@ class ASCIIArtCLI:
         time.sleep(0.5)
         self.run_intelligent_mode()
     
-    def _get_specific_animal_art(self, animal_name: str) -> str:
-        """Get ASCII art for a specific animal by name."""
-        return ANIMALS.get(animal_name, f"Animal '{animal_name}' não encontrado.")
-    
-    def _show_specific_animal(self, animal_name: str) -> None:
-        """Show a specific animal by name."""
-        art = self._get_specific_animal_art(animal_name)
-        print(f"\n{Colors.OKGREEN}{art}{Colors.ENDC}")
+    def _print_specific_animal(self, animal_name: str, color: Optional[str] = None) -> None:
+        """Print ASCII art for a specific animal by name.
+
+        Falls back to a plausible substitute (see get_animal_art) with an
+        explanatory note when there's no bespoke drawing for animal_name,
+        instead of failing outright.
+        """
+        art, has_dedicated_art = get_animal_art(animal_name)
+        if not has_dedicated_art:
+            print(f"{Colors.WARNING}Ainda não tenho um desenho próprio para '{animal_name}' — aqui está um parecido:{Colors.ENDC}")
+        print(f"\n{self._apply_color(art, color)}")
     
     def menu_showcase(self) -> None:
         """Display showcase."""
@@ -1241,7 +1249,7 @@ INTELLIGENT MODE (type 'i' to activate):
             'showcase': self.menu_showcase,
             'help': self.menu_help,
             'quit': lambda: None,
-            'specific_animal': lambda: print(f"\n{self._apply_color(self._get_specific_animal_art(params.get('animal', 'crow')), color)}"),
+            'specific_animal': lambda: self._print_specific_animal(params.get('animal', 'crow'), color),
         }
         
         if command in command_mapping:
