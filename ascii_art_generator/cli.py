@@ -541,7 +541,7 @@ class ENCommandParser:
                         continue
                     
                     # Check for direction
-                    elif token in ['direction', 'dir']:
+                    elif token in ['direction', 'dir', 'pointing', 'facing']:
                         if next_token in self.direction_to_key:
                             params['direction'] = self.direction_to_key[next_token]
                         else:
@@ -670,7 +670,7 @@ class ENCommandParser:
                     final_params['size'] = numbers[0]
             elif command_name == 'heart':
                 if numbers:
-                    final_params['size'] = min(max(numbers[0], 1), 3)
+                    final_params['size'] = min(max(numbers[0], 1), 8)
             elif command_name in ['checkerboard', 'gradient', 'random_art']:
                 if numbers:
                     final_params['size'] = numbers[0]
@@ -880,7 +880,7 @@ class ASCIIArtCLI:
         """Heart menu."""
         print(f"\n{Colors.OKBLUE}=== Heart ==={Colors.ENDC}")
         try:
-            size = int(input("Size (1-3) [2]: ") or "2")
+            size = int(input("Size (1-8) [2]: ") or "2")
             char = input("Character [*]: ") or "*"
             print(f"\n{Colors.OKGREEN}{draw_heart(size, char)}{Colors.ENDC}")
         except ValueError:

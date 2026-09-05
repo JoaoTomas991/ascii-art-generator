@@ -22,7 +22,7 @@ funcionalidades novas.
 | Retângulo | `draw_rectangle(width, height, char, filled)` | ascii_art.py | width, height, char, filled |
 | Triângulo | `draw_triangle(height, char, direction)` | ascii_art.py | height, char, direction: up/down/left/right |
 | Círculo | `draw_circle(radius, char)` | ascii_art.py | radius, char |
-| Coração | `draw_heart(size, char)` | ascii_art.py | size: 1–3 apenas (padrões fixos) |
+| Coração | `draw_heart(size, char)` | ascii_art.py | size: 1–8 (gerado algoritmicamente, escala com o tamanho) |
 | Diamante | `draw_diamond(size, char)` | ascii_art.py | size, char |
 | Árvore | `generate_tree(height, char)` | ascii_art.py | height, char |
 | Espiral | `generate_spiral(size, char)` | ascii_art.py | size, char (espiral de Arquimedes traçada na grelha, não um preenchimento sólido) |

@@ -236,36 +236,19 @@ def draw_circle(radius: int, char: str = 'O') -> str:
 
 
 def draw_heart(size: int = 3, char: str = '*') -> str:
-    """Draw a heart shape."""
-    patterns = {
-        1: [" * ", "* *", " * "],
-        2: [
-            "  ** **  ",
-            " ****** ",
-            "********",
-            " ****** ",
-            "  ****  ",
-            "   **   ",
-            "    *    "
-        ],
-        3: [
-            "   **    **   ",
-            "  ****  ****  ",
-            " *********** ",
-            " *********** ",
-            "  *********  ",
-            "   *******   ",
-            "    *****    ",
-            "     ***     ",
-            "      *      "
-        ]
-    }
-    
-    if size not in patterns:
-        size = min(max(size, 1), 3)
-    
-    heart = patterns[size]
-    return '\n'.join([line.replace('*', char) for line in heart])
+    """Draw a heart shape, scaled by size (rounded lobes, pointed base)."""
+    size = min(max(size, 1), 8)
+    n = size * 4
+
+    contents = []
+    for i in range(n // 2, n + 1, 2):
+        gap = n - i
+        contents.append(char * i + ' ' * gap + char * i)
+    for i in range(n, 0, -1):
+        contents.append(char * (2 * i - 1))
+
+    width = max(len(line) for line in contents)
+    return '\n'.join(line.center(width) for line in contents)
 
 
 def draw_diamond(size: int, char: str = '*') -> str:

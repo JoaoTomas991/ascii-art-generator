@@ -283,41 +283,80 @@ def create_shadow_border(grid: List[str], char: str) -> List[str]:
 # ADVANCED SHAPES
 # =============================================================================
 
+def _star_vertices(points: int, outer_r: float, inner_r: float) -> List[Tuple[float, float]]:
+    """Alternating outer/inner vertices of a regular star polygon, first point straight up."""
+    verts = []
+    for i in range(points * 2):
+        angle = -math.pi / 2 + i * math.pi / points
+        r = outer_r if i % 2 == 0 else inner_r
+        verts.append((r * math.cos(angle), r * math.sin(angle)))
+    return verts
+
+
+def _point_in_polygon(px: float, py: float, poly: List[Tuple[float, float]]) -> bool:
+    """Even-odd ray casting test."""
+    inside = False
+    x1, y1 = poly[-1]
+    for x2, y2 in poly:
+        if (y1 > py) != (y2 > py):
+            x_at_py = (py - y1) * (x2 - x1) / (y2 - y1) + x1
+            if px < x_at_py:
+                inside = not inside
+        x1, y1 = x2, y2
+    return inside
+
+
 def draw_star(size: int = 5, char: str = '*') -> List[str]:
-    """Draw a star shape."""
-    if size < 3:
-        size = 3
-    
+    """Draw a filled 4-pointed star (concave sparkle shape, distinct from a diamond)."""
+    size = min(max(size, 3), 12)
+    outer_r = size
+    inner_r = size * 0.42
+    poly = _star_vertices(4, outer_r, inner_r)
+
+    width = size * 4 + 3
+    height = size * 2 + 3
+    cx, cy = width / 2, height / 2
+    supersample = 3
+
     result = []
-    center = size
-    
-    for y in range(size * 2 + 1):
+    for y in range(height):
         line = []
-        for x in range(size * 2 + 1):
-            dx = x - center
-            dy = y - center
-            # Star points
-            if (abs(dx) == size and dy == 0) or (abs(dy) == size and dx == 0):
-                line.append(char)
-            elif (abs(dx) + abs(dy) == size and dx * dy != 0):
-                line.append(char)
-            else:
-                line.append(' ')
-        result.append(''.join(line))
-    
+        for x in range(width):
+            hits = 0
+            for sy in range(supersample):
+                for sx in range(supersample):
+                    # x is halved to correct for characters being roughly
+                    # twice as tall as they are wide.
+                    wx = (x + (sx + 0.5) / supersample - cx) / 2.0
+                    wy = y + (sy + 0.5) / supersample - cy
+                    if _point_in_polygon(wx, wy, poly):
+                        hits += 1
+            line.append(char if hits * 2 >= supersample * supersample else ' ')
+        result.append(''.join(line).rstrip())
+
+    while result and not result[0].strip():
+        result.pop(0)
+    while result and not result[-1].strip():
+        result.pop()
     return result
 
 
 def draw_hexagon(size: int = 5, char: str = '#') -> List[str]:
-    """Draw a hexagon shape."""
+    """Draw a flat-top/flat-bottom hexagon (slanted corners, straight sides)."""
+    size = max(size, 2)
+    slant = max(1, size // 2)
+    flat_width = size * 2 + 1
     result = []
-    
-    for y in range(size * 2 + 1):
-        offset = abs(y - size)
-        width = size * 2 + 1 - offset * 2
-        line = ' ' * offset + char * width
-        result.append(line)
-    
+
+    for i in range(slant):
+        offset = slant - i
+        result.append(' ' * offset + char * (flat_width - 2 * offset))
+    for _ in range(size):
+        result.append(char * flat_width)
+    for i in range(slant):
+        offset = i + 1
+        result.append(' ' * offset + char * (flat_width - 2 * offset))
+
     return result
 
 
@@ -340,54 +379,48 @@ def draw_oval(width: int = 10, height: int = 5, char: str = '#') -> List[str]:
 
 
 def draw_arrow(direction: str = 'right', size: int = 5, char: str = '#') -> List[str]:
-    """Draw an arrow pointing in a direction."""
-    arrows = {
-        'right': [
-            '  ' + char * size,
-            ' ' + char * size,
-            char * (size + 2),
-            ' ' + char * size,
-            '  ' + char * size
-        ],
-        'left': [
-            char * size + '  ',
-            char * size + ' ',
-            char * (size + 2),
-            char * size + ' ',
-            char * size + '  '
-        ],
-        'up': [
-            '  ' + char + '  ',
-            ' ' + char * 3 + ' ',
-            char * 5,
-            ' ' + char * 3 + ' ',
-            '  ' + char + '  '
-        ],
-        'down': [
-            '  ' + char + '  ',
-            ' ' + char * 3 + ' ',
-            char * 5,
-            ' ' + char * 3 + ' ',
-            '  ' + char + '  '
-        ],
-    }
-    
-    if direction in arrows:
-        return arrows[direction]
-    else:
-        return arrows['right']
+    """Draw a shaft-and-arrowhead arrow pointing right/left/up/down, scaled by size."""
+    size = max(size, 2)
+    head_h = 2 * size - 1
+    mid = size - 1
+
+    lines = []
+    for i in range(head_h):
+        dist = abs(i - mid)
+        head_width = size - dist
+        pad = size - head_width
+        if dist == 0:
+            lines.append(char * size + char * head_width)
+        else:
+            lines.append(' ' * (size + pad) + char * head_width)
+
+    if direction == 'left':
+        return [line[::-1] for line in lines]
+
+    if direction in ('up', 'down'):
+        width = max(len(line) for line in lines)
+        lines = [line.ljust(width) for line in lines]
+        columns = [''.join(line[c] for line in lines) for c in range(width)]
+        return columns[::-1] if direction == 'up' else columns
+
+    return lines
 
 
 def draw_pentagon(size: int = 5, char: str = '#') -> List[str]:
-    """Draw a pentagon shape."""
+    """Draw a pentagon (triangular roof over a rectangular body)."""
+    size = max(size, 3)
+    width = 2 * size - 1
     result = []
-    
-    for y in range(size * 2 + 1):
-        offset = abs(y - size)
-        width = size * 2 + 1 - offset
-        line = ' ' * offset + char * width
-        result.append(line)
-    
+
+    for i in range(size):
+        stars = 2 * i + 1
+        offset = (width - stars) // 2
+        result.append(' ' * offset + char * stars)
+
+    body_height = max(2, size // 2)
+    for _ in range(body_height):
+        result.append(char * width)
+
     return result
 
 
@@ -625,7 +658,7 @@ class SmartGenerator:
             elif shape == 'circle':
                 art = func(size, char)
             elif shape == 'heart':
-                art = func(min(size, 3), char)
+                art = func(size, char)
             elif shape == 'diamond':
                 art = func(size, char)
             elif shape == 'spiral':
@@ -685,15 +718,17 @@ class SmartGenerator:
             elif shape == 'circle':
                 art = func(size, char)
             elif shape == 'heart':
-                art = func(min(size, 3), char)
+                art = func(size, char)
             elif shape == 'diamond':
                 art = func(size, char)
             elif shape == 'spiral':
                 art = func(size * 2, char)
             elif shape == 'tree':
                 art = func(size, char)
+            elif shape == 'arrow':
+                art = func('right', size, char)
             else:
-                art = func(size, char) if shape in ['star', 'hexagon', 'arrow', 'pentagon', 'butterfly', 'flower'] else [f"Unknown: {shape}"]
+                art = func(size, char) if shape in ['star', 'hexagon', 'pentagon', 'butterfly', 'flower'] else [f"Unknown: {shape}"]
 
             art = _normalize_lines(art)
 
@@ -764,7 +799,7 @@ class SmartGenerator:
                 elif shape == 'circle':
                     art = draw_circle(size, char)
                 elif shape == 'heart':
-                    art = draw_heart(min(size, 3), char)
+                    art = draw_heart(size, char)
                 elif shape == 'diamond':
                     art = draw_diamond(size, char)
                 elif shape == 'star':
