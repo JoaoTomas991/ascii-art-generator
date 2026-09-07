@@ -38,7 +38,15 @@ def run_command(command: str):
     
     cli = ASCIIArtCLI()
     cli.intelligent_mode = True
-    
+
+    # "teach <word> as <mood>" isn't parsed like a drawing command - it's
+    # handled directly here too (not just in the intelligent-mode REPL) so
+    # a learned word can be taught and used across two separate one-shot
+    # invocations, since it persists to disk (see learned_words.py).
+    if command.lower().strip().startswith('teach '):
+        cli._handle_teach_command(command.strip())
+        return
+
     # Parse and execute the command
     parsed = cli.parser.parse_command(command)
     

@@ -17,11 +17,12 @@ from .ascii_art import (
     get_animal_art, KNOWN_ANIMAL_WORDS
 )
 from .smart_generator import (
-    smart_gen, apply_fill_pattern, apply_border,
+    smart_gen, apply_fill_pattern, apply_border, mask_fill_pattern,
     draw_star, draw_hexagon, draw_oval, draw_arrow, draw_pentagon,
     draw_butterfly, draw_flower, get_available_fill_patterns,
     get_available_border_styles, get_available_shapes
 )
+from .image_art import image_to_ascii
 from .learned_words import load_learned_moods, save_learned_mood
 
 
@@ -35,6 +36,10 @@ class Colors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
+
+
+# Cycle used by the 'rainbow'/'multicolor' color, one shade per line of art.
+RAINBOW_COLORS = ['red', 'yellow', 'green', 'cyan', 'blue', 'magenta']
 
 
 class Menu:
@@ -202,6 +207,7 @@ class ENCommandParser:
         'light_yellow': ['light_yellow', 'lightyellow'],
         'light_cyan': ['light_cyan', 'lightcyan'],
         'light_magenta': ['light_magenta', 'lightmagenta'],
+        'rainbow': ['rainbow', 'multicolor', 'multicolour'],
     }
 
     # Mood synonyms (built-in). Teachable via the "teach <word> as <mood>"
@@ -348,6 +354,13 @@ class ENCommandParser:
         if not command or not command.strip():
             return None
 
+        # Checked against the original (not lower-cased) command: a file
+        # path is often case-sensitive, and the generic tokenizer below
+        # lower-cases everything it sees.
+        image_command = self._parse_image_command(command)
+        if image_command:
+            return image_command
+
         command_lower = command.lower().strip()
 
         # Check for intelligent mode exit commands
@@ -363,6 +376,45 @@ class ENCommandParser:
             return None
 
         return self._parse_single_command(command)
+
+    def _parse_image_command(self, command: str) -> Optional[Dict[str, Any]]:
+        """Parse 'convert image <path> [width N] [color]' style commands.
+
+        Kept separate from _parse_single_command's generic tokenizer
+        because a file path must keep its original case and can contain
+        characters (dots, slashes) that command word matching isn't meant
+        to handle.
+        """
+        match = re.match(
+            r'^\s*(?:convert\s+)?image(?:\s+to\s+ascii)?\s+(.+)$',
+            command.strip(), re.IGNORECASE,
+        )
+        if not match:
+            return None
+
+        remainder = match.group(1).strip()
+
+        color = False
+        color_match = re.search(r'\s+(?:with\s+)?colou?r\s*$', remainder, re.IGNORECASE)
+        if color_match:
+            remainder = remainder[:color_match.start()].strip()
+            color = True
+
+        width = 100
+        width_match = re.search(r'\s+width\s+(\d+)\s*$', remainder, re.IGNORECASE)
+        if width_match:
+            width = int(width_match.group(1))
+            remainder = remainder[:width_match.start()].strip()
+
+        path = remainder.strip('"\'')
+        if not path:
+            return None
+
+        return {
+            'raw': command,
+            'command': 'image_to_ascii',
+            'params': {'path': path, 'width': width, 'color': color},
+        }
 
     def _split_compound_command(self, command: str) -> List[str]:
         """Split a compound command like 'X and Y' into individual command strings."""
@@ -443,7 +495,11 @@ class ENCommandParser:
             shape = 'text'
             text_start = action_idx + 1
             if text_start < len(tokens):
-                if tokens[text_start] in ['a', 'an', 'the']:
+                # Only treat a leading 'a'/'an'/'the' as an article to skip
+                # when something follows it - otherwise a genuine one-word
+                # payload that collides with an article ("write A") would
+                # be swallowed and nothing would be left to capture.
+                if tokens[text_start] in ['a', 'an', 'the'] and text_start + 1 < len(tokens):
                     text_start += 1
                 shape_idx = text_start
 
@@ -701,7 +757,11 @@ class ENCommandParser:
             else:
                 text_start = shape_idx + 1 if shape_idx >= 0 else len(tokens)
             if text_start < len(tokens):
-                if tokens[text_start] in ['a', 'an', 'the']:
+                # Only treat a leading 'a'/'an'/'the' as an article to skip
+                # when something follows it - otherwise a genuine one-word
+                # payload that collides with an article ("write A") would
+                # be swallowed and nothing would be left to capture.
+                if tokens[text_start] in ['a', 'an', 'the'] and text_start + 1 < len(tokens):
                     text_start += 1
                 stop_words = {'with', 'font', 'style', 'color', 'colour',
                                'fill', 'filled', 'pattern', 'border', 'edge'}
@@ -717,6 +777,10 @@ class ENCommandParser:
         if command_name in ('banner', 'box') and 'text' not in final_params:
             text_start = shape_idx + 1
             while text_start < len(tokens) and tokens[text_start] in ('with', 'text', 'a', 'an', 'the'):
+                # As above: don't swallow a one-word payload that collides
+                # with an article ("with text A") when it's all that's left.
+                if tokens[text_start] in ('a', 'an', 'the') and text_start + 1 >= len(tokens):
+                    break
                 text_start += 1
             stop_words = {'color', 'colour', 'font', 'style', 'fill', 'filled',
                           'pattern', 'border', 'edge', 'width', 'char', 'character'}
@@ -823,6 +887,8 @@ class ASCIIArtCLI:
                            'Create a banner', 'Text & Fonts')
         self.menu.add_item('box', 'Text Box', self.menu_box,
                            'Create a text box', 'Text & Fonts')
+        self.menu.add_item('img', 'Image to ASCII', self.menu_image_to_ascii,
+                           'Convert an image file to ASCII art', 'Text & Fonts')
         self.menu.add_item('spin', 'Spinner', lambda: spinner_animation(2.0),
                            'Show a spinner', 'Animations')
         self.menu.add_item('pb', 'Progress Bar', lambda: progress_bar(3.0),
@@ -846,8 +912,8 @@ class ASCIIArtCLI:
         """Rectangle menu."""
         print(f"\n{Colors.OKBLUE}=== Rectangle ==={Colors.ENDC}")
         try:
-            width = int(input("Width: ") or "10")
-            height = int(input("Height: ") or "5")
+            width = int(input("Width: ") or "40")
+            height = int(input("Height: ") or "8")
             char = input("Character [#]: ") or "#"
             filled = input("Filled? (y/n) [y]: ").lower() or "y"
             print(f"\n{Colors.OKGREEN}{draw_rectangle(width, height, char, filled == 'y')}{Colors.ENDC}")
@@ -859,7 +925,7 @@ class ASCIIArtCLI:
         print(f"\n{Colors.OKBLUE}=== Triangle ==={Colors.ENDC}")
         print("Directions: up, down, left, right")
         try:
-            height = int(input("Height: ") or "5")
+            height = int(input("Height: ") or "8")
             char = input("Character [*]: ") or "*"
             direction = input("Direction [up]: ").strip() or "up"
             print(f"\n{Colors.OKGREEN}{draw_triangle(height, char, direction)}{Colors.ENDC}")
@@ -870,7 +936,7 @@ class ASCIIArtCLI:
         """Circle menu."""
         print(f"\n{Colors.OKBLUE}=== Circle ==={Colors.ENDC}")
         try:
-            radius = int(input("Radius: ") or "5")
+            radius = int(input("Radius: ") or "8")
             char = input("Character [O]: ") or "O"
             print(f"\n{Colors.OKGREEN}{draw_circle(radius, char)}{Colors.ENDC}")
         except ValueError:
@@ -880,7 +946,7 @@ class ASCIIArtCLI:
         """Heart menu."""
         print(f"\n{Colors.OKBLUE}=== Heart ==={Colors.ENDC}")
         try:
-            size = int(input("Size (1-8) [2]: ") or "2")
+            size = int(input("Size (1-12) [6]: ") or "6")
             char = input("Character [*]: ") or "*"
             print(f"\n{Colors.OKGREEN}{draw_heart(size, char)}{Colors.ENDC}")
         except ValueError:
@@ -890,7 +956,7 @@ class ASCIIArtCLI:
         """Diamond menu."""
         print(f"\n{Colors.OKBLUE}=== Diamond ==={Colors.ENDC}")
         try:
-            size = int(input("Size: ") or "5")
+            size = int(input("Size: ") or "8")
             char = input("Character [*]: ") or "*"
             print(f"\n{Colors.OKGREEN}{draw_diamond(size, char)}{Colors.ENDC}")
         except ValueError:
@@ -900,7 +966,7 @@ class ASCIIArtCLI:
         """Tree menu."""
         print(f"\n{Colors.OKBLUE}=== Christmas Tree ==={Colors.ENDC}")
         try:
-            height = int(input("Height: ") or "5")
+            height = int(input("Height: ") or "8")
             char = input("Character [*]: ") or "*"
             print(f"\n{Colors.OKGREEN}{generate_tree(height, char)}{Colors.ENDC}")
         except ValueError:
@@ -910,8 +976,8 @@ class ASCIIArtCLI:
         """Gradient menu."""
         print(f"\n{Colors.OKBLUE}=== Gradient ==={Colors.ENDC}")
         try:
-            width = int(input("Width: ") or "10")
-            height = int(input("Height: ") or "5")
+            width = int(input("Width: ") or "32")
+            height = int(input("Height: ") or "8")
             print(f"\n{Colors.OKGREEN}{generate_gradient(width, height)}{Colors.ENDC}")
         except ValueError:
             print(f"{Colors.FAIL}Invalid input.{Colors.ENDC}")
@@ -920,7 +986,7 @@ class ASCIIArtCLI:
         """Checkerboard menu."""
         print(f"\n{Colors.OKBLUE}=== Checkerboard ==={Colors.ENDC}")
         try:
-            size = int(input("Size: ") or "8")
+            size = int(input("Size: ") or "12")
             chars = input("Characters [# ]: ") or "# "
             print(f"\n{Colors.OKGREEN}{generate_checkerboard(size, chars)}{Colors.ENDC}")
         except ValueError:
@@ -930,7 +996,7 @@ class ASCIIArtCLI:
         """Spiral menu."""
         print(f"\n{Colors.OKBLUE}=== Spiral ==={Colors.ENDC}")
         try:
-            size = int(input("Size [10]: ") or "10")
+            size = int(input("Size [18]: ") or "18")
             char = input("Character [*]: ") or "*"
             print(f"\n{Colors.OKGREEN}{generate_spiral(size, char)}{Colors.ENDC}")
         except ValueError:
@@ -940,8 +1006,8 @@ class ASCIIArtCLI:
         """Random art menu."""
         print(f"\n{Colors.OKBLUE}=== Random Art ==={Colors.ENDC}")
         try:
-            width = int(input("Width: ") or "20")
-            height = int(input("Height: ") or "10")
+            width = int(input("Width: ") or "48")
+            height = int(input("Height: ") or "14")
             print(f"\n{Colors.OKGREEN}{random_abstract(width, height)}{Colors.ENDC}")
         except ValueError:
             print(f"{Colors.FAIL}Invalid input.{Colors.ENDC}")
@@ -978,7 +1044,21 @@ class ASCIIArtCLI:
         text = input("Text: ").strip() or "Hello\nWorld"
         char = input("Border char [#]: ") or "#"
         print(f"\n{Colors.OKGREEN}{create_box(text, None, char)}{Colors.ENDC}")
-    
+
+    def menu_image_to_ascii(self) -> None:
+        """Image to ASCII menu."""
+        print(f"\n{Colors.OKBLUE}=== Image to ASCII ==={Colors.ENDC}")
+        path = input("Image path: ").strip()
+        if not path:
+            print(f"{Colors.FAIL}No path given.{Colors.ENDC}")
+            return
+        try:
+            width = int(input("Width [100]: ") or "100")
+        except ValueError:
+            width = 100
+        color = (input("Color? (y/n) [n]: ").strip().lower() or "n") == "y"
+        self._render_image({'path': path, 'width': width, 'color': color})
+
     def _activate_intelligent_mode(self) -> None:
         """Activate intelligent mode."""
         self.intelligent_mode = True
@@ -997,7 +1077,23 @@ class ASCIIArtCLI:
         if not has_dedicated_art:
             print(f"{Colors.WARNING}Ainda não tenho um desenho próprio para '{animal_name}' — aqui está um parecido:{Colors.ENDC}")
         print(f"\n{self._apply_color(art, color)}")
-    
+
+    def _render_image(self, params: Dict[str, Any]) -> None:
+        """Convert an image file to ASCII art and print it (see image_art.py)."""
+        path = params.get('path', '')
+        width = params.get('width', 100)
+        color = params.get('color', False)
+        try:
+            art = image_to_ascii(path, width=width, color=color)
+        except ImportError as exc:
+            print(f"{Colors.FAIL}{exc}{Colors.ENDC}")
+        except FileNotFoundError:
+            print(f"{Colors.FAIL}Imagem não encontrada: {path}{Colors.ENDC}")
+        except Exception as exc:
+            print(f"{Colors.FAIL}Não foi possível ler a imagem '{path}': {exc}{Colors.ENDC}")
+        else:
+            print(f"\n{art}\n")
+
     def menu_showcase(self) -> None:
         """Display showcase."""
         print(f"\n{Colors.HEADER}=== ASCII Art Showcase ==={Colors.ENDC}\n")
@@ -1091,7 +1187,7 @@ INTELLIGENT MODE (type 'i' to activate):
         border = top_char * width
         result = [border]
         for line in lines:
-            padding = width - len(line) - 2
+            padding = width - len(line) - 3
             result.append(left_char + ' ' + line + ' ' * padding + right_char)
         result.append(bottom_char * width)
         
@@ -1107,6 +1203,12 @@ INTELLIGENT MODE (type 'i' to activate):
     def _apply_color(self, content: str, color: Optional[str] = None) -> str:
         """Apply color to content if specified."""
         if color:
+            if color.lower() in ('rainbow', 'multicolor', 'multicolour'):
+                lines = content.split('\n')
+                return '\n'.join(
+                    self._apply_color(line, RAINBOW_COLORS[i % len(RAINBOW_COLORS)])
+                    for i, line in enumerate(lines)
+                )
             # Use smart generator's color mapping which includes light colors
             color_map = {
                 'black': '\033[30m',
@@ -1139,36 +1241,6 @@ INTELLIGENT MODE (type 'i' to activate):
             return color_code + content + '\033[0m'
         return content
     
-    def _print_with_style(self, art: List[str], color: Optional[str], fill_pattern: str, border: str, char: str) -> None:
-        """Print art with fill pattern, border, and color styling."""
-        if not art:
-            print()
-            return
-        
-        # Convert to list if it's a single string
-        if isinstance(art, str):
-            art = art.split('\n')
-        
-        # Apply fill pattern if not solid
-        if fill_pattern != 'solid' and art:
-            height = len(art)
-            width = max(len(row) for row in art)
-            pattern_grid = apply_fill_pattern(width, height, fill_pattern, char)
-            art = pattern_grid
-        
-        # Apply border if specified
-        if border != 'none' and art:
-            art = apply_border(art, border, char)
-        
-        # Apply color
-        if color:
-            art = [self._apply_color(line, color) for line in art]
-        
-        # Print the result
-        if art:
-            print(f"\n{'\n'.join(art)}")
-            print()
-
     def execute_parsed_command(self, command_dict: Dict[str, Any]) -> None:
         """Execute a parsed command dictionary."""
         command = command_dict.get('command', '')
@@ -1186,7 +1258,16 @@ INTELLIGENT MODE (type 'i' to activate):
         # Handle smart generation commands
         if command in ['smart', 'surprise', 'random', 'interesting', 'amazing', 'minimal', 'complex', 'geometric', 'nature', 'abstract']:
             art = smart_gen.generate_from_command(command)
-            print(f"\n{Colors.OKGREEN}{'\n'.join(art)}{Colors.ENDC}")
+            joined = '\n'.join(art)
+            # smart_gen already colors its own output line-by-line when it
+            # picks a color; wrapping that in another color here nests ANSI
+            # codes and the inner reset kills the outer color early. Only
+            # apply the default green wrap when the art has no color of its
+            # own.
+            if '\033[' in joined:
+                print(f"\n{joined}")
+            else:
+                print(f"\n{Colors.OKGREEN}{joined}{Colors.ENDC}")
             return
         
         # Extract style parameters for smart patterns
@@ -1222,34 +1303,35 @@ INTELLIGENT MODE (type 'i' to activate):
         
         command_mapping = {
             'text_to_ascii': lambda: print(f"\n{self._apply_color(text_to_ascii(params.get('text', 'ASCII'), font), color)}"),
-            'rectangle': lambda: render_shape('rectangle', params.get('width', 10), params.get('height', 5), char, params.get('filled', True)),
-            'triangle': lambda: render_shape('triangle', params.get('height', 5), char, params.get('direction', 'up')),
-            'circle': lambda: render_shape('circle', params.get('radius', 5), char),
-            'heart': lambda: render_shape('heart', params.get('size', 2), char),
-            'diamond': lambda: render_shape('diamond', params.get('size', 5), char),
-            'tree': lambda: render_shape('tree', params.get('height', 5), char),
-            'star': lambda: render_shape('star', params.get('size', 5), char),
-            'hexagon': lambda: render_shape('hexagon', params.get('size', 5), char),
-            'oval': lambda: render_shape('oval', params.get('width', 10), params.get('height', 5), char),
-            'arrow': lambda: render_shape('arrow', params.get('direction', 'right'), params.get('size', 5), char),
-            'pentagon': lambda: render_shape('pentagon', params.get('size', 5), char),
-            'butterfly': lambda: render_shape('butterfly', params.get('size', 5), char),
-            'flower': lambda: render_shape('flower', params.get('size', 5), char),
-            'gradient': lambda: print(f"\n{self._apply_color(generate_gradient(params.get('width', 10), params.get('height', 5)), color)}"),
-            'checkerboard': lambda: print(f"\n{self._apply_color(generate_checkerboard(params.get('size', 8), params.get('chars', '# ')), color)}"),
-            'spiral': lambda: render_shape('spiral', params.get('size', 10), char),
-            'random_art': lambda: print(f"\n{self._apply_color(random_abstract(params.get('width', 20), params.get('height', 10)), color)}"),
+            'rectangle': lambda: render_shape('rectangle', params.get('width', 40), params.get('height', 8), char, params.get('filled', True)),
+            'triangle': lambda: render_shape('triangle', params.get('height', 8), char, params.get('direction', 'up')),
+            'circle': lambda: render_shape('circle', params.get('radius', 8), char),
+            'heart': lambda: render_shape('heart', params.get('size', 6), char),
+            'diamond': lambda: render_shape('diamond', params.get('size', 8), char),
+            'tree': lambda: render_shape('tree', params.get('height', 8), char),
+            'star': lambda: render_shape('star', params.get('size', 7), char),
+            'hexagon': lambda: render_shape('hexagon', params.get('size', 8), char),
+            'oval': lambda: render_shape('oval', params.get('width', 40), params.get('height', 8), char),
+            'arrow': lambda: render_shape('arrow', params.get('direction', 'right'), params.get('size', 8), char),
+            'pentagon': lambda: render_shape('pentagon', params.get('size', 8), char),
+            'butterfly': lambda: render_shape('butterfly', params.get('size', 8), char),
+            'flower': lambda: render_shape('flower', params.get('size', 7), char),
+            'gradient': lambda: print(f"\n{self._apply_color(generate_gradient(params.get('width', 32), params.get('height', 8)), color)}"),
+            'checkerboard': lambda: print(f"\n{self._apply_color(generate_checkerboard(params.get('size', 12), params.get('chars', '# ')), color)}"),
+            'spiral': lambda: render_shape('spiral', params.get('size', 18), char),
+            'random_art': lambda: print(f"\n{self._apply_color(random_abstract(params.get('width', 48), params.get('height', 14)), color)}"),
             'random_face': lambda: print(f"\n{self._apply_color(random_face(), color)}"),
             'random_animal': lambda: print(f"\n{self._apply_color(random_animal(), color)}"),
             'random_emoji': lambda: print(f"\n{self._apply_color(random_emoji(), color)}"),
             'banner': lambda: print(f"\n{self._create_custom_banner(params.get('text', 'ASCII'), params.get('width', 50), params.get('char', '='), color, border_style)}"),
-            'box': lambda: print(f"\n{self._create_custom_box(params.get('text', 'Hello\\nWorld'), params.get('char', '#'), color, border_style)}"),
+            'box': lambda: print(f"\n{self._create_custom_box(params.get('text', 'Hello\nWorld'), params.get('char', '#'), color, border_style)}"),
             'spinner': lambda: spinner_animation(params.get('duration', 2.0)),
             'progress_bar': lambda: progress_bar(params.get('duration', 3.0)),
             'showcase': self.menu_showcase,
             'help': self.menu_help,
             'quit': lambda: None,
             'specific_animal': lambda: self._print_specific_animal(params.get('animal', 'crow'), color),
+            'image_to_ascii': lambda: self._render_image(params),
         }
         
         if command in command_mapping:
@@ -1271,21 +1353,22 @@ INTELLIGENT MODE (type 'i' to activate):
         if isinstance(art, str):
             art = art.split('\n')
         
-        # Apply fill pattern if not solid
+        # Apply fill pattern, masked to the shape's own silhouette (a naive
+        # whole-grid swap would replace e.g. a hexagon with a plain rectangle)
         if fill_pattern != 'solid' and isinstance(art, list) and art:
-            height = len(art)
-            width = max(len(row) for row in art)
-            pattern_grid = apply_fill_pattern(width, height, fill_pattern, char)
-            art = pattern_grid
-        
+            art = mask_fill_pattern(art, fill_pattern, char)
+
         # Apply border if specified
         if border != 'none' and isinstance(art, list) and art:
             art = apply_border(art, border, char)
         
-        # Apply color
-        if color and isinstance(art, list):
-            art = [self._apply_color(line, color) for line in art]
-        
+        # Apply color. Colorize the whole block in one call (rather than
+        # each line separately) so 'rainbow' can cycle a color per line -
+        # calling _apply_color per line would give every line the same
+        # single-element cycle position instead of a gradient down the shape.
+        if color and isinstance(art, list) and art:
+            art = self._apply_color('\n'.join(art), color).split('\n')
+
         return art
     
     def run_intelligent_mode(self) -> None:

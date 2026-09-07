@@ -18,6 +18,11 @@ touching `ascii_art_generator/`.
   `smart_gen` random generation. Its own shape functions return `List[str]`.
 - `cli.py` — `ENCommandParser` (the ONLY command parser wired into the app —
   `ASCIIArtCLI.__init__` instantiates it directly) plus `ASCIIArtCLI`/`Menu`.
+- `image_art.py` — `image_to_ascii()`, converting an image file to ASCII via
+  a brightness ramp. The one module with a third-party dependency (Pillow) —
+  see "No external dependencies" below. The `from PIL import Image` is
+  deferred inside the function itself, so a missing Pillow install only
+  breaks image conversion, not the rest of the CLI.
 
 ## The #1 pitfall: `str` vs `List[str]`
 
@@ -75,13 +80,21 @@ broken.
    when you just want confirmation without spending main-conversation
    context on the run).
 7. Before committing, consider the other audit subagents: `pitfall-reviewer`
-   (reviews the diff for this project's 5 recurring bug patterns — cheap,
+   (reviews the diff for this project's 6 recurring bug patterns — cheap,
    worth running on most changes), `shape-coverage-auditor` (exhaustive
    reachability sweep across every synonym — worth it after adding several
    shapes or before a release), and `docs-sync-auditor` (catches drift
    between the docs and the code — worth it before publishing).
 
-## No external dependencies
+## No external dependencies (one deliberate exception)
 
 Standard library only. Don't add a third-party package without a clear,
 explicit reason.
+
+The one exception: `image_art.py` depends on Pillow, added deliberately to
+support converting a real image file (PNG/JPG/...) to ASCII art — decoding
+those formats isn't practical in pure stdlib. It's declared in
+`requirements.txt` (installed via `make install`) and isolated to that one
+module; nothing else in the package imports Pillow. If you're tempted to
+add another third-party dependency elsewhere, that's a sign to reconsider,
+not a precedent to follow.

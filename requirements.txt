@@ -1,0 +1,3 @@
+# Standard library only, except for image-to-ASCII conversion
+# (ascii_art_generator/image_art.py) - see .claude/skills/generator-core/SKILL.md.
+Pillow>=10.0

@@ -74,12 +74,13 @@ def apply_fill_pattern(width: int, height: int, pattern: str, char: str = '#') -
         'plus_signs': lambda w, h: [[ '+' if (i + j) % 5 == 0 else ' ' for j in range(w)] for i in range(h)],
         'mixed': lambda w, h: [[random.choice(['#', '@', '*', '.', '+', '-']) if (i + j) % 2 == 0 else ' ' for j in range(w)] for i in range(h)],
         
-        # Gradient-like patterns
-        'left_gradient': lambda w, h: [[char if j < i * w // h else ' ' for j in range(w)] for i in range(h)],
-        'right_gradient': lambda w, h: [[char if j >= w - i * w // h else ' ' for j in range(w)] for i in range(h)],
-        'top_gradient': lambda w, h: [[char if i < h // 2 else ' ' for j in range(w)] for i in range(h)],
-        'bottom_gradient': lambda w, h: [[char if i >= h // 2 else ' ' for j in range(w)] for i in range(h)],
-        'center_gradient': lambda w, h: [[char if abs(i - h//2) + abs(j - w//2) < min(w,h)//3 else ' ' for j in range(w)] for i in range(h)],
+        # Gradient patterns - a smooth light-to-heavy density ramp, not a
+        # binary half-and-half split (see create_directional_gradient).
+        'left_gradient': lambda w, h: create_directional_gradient(w, h, 'left'),
+        'right_gradient': lambda w, h: create_directional_gradient(w, h, 'right'),
+        'top_gradient': lambda w, h: create_directional_gradient(w, h, 'top'),
+        'bottom_gradient': lambda w, h: create_directional_gradient(w, h, 'bottom'),
+        'center_gradient': lambda w, h: create_directional_gradient(w, h, 'center'),
         
         # Special patterns
         'spiral_pattern': lambda w, h: create_spiral_pattern(w, h, char),
@@ -95,6 +96,42 @@ def apply_fill_pattern(width: int, height: int, pattern: str, char: str = '#') -
     else:
         # Default to solid
         return [[char * width] for _ in range(height)]
+
+
+GRADIENT_RAMP = ' .:-=+*#%@'
+
+
+def _ramp_char(t: float) -> str:
+    """Map a 0..1 fraction to a character in the light->heavy density ramp."""
+    idx = min(len(GRADIENT_RAMP) - 1, max(0, int(t * len(GRADIENT_RAMP))))
+    return GRADIENT_RAMP[idx]
+
+
+def create_directional_gradient(width: int, height: int, direction: str) -> List[List[str]]:
+    """Create a smooth density gradient across the grid (light to heavy).
+
+    Unlike a binary half-and-half split, every column/row gets its own
+    shade from GRADIENT_RAMP, so the fill actually looks like a gradient.
+    """
+    grid = []
+    for y in range(height):
+        row = []
+        for x in range(width):
+            if direction == 'left':
+                t = x / max(width - 1, 1)
+            elif direction == 'right':
+                t = 1 - x / max(width - 1, 1)
+            elif direction == 'top':
+                t = y / max(height - 1, 1)
+            elif direction == 'bottom':
+                t = 1 - y / max(height - 1, 1)
+            else:  # center
+                dist = math.hypot(x - width / 2, y - height / 2)
+                max_dist = math.hypot(width / 2, height / 2) or 1
+                t = 1 - dist / max_dist
+            row.append(_ramp_char(t))
+        grid.append(row)
+    return grid
 
 
 def create_spiral_pattern(width: int, height: int, char: str) -> List[List[str]]:
@@ -162,6 +199,34 @@ def create_zigzag_pattern(width: int, height: int, char: str) -> List[List[str]]
             grid[y][x] = char
     
     return grid
+
+
+def mask_fill_pattern(art: List[str], fill: str, char: str) -> List[str]:
+    """Apply a fill pattern's texture without losing the shape's silhouette.
+
+    apply_fill_pattern only knows a bounding box, not the shape's outline.
+    Naively swapping the whole grid for the pattern (as the smart-generation
+    methods used to do) replaces e.g. a hexagon with a plain rectangle -
+    the shape's own drawing is discarded. Instead, only cells the shape
+    actually drew a character on get replaced by the pattern's character at
+    that position; cells the shape left blank stay blank.
+    """
+    if fill == 'solid' or not art:
+        return art
+
+    height = len(art)
+    width = max(len(row) for row in art)
+    pattern = apply_fill_pattern(width, height, fill, char)
+
+    result = []
+    for y, row in enumerate(art):
+        row = row.ljust(width)
+        pattern_row = pattern[y].ljust(width) if y < len(pattern) else ' ' * width
+        result.append(''.join(
+            pattern_row[x] if row[x] != ' ' else ' '
+            for x in range(width)
+        ).rstrip())
+    return result
 
 
 def create_honeycomb_pattern(width: int, height: int, char: str) -> List[List[str]]:
@@ -306,7 +371,7 @@ def _point_in_polygon(px: float, py: float, poly: List[Tuple[float, float]]) -> 
     return inside
 
 
-def draw_star(size: int = 5, char: str = '*') -> List[str]:
+def draw_star(size: int = 7, char: str = '*') -> List[str]:
     """Draw a filled 4-pointed star (concave sparkle shape, distinct from a diamond)."""
     size = min(max(size, 3), 12)
     outer_r = size
@@ -341,7 +406,7 @@ def draw_star(size: int = 5, char: str = '*') -> List[str]:
     return result
 
 
-def draw_hexagon(size: int = 5, char: str = '#') -> List[str]:
+def draw_hexagon(size: int = 8, char: str = '#') -> List[str]:
     """Draw a flat-top/flat-bottom hexagon (slanted corners, straight sides)."""
     size = max(size, 2)
     slant = max(1, size // 2)
@@ -360,7 +425,7 @@ def draw_hexagon(size: int = 5, char: str = '#') -> List[str]:
     return result
 
 
-def draw_oval(width: int = 10, height: int = 5, char: str = '#') -> List[str]:
+def draw_oval(width: int = 40, height: int = 8, char: str = '#') -> List[str]:
     """Draw an oval/ellipse shape."""
     result = []
     center_x, center_y = width // 2, height // 2
@@ -378,7 +443,7 @@ def draw_oval(width: int = 10, height: int = 5, char: str = '#') -> List[str]:
     return result
 
 
-def draw_arrow(direction: str = 'right', size: int = 5, char: str = '#') -> List[str]:
+def draw_arrow(direction: str = 'right', size: int = 8, char: str = '#') -> List[str]:
     """Draw a shaft-and-arrowhead arrow pointing right/left/up/down, scaled by size."""
     size = max(size, 2)
     head_h = 2 * size - 1
@@ -406,7 +471,7 @@ def draw_arrow(direction: str = 'right', size: int = 5, char: str = '#') -> List
     return lines
 
 
-def draw_pentagon(size: int = 5, char: str = '#') -> List[str]:
+def draw_pentagon(size: int = 8, char: str = '#') -> List[str]:
     """Draw a pentagon (triangular roof over a rectangular body)."""
     size = max(size, 3)
     width = 2 * size - 1
@@ -424,7 +489,7 @@ def draw_pentagon(size: int = 5, char: str = '#') -> List[str]:
     return result
 
 
-def draw_butterfly(size: int = 5, char: str = '*') -> List[str]:
+def draw_butterfly(size: int = 8, char: str = '*') -> List[str]:
     """Draw a butterfly shape."""
     result = []
     
@@ -449,15 +514,21 @@ def draw_butterfly(size: int = 5, char: str = '*') -> List[str]:
     return result
 
 
-def draw_flower(size: int = 5, char: str = '@') -> List[str]:
-    """Draw a flower shape."""
+def draw_flower(size: int = 7, char: str = '@') -> List[str]:
+    """Draw a flower shape.
+
+    x is scanned at double resolution and halved before the distance check
+    to compensate for terminal characters being roughly twice as tall as
+    they are wide - otherwise the ring of petals renders egg-shaped instead
+    of round (same correction as draw_circle/draw_star).
+    """
     result = []
-    
+
     # Petals
     for y in range(size * 2 + 1):
         line = []
-        for x in range(size * 2 + 1):
-            dx = x - size
+        for x in range(size * 4 + 1):
+            dx = (x - size * 2) / 2
             dy = y - size
             dist = math.sqrt(dx * dx + dy * dy)
             if abs(dist - size) < 1.5:
@@ -465,7 +536,7 @@ def draw_flower(size: int = 5, char: str = '@') -> List[str]:
             else:
                 line.append(' ')
         result.append(''.join(line))
-    
+
     return result
 
 
@@ -477,7 +548,10 @@ class SmartGenerator:
     """Intelligent ASCII art generator that creates interesting art automatically."""
     
     # Available shapes
-    SHAPES = ['rectangle', 'circle', 'triangle', 'heart', 'diamond', 'spiral', 'tree']
+    SHAPES = [
+        'rectangle', 'circle', 'triangle', 'heart', 'diamond', 'spiral', 'tree',
+        'star', 'hexagon', 'oval', 'arrow', 'pentagon', 'butterfly', 'flower',
+    ]
     
     # Available fill patterns
     FILL_PATTERNS = [
@@ -542,7 +616,7 @@ class SmartGenerator:
             'flower': draw_flower,
         }
     
-    def generate_interesting_art(self, style: str = 'random', width: int = 20, height: int = 10) -> List[str]:
+    def generate_interesting_art(self, style: str = 'random', width: int = 30, height: int = 16) -> List[str]:
         """Generate interesting ASCII art based on style preference."""
         styles = {
             'random': self._generate_random_art,
@@ -558,7 +632,7 @@ class SmartGenerator:
         else:
             return self._generate_random_art(width, height)
     
-    def _generate_random_art(self, width: int = 20, height: int = 10) -> List[str]:
+    def _generate_random_art(self, width: int = 30, height: int = 16) -> List[str]:
         """Generate completely random interesting art."""
         choice = random.choice(['shape', 'text', 'pattern', 'combination'])
         
@@ -571,7 +645,7 @@ class SmartGenerator:
         else:
             return self._generate_combination_art(width, height)
     
-    def _generate_minimal_art(self, width: int = 20, height: int = 10) -> List[str]:
+    def _generate_minimal_art(self, width: int = 30, height: int = 16) -> List[str]:
         """Generate minimal clean art."""
         shape = random.choice(['rectangle', 'circle', 'triangle'])
         fill = random.choice(['empty', 'solid'])
@@ -581,7 +655,7 @@ class SmartGenerator:
         
         return self._generate_shape(shape, min(width, height) // 2, fill, border, char, color)
     
-    def _generate_complex_art(self, width: int = 20, height: int = 10) -> List[str]:
+    def _generate_complex_art(self, width: int = 30, height: int = 16) -> List[str]:
         """Generate complex detailed art."""
         shape = random.choice(['spiral', 'diamond', 'heart', 'tree'])
         fill = random.choice(['crosshatch', 'checkerboard', 'spiral_pattern', 'concentric', 'wave'])
@@ -591,7 +665,7 @@ class SmartGenerator:
         
         return self._generate_shape(shape, min(width, height) // 2, fill, border, char, color)
     
-    def _generate_geometric_art(self, width: int = 20, height: int = 10) -> List[str]:
+    def _generate_geometric_art(self, width: int = 30, height: int = 16) -> List[str]:
         """Generate geometric art."""
         shape = random.choice(['hexagon', 'pentagon', 'star', 'oval'])
         fill = random.choice(['solid', 'empty', 'dotted', 'grid'])
@@ -601,7 +675,7 @@ class SmartGenerator:
         
         return self._generate_advanced_shape(shape, min(width, height) // 2, fill, border, char, color)
     
-    def _generate_nature_art(self, width: int = 20, height: int = 10) -> List[str]:
+    def _generate_nature_art(self, width: int = 30, height: int = 16) -> List[str]:
         """Generate nature-inspired art."""
         shape = random.choice(['tree', 'butterfly', 'flower'])
         fill = random.choice(['solid', 'dotted', 'sparse_random'])
@@ -611,7 +685,7 @@ class SmartGenerator:
         
         return self._generate_advanced_shape(shape, min(width, height) // 3, fill, border, char, color)
     
-    def _generate_abstract_art(self, width: int = 20, height: int = 10) -> List[str]:
+    def _generate_abstract_art(self, width: int = 30, height: int = 16) -> List[str]:
         """Generate abstract art."""
         pattern = random.choice(['random', 'sparse_random', 'dense_random', 'mixed', 'honeycomb', 'wave', 'zigzag'])
         char = random.choice(['#', '@', '*', '.', '+', '-', '='])
@@ -619,7 +693,7 @@ class SmartGenerator:
         
         return apply_fill_pattern(width, height, pattern, char)
     
-    def _generate_random_shape(self, width: int = 20, height: int = 10) -> List[str]:
+    def _generate_random_shape(self, width: int = 30, height: int = 16) -> List[str]:
         """Generate a random shape with interesting settings."""
         # Pick an interesting combination
         if random.random() < 0.3:
@@ -684,35 +758,29 @@ class SmartGenerator:
 
             art = _normalize_lines(art)
 
-            # Apply fill pattern
-            if fill != 'solid':
-                # Replace solid fill with pattern
-                if isinstance(art, list) and art and isinstance(art[0], str):
-                    height = len(art)
-                    width = max(len(row) for row in art)
-                    pattern_grid = apply_fill_pattern(width, height, fill, char)
-                    art = pattern_grid
-            
+            # Apply fill pattern, masked to the shape's own silhouette
+            art = mask_fill_pattern(art, fill, char)
+
             # Apply border
             if border != 'none':
                 art = apply_border(art, border, char)
-            
+
             # Apply color
             if color:
                 art = [self._apply_color(line, color) for line in art]
-            
+
             return art
         else:
             return [f"Unknown shape: {shape}"]
-    
+
     def _generate_shape(self, shape: str, size: int, fill: str, border: str, char: str, color: str) -> List[str]:
         """Generate a shape with the specified parameters."""
         if shape in self.shape_functions:
             func = self.shape_functions[shape]
-            
+
             # Handle different parameters
             if shape == 'rectangle':
-                art = func(size * 2, size, char, fill == 'solid')
+                art = func(size * 2, size, char, fill != 'empty')
             elif shape == 'triangle':
                 art = func(size, char)
             elif shape == 'circle':
@@ -727,10 +795,15 @@ class SmartGenerator:
                 art = func(size, char)
             elif shape == 'arrow':
                 art = func('right', size, char)
+            elif shape == 'oval':
+                art = func(size * 2, size, char)
             else:
                 art = func(size, char) if shape in ['star', 'hexagon', 'pentagon', 'butterfly', 'flower'] else [f"Unknown: {shape}"]
 
             art = _normalize_lines(art)
+
+            # Apply fill pattern, masked to the shape's own silhouette
+            art = mask_fill_pattern(art, fill, char)
 
             # Apply border
             if border != 'none':
@@ -744,7 +817,7 @@ class SmartGenerator:
         else:
             return [f"Unknown shape: {shape}"]
     
-    def _generate_random_text_art(self, width: int = 20, height: int = 10) -> List[str]:
+    def _generate_random_text_art(self, width: int = 30, height: int = 16) -> List[str]:
         """Generate random text art."""
         words = ['HELLO', 'WORLD', 'ART', 'ASCII', 'COOL', 'MISTRAL', 'PYTHON', 'LOVE']
         text = random.choice(words)
@@ -757,7 +830,7 @@ class SmartGenerator:
 
         return art
 
-    def _generate_random_pattern(self, width: int = 20, height: int = 10) -> List[str]:
+    def _generate_random_pattern(self, width: int = 30, height: int = 16) -> List[str]:
         """Generate random pattern."""
         pattern = random.choice(['checkerboard', 'gradient', 'random_art', 'spiral'])
 
@@ -779,7 +852,7 @@ class SmartGenerator:
         
         return art
     
-    def _generate_combination_art(self, width: int = 20, height: int = 10) -> List[str]:
+    def _generate_combination_art(self, width: int = 30, height: int = 16) -> List[str]:
         """Generate combination of multiple elements."""
         elements = []
         

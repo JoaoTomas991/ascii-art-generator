@@ -5,7 +5,9 @@ A Python ASCII Art generator: draws geometric shapes, converts text into ASCII l
 ## Requirements
 
 - Python 3.10+
-- No external dependencies (standard library only)
+- Standard library only, with one deliberate exception: image-to-ASCII
+  conversion (`convert image ...`) needs [Pillow](https://pypi.org/project/Pillow/)
+  to decode image files. Everything else has no external dependencies.
 
 ## Installation
 
@@ -14,7 +16,15 @@ git clone https://github.com/JoaoTomas991/ascii_generator.git
 cd ascii_generator
 ```
 
-Nothing to install — just run it directly with `python3`.
+Nothing to install to use shapes, text, patterns, or animations — just run
+it directly with `python3`. To also use image-to-ASCII conversion, install
+Pillow first:
+
+```bash
+pip install -r requirements.txt
+# or
+make install
+```
 
 ## Usage
 
@@ -69,8 +79,9 @@ Alternative: `./start.sh` opens a small startup menu (menu mode, intelligent mod
 - **Random generators**: faces, emojis, animals — naming a specific animal (cat, dog, rabbit, bear, fish, penguin, owl, crow, raven) always draws that animal; asking for "an animal"/"a creature" instead picks one of them at random
 - **Banners and boxes** with custom text
 - **Terminal animations**: spinner, progress bar
-- **Styling**: color (ANSI: red, green, blue, yellow, cyan, magenta, white, black + `bright_*` variants), up to 31 fill patterns, and several border styles — see `.claude/skills/ascii-art/SKILL.md` for the full catalog with functions and files
-- **Moods (teachable)**: `happy`, `sad`, `angry`, `calm`, `sleepy` — recognized anywhere in a command and applied as a default color (unless you already gave one explicitly). Teach new synonyms at runtime in intelligent mode with `teach <word> as <mood>` (e.g. `teach ecstatic as happy`); taught words persist across sessions in `~/.config/ascii_generator/learned_words.json`. See [`docs/adr/0001-taught-mood-synonyms.md`](docs/adr/0001-taught-mood-synonyms.md) for why this is deliberately a small, taught dictionary rather than automatic word detection or NLP.
+- **Styling**: color (ANSI: red, green, blue, yellow, cyan, magenta, white, black + `bright_*` variants, plus `rainbow`/`multicolor` which cycles a color per line), up to 31 fill patterns (always applied inside the shape's own silhouette, never replacing it), and several border styles — see `.claude/skills/ascii-art/SKILL.md` for the full catalog with functions and files
+- **Moods (teachable)**: `happy`, `sad`, `angry`, `calm`, `sleepy` — recognized anywhere in a command and applied as a default color (unless you already gave one explicitly). Teach new synonyms with `teach <word> as <mood>` (e.g. `teach ecstatic as happy`), either in intelligent mode or as a direct one-shot command; taught words persist across sessions in `~/.config/ascii_generator/learned_words.json`. See [`docs/adr/0001-taught-mood-synonyms.md`](docs/adr/0001-taught-mood-synonyms.md) for why this is deliberately a small, taught dictionary rather than automatic word detection or NLP.
+- **Image to ASCII**: `convert image <path> [width N] [color]` converts a real image file (PNG/JPG/...) into ASCII art using a brightness ramp, with an option for true 24-bit color per character (requires Pillow — see Requirements).
 
 ### Example commands
 
@@ -87,6 +98,8 @@ make a circle with radius 5 color blue and a rectangle 10x5 color red
 draw a happy dog
 teach ecstatic as happy
 draw an ecstatic heart
+draw a heart size 4 color rainbow
+convert image /tmp/photo.png width 80 color
 ```
 
 ### Known limitations
@@ -102,13 +115,15 @@ ascii_art_generator/
 ├── ascii_art.py        # base shapes, fonts, patterns, banners, animations
 ├── cli.py              # ENCommandParser + command-line interface
 ├── smart_generator.py  # advanced shapes, fill/border patterns, random generation
+├── image_art.py        # image-to-ASCII conversion (the one module that needs Pillow)
 ├── learned_words.py    # persistence for user-taught mood synonyms
 └── main.py             # entry point
 
-run.py       # startup script (menu / intelligent / direct command)
-start.sh     # interactive startup menu
-Makefile     # run and test shortcuts
-docs/adr/    # architecture decision records
+run.py             # startup script (menu / intelligent / direct command)
+start.sh           # interactive startup menu
+Makefile           # run and test shortcuts
+requirements.txt   # Pillow, needed only for image-to-ASCII conversion
+docs/adr/          # architecture decision records
 ```
 
 ## Testing

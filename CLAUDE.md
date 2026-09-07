@@ -13,6 +13,7 @@ Gerador de ASCII Art que cria arte a partir de texto, formas geométricas e padr
 - `ascii_art_generator/ascii_art.py` — geração de formas, texto e padrões
 - `ascii_art_generator/cli.py` — interface de linha de comandos e `ENCommandParser` (parsing de linguagem natural em inglês)
 - `ascii_art_generator/smart_generator.py` — formas avançadas, padrões de preenchimento/borda, geração "inteligente"/aleatória
+- `ascii_art_generator/image_art.py` — conversão de imagem real (PNG/JPG/...) para ASCII por rampa de brilho; único módulo com dependência de terceiros (Pillow, ver `requirements.txt`)
 - `ascii_art_generator/main.py` — ponto de entrada
 - `run.py` / `start.sh` — scripts de arranque
 
@@ -34,10 +35,11 @@ O projeto suporta:
 - **Animações**: spinner, barra de progresso
 - **Banners e Caixas**: com texto personalizado
 - **Estilos**:
-  - **Cores**: red, green, blue, yellow, cyan, magenta, white, black (e variantes `bright_*`/`light_*`)
-  - **Preenchimento**: solid, empty, dotted, striped, crosshatch, checkerboard, gradient, random, entre outros (31 padrões em `smart_generator.py`)
+  - **Cores**: red, green, blue, yellow, cyan, magenta, white, black (e variantes `bright_*`/`light_*`), mais `rainbow`/`multicolor` (cicla uma cor por linha)
+  - **Preenchimento**: solid, empty, dotted, striped, crosshatch, checkerboard, gradient (rampa de densidade real, não binária), random, entre outros (31 padrões em `smart_generator.py`) — sempre aplicado só dentro da silhueta da forma (`mask_fill_pattern`), nunca substituindo-a por um retângulo
   - **Bordas**: simple, double, dashed, wavy, bold, light, fancy, rounded, entre outras
 - **Moods**: happy, sad, angry, calm, sleepy — cada um aplica uma cor por omissão (a menos que o utilizador já tenha indicado `color`). Novos sinónimos podem ser ensinados em runtime no modo inteligente com `teach <word> as <mood>`, e ficam persistidos entre sessões em `~/.config/ascii_generator/learned_words.json`
+- **Imagem para ASCII**: `convert image <caminho> [width N] [color]` converte um ficheiro de imagem real (PNG/JPG/...) numa rampa de brilho ASCII, com opção de cor real 24-bit por carácter (`ascii_art_generator/image_art.py`, requer Pillow — `pip install -r requirements.txt`)
 
 Ver a skill `ascii-art` (`.claude/skills/ascii-art/SKILL.md`) para o catálogo completo com funções/ficheiros/assinaturas.
 
@@ -61,6 +63,8 @@ make an emoji
 make a circle with radius 5 color blue and a rectangle 10x5 color red
 teach ecstatic as happy
 draw an ecstatic heart
+draw a heart size 4 color rainbow
+convert image /tmp/photo.png width 80 color
 ```
 
 ## Limitações Conhecidas

@@ -4,7 +4,7 @@ Instructions for coding agents (Codex, Cursor, Copilot, Claude Code, etc.) worki
 
 Claude Code users also have: [.claude/skills/generator-core/SKILL.md](.claude/skills/generator-core/SKILL.md) (conventions/pitfalls before editing core code), [.claude/skills/generator-test-battery/SKILL.md](.claude/skills/generator-test-battery/SKILL.md) (the regression battery itself — what to check after any change to `ascii_art_generator/*.py`), and [.claude/skills/adr/SKILL.md](.claude/skills/adr/SKILL.md) (how to record significant architecture decisions in `docs/adr/`).
 
-Four subagents in `.claude/agents/`: [generator-tester](.claude/agents/generator-tester.md) (runs the battery above in an isolated context, reports pass/fail — invoke after any change to `ascii_art_generator/*.py`), [shape-coverage-auditor](.claude/agents/shape-coverage-auditor.md) (exhaustively drives every declared shape/color/font synonym through the real pipeline to find dead ends and duplicate synonym keys — use before a release or after adding several shapes), [docs-sync-auditor](.claude/agents/docs-sync-auditor.md) (cross-checks README/CLAUDE/AGENTS/ascii-art skill claims against the actual code — use before publishing the repo), and [pitfall-reviewer](.claude/agents/pitfall-reviewer.md) (specialized review for this codebase's 5 recurring bug patterns — use before committing a change to `ascii_art_generator/*.py`).
+Four subagents in `.claude/agents/`: [generator-tester](.claude/agents/generator-tester.md) (runs the battery above in an isolated context, reports pass/fail — invoke after any change to `ascii_art_generator/*.py`), [shape-coverage-auditor](.claude/agents/shape-coverage-auditor.md) (exhaustively drives every declared shape/color/font synonym through the real pipeline to find dead ends and duplicate synonym keys — use before a release or after adding several shapes), [docs-sync-auditor](.claude/agents/docs-sync-auditor.md) (cross-checks README/CLAUDE/AGENTS/ascii-art skill claims against the actual code — use before publishing the repo), and [pitfall-reviewer](.claude/agents/pitfall-reviewer.md) (specialized review for this codebase's 6 recurring bug patterns — use before committing a change to `ascii_art_generator/*.py`).
 
 ## Overview
 
@@ -13,8 +13,10 @@ A Python ASCII Art generator: geometric shapes, text converted into ASCII letter
 ## Environment
 
 - Python 3.10+
-- No external dependencies (standard library only) — no `requirements.txt`, `setup.py`, or `pyproject.toml`
-- Nothing to install; run directly with `python3`
+- Standard library only, with one deliberate exception: `ascii_art_generator/image_art.py`
+  (image-to-ASCII conversion, `convert image ...`) needs Pillow, declared in
+  `requirements.txt` (`pip install -r requirements.txt` or `make install`).
+- Everything else needs nothing installed; run directly with `python3`.
 
 ## Running
 
@@ -41,6 +43,8 @@ ascii_art_generator/
 ├── ascii_art.py        # base shapes, fonts, patterns, banners, animations
 ├── cli.py              # ENCommandParser + command-line interface (ASCIIArtCLI, Menu)
 ├── smart_generator.py  # advanced shapes, fill/border patterns, random generation
+├── image_art.py        # image-to-ASCII conversion (the one module that needs Pillow)
+├── learned_words.py    # persistence for user-taught mood synonyms
 └── main.py             # entry point
 ```
 
@@ -49,7 +53,9 @@ ascii_art_generator/
 
 ## Code conventions
 
-- No external dependencies — don't add third-party libraries without a clear reason.
+- No external dependencies, with one deliberate, documented exception:
+  `image_art.py`/Pillow (see Environment above). Don't add another
+  third-party library without an equally clear, explicit reason.
 - Generator functions are inconsistent about return type: most `ascii_art.py` functions return a single `'\n'`-joined `str`, while `smart_generator.py`'s own shape functions (`draw_star`, `draw_hexagon`, ...) return `List[str]`. Anything in `smart_generator.py` that consumes a shape function's output must call `_normalize_lines(art)` first — iterating a `str` yields characters, not lines, which silently corrupts art into one character per line. This bit us once already; don't reintroduce it.
 - Command synonyms (shapes, colors, fonts, fill patterns, borders) are centralized in `ENCommandParser`'s `*_SYNONYMS` dicts, with a reverse `*_to_key` lookup table built in `__init__`. A word used as a synonym in more than one dict key will silently lose earlier entries (Python dict literals don't merge duplicate keys) — grep for the word across `SHAPE_SYNONYMS` before adding it.
 - When adding a new shape/style: implement the generator function, register synonyms in `ENCommandParser.SHAPE_SYNONYMS`, map it in `shape_to_command`, test with a real command, and update the `ascii-art` skill.

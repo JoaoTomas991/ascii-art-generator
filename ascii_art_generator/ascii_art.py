@@ -221,12 +221,18 @@ def draw_triangle(height: int, char: str = '*', direction: str = 'up') -> str:
 
 
 def draw_circle(radius: int, char: str = 'O') -> str:
-    """Draw an approximation of a circle using ASCII characters."""
+    """Draw an approximation of a circle using ASCII characters.
+
+    Terminal characters are roughly twice as tall as they are wide, so the
+    x axis is scanned at double resolution and halved before the distance
+    check - without this the circle renders as a tall egg shape instead of
+    round (same correction draw_star uses).
+    """
     result = []
     for y in range(-radius, radius + 1):
         line = []
-        for x in range(-radius, radius + 1):
-            distance = (x ** 2 + y ** 2) ** 0.5
+        for x in range(-radius * 2, radius * 2 + 1):
+            distance = ((x / 2) ** 2 + y ** 2) ** 0.5
             if abs(distance - radius) < 0.8:
                 line.append(char)
             else:
@@ -235,9 +241,17 @@ def draw_circle(radius: int, char: str = 'O') -> str:
     return '\n'.join(result)
 
 
-def draw_heart(size: int = 3, char: str = '*') -> str:
-    """Draw a heart shape, scaled by size (rounded lobes, pointed base)."""
-    size = min(max(size, 1), 8)
+def draw_heart(size: int = 6, char: str = '*') -> str:
+    """Draw a heart shape, scaled by size (rounded lobes, pointed base).
+
+    Built on a row-count grid, then stretched 2x horizontally - terminal
+    characters are roughly twice as tall as they are wide, so without this
+    the heart reads narrower/taller than it should (same correction
+    draw_circle/draw_star/draw_flower apply via their distance formulas;
+    here it's a straight character-repeat since the heart isn't built from
+    a distance test). Row count (height) is unaffected by this.
+    """
+    size = min(max(size, 1), 12)
     n = size * 4
 
     contents = []
@@ -248,7 +262,9 @@ def draw_heart(size: int = 3, char: str = '*') -> str:
         contents.append(char * (2 * i - 1))
 
     width = max(len(line) for line in contents)
-    return '\n'.join(line.center(width) for line in contents)
+    centered = [line.center(width) for line in contents]
+    stretched = [''.join(ch * 2 for ch in line) for line in centered]
+    return '\n'.join(stretched)
 
 
 def draw_diamond(size: int, char: str = '*') -> str:
@@ -268,7 +284,7 @@ def draw_diamond(size: int, char: str = '*') -> str:
 # =============================================================================
 
 
-def generate_gradient(width: int = 10, height: int = 5) -> str:
+def generate_gradient(width: int = 32, height: int = 8) -> str:
     """Generate a gradient pattern."""
     chars = ['.', ',', ':', ';', 'i', 'l', '!', 'I', 'L', '@', '#', '*']
     result = []
@@ -281,7 +297,7 @@ def generate_gradient(width: int = 10, height: int = 5) -> str:
     return '\n'.join(result)
 
 
-def generate_checkerboard(size: int = 8, chars: str = '# ') -> str:
+def generate_checkerboard(size: int = 12, chars: str = '# ') -> str:
     """Generate a checkerboard pattern."""
     result = []
     for y in range(size):
@@ -293,7 +309,7 @@ def generate_checkerboard(size: int = 8, chars: str = '# ') -> str:
     return '\n'.join(result)
 
 
-def generate_spiral(size: int = 15, char: str = '*') -> str:
+def generate_spiral(size: int = 18, char: str = '*') -> str:
     """Generate a spiral pattern (Archimedean spiral traced onto a grid)."""
     grid = [[' ' for _ in range(size)] for _ in range(size)]
     center = (size - 1) / 2
@@ -317,7 +333,7 @@ def generate_spiral(size: int = 15, char: str = '*') -> str:
     return '\n'.join([''.join(row) for row in grid])
 
 
-def generate_tree(height: int = 5, char: str = '*') -> str:
+def generate_tree(height: int = 8, char: str = '*') -> str:
     """Generate a Christmas tree."""
     result = []
     for i in range(1, height + 1):
@@ -335,7 +351,7 @@ def generate_tree(height: int = 5, char: str = '*') -> str:
 # =============================================================================
 
 
-def random_abstract(width: int = 20, height: int = 10) -> str:
+def random_abstract(width: int = 48, height: int = 14) -> str:
     """Generate random abstract ASCII art."""
     chars = '.*:;+*#@&$%^~!=-'
     result = []
@@ -501,7 +517,7 @@ def create_box(text: str, width: Optional[int] = None, char: str = '#') -> str:
     border = char * width
     result = [border]
     for line in lines:
-        padding = width - len(line) - 2
+        padding = width - len(line) - 3
         result.append(char + ' ' + line + ' ' * padding + char)
     result.append(border)
     return '\n'.join(result)
