@@ -4,7 +4,8 @@ A Python ASCII Art generator: draws geometric shapes, converts text into ASCII l
 
 ## Requirements
 
-- Python 3.10+
+- Python 3.12+ (needed because `cli.py` uses a backslash inside an f-string
+  expression, a syntax only legal since PEP 701)
 - Standard library only, with one deliberate exception: image-to-ASCII
   conversion (`convert image ...`) needs [Pillow](https://pypi.org/project/Pillow/)
   to decode image files. Everything else has no external dependencies.
