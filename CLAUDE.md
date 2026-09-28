@@ -13,7 +13,7 @@ Gerador de ASCII Art que cria arte a partir de texto, formas geométricas e padr
 - `ascii_art_generator/ascii_art.py` — geração de formas, texto e padrões
 - `ascii_art_generator/cli.py` — interface de linha de comandos e `ENCommandParser` (parsing de linguagem natural em inglês)
 - `ascii_art_generator/smart_generator.py` — formas avançadas, padrões de preenchimento/borda, geração "inteligente"/aleatória
-- `ascii_art_generator/image_art.py` — conversão de imagem real (PNG/JPG/...) para ASCII por rampa de brilho; único módulo com dependência de terceiros (Pillow, ver `requirements.txt`)
+- `ascii_art_generator/image_art.py` — conversão de imagem real (PNG/JPG/...) para ASCII por rampa de brilho; dependência de terceiros Pillow (ver `requirements.txt`); a outra dependência opcional é o `pyfiglet`, importado só dentro de `text_to_ascii()` em `ascii_art.py`
 - `ascii_art_generator/main.py` — ponto de entrada
 - `run.py` / `start.sh` — scripts de arranque
 
@@ -30,7 +30,7 @@ Gerador de ASCII Art que cria arte a partir de texto, formas geométricas e padr
 ## Capacidades do Projeto
 O projeto suporta:
 - **Formas geométricas**: retângulo, círculo, triângulo, coração, diamante, espiral, árvore, estrela, hexágono, oval, seta, pentágono, borboleta, flor
-- **Texto para ASCII**: conversão de texto com múltiplas fontes (small, block, banner, shadow)
+- **Texto para ASCII**: conversão de texto com múltiplas fontes (small, block, banner, shadow), renderizadas com fontes FIGlet reais via `pyfiglet` (opcional; aceita também qualquer outro nome de fonte FIGlet, ex. `slant`) e com fallback para as fontes internas de 5 linhas se o pyfiglet não estiver instalado
 - **Padrões**: gradiente, tabuleiro (checkerboard), aleatório, abstrato
 - **Animações**: spinner, barra de progresso
 - **Banners e Caixas**: com texto personalizado
@@ -64,11 +64,12 @@ make a circle with radius 5 color blue and a rectangle 10x5 color red
 teach ecstatic as happy
 draw an ecstatic heart
 draw a heart size 4 color rainbow
+draw a big cat color yellow
 convert image /tmp/photo.png width 80 color
 ```
 
 ## Limitações Conhecidas
 - Não suporta animações GIF (apenas terminal)
 - Cores dependem de suporte ANSI do terminal
-- Fontes limitadas às definições atuais (small, block, banner, shadow)
+- Sem `pyfiglet` instalado, as fontes ficam limitadas às definições internas (small, block, banner, shadow: só A-Z e alguma pontuação; caracteres em falta aparecem como `?`)
 - O separador de comandos compostos (`"and"`) é baseado em palavras — uma lista de cores numa única forma (`"with color red and blue"`) pode ser lida por engano como duas formas

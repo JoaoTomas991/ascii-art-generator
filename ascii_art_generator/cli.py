@@ -183,6 +183,9 @@ class ENCommandParser:
         'comma'
     }
     
+    # Size adjectives that ask for the bigger animal drawings (ANIMALS_BIG)
+    BIG_WORDS = {'big', 'large', 'huge', 'giant'}
+
     # Font synonyms
     FONT_SYNONYMS = {
         'small': ['small', 'tiny'],
@@ -710,6 +713,10 @@ class ENCommandParser:
         final_params = params.copy()
         if command_name == 'specific_animal' and 'animal' not in final_params:
             final_params['animal'] = shape_word
+        # "a big cat" / "a large dog" -> the bigger drawing (ANIMALS_BIG)
+        if command_name in ('specific_animal', 'random_animal') and \
+                any(t in self.BIG_WORDS for t in tokens):
+            final_params['big'] = True
         if numbers:
             if command_name in ['rectangle']:
                 if len(numbers) >= 2:
@@ -903,7 +910,8 @@ class ASCIIArtCLI:
     def menu_text_to_ascii(self) -> None:
         """Text to ASCII menu."""
         print(f"\n{Colors.OKBLUE}=== Text to ASCII ==={Colors.ENDC}")
-        print(f"Available fonts: {', '.join(get_available_fonts())}")
+        print(f"Available fonts: {', '.join(get_available_fonts())} "
+              "(any FIGlet font name, e.g. slant, also works if pyfiglet is installed)")
         text = input("Enter text: ").strip() or "ASCII"
         font = input("Font (small) [small]: ").strip() or 'small'
         print(f"\n{Colors.OKGREEN}{text_to_ascii(text, font)}{Colors.ENDC}")
@@ -1066,14 +1074,15 @@ class ASCIIArtCLI:
         time.sleep(0.5)
         self.run_intelligent_mode()
     
-    def _print_specific_animal(self, animal_name: str, color: Optional[str] = None) -> None:
+    def _print_specific_animal(self, animal_name: str, color: Optional[str] = None,
+                               big: bool = False) -> None:
         """Print ASCII art for a specific animal by name.
 
         Falls back to a plausible substitute (see get_animal_art) with an
         explanatory note when there's no bespoke drawing for animal_name,
         instead of failing outright.
         """
-        art, has_dedicated_art = get_animal_art(animal_name)
+        art, has_dedicated_art = get_animal_art(animal_name, big)
         if not has_dedicated_art:
             print(f"{Colors.WARNING}Ainda não tenho um desenho próprio para '{animal_name}' — aqui está um parecido:{Colors.ENDC}")
         print(f"\n{self._apply_color(art, color)}")
@@ -1321,7 +1330,7 @@ INTELLIGENT MODE (type 'i' to activate):
             'spiral': lambda: render_shape('spiral', params.get('size', 18), char),
             'random_art': lambda: print(f"\n{self._apply_color(random_abstract(params.get('width', 48), params.get('height', 14)), color)}"),
             'random_face': lambda: print(f"\n{self._apply_color(random_face(), color)}"),
-            'random_animal': lambda: print(f"\n{self._apply_color(random_animal(), color)}"),
+            'random_animal': lambda: print(f"\n{self._apply_color(random_animal(params.get('big', False)), color)}"),
             'random_emoji': lambda: print(f"\n{self._apply_color(random_emoji(), color)}"),
             'banner': lambda: print(f"\n{self._create_custom_banner(params.get('text', 'ASCII'), params.get('width', 50), params.get('char', '='), color, border_style)}"),
             'box': lambda: print(f"\n{self._create_custom_box(params.get('text', 'Hello\nWorld'), params.get('char', '#'), color, border_style)}"),
@@ -1330,7 +1339,7 @@ INTELLIGENT MODE (type 'i' to activate):
             'showcase': self.menu_showcase,
             'help': self.menu_help,
             'quit': lambda: None,
-            'specific_animal': lambda: self._print_specific_animal(params.get('animal', 'crow'), color),
+            'specific_animal': lambda: self._print_specific_animal(params.get('animal', 'crow'), color, params.get('big', False)),
             'image_to_ascii': lambda: self._render_image(params),
         }
         

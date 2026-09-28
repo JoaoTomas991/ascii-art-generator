@@ -86,7 +86,7 @@ broken.
    shapes or before a release), and `docs-sync-auditor` (catches drift
    between the docs and the code — worth it before publishing).
 
-## No external dependencies (one deliberate exception)
+## No external dependencies (two deliberate exceptions)
 
 Standard library only. Don't add a third-party package without a clear,
 explicit reason.
@@ -95,6 +95,13 @@ The one exception: `image_art.py` depends on Pillow, added deliberately to
 support converting a real image file (PNG/JPG/...) to ASCII art — decoding
 those formats isn't practical in pure stdlib. It's declared in
 `requirements.txt` (installed via `make install`) and isolated to that one
-module; nothing else in the package imports Pillow. If you're tempted to
-add another third-party dependency elsewhere, that's a sign to reconsider,
-not a precedent to follow.
+module; nothing else in the package imports Pillow. The second exception: `text_to_ascii()` in `ascii_art.py` renders through
+pyfiglet (FIGlet fonts) when it's importable — deferred import inside
+`_figlet_to_ascii()`, falling back to the built-in `FONTS` when it isn't
+(see `docs/adr/0002-figlet-fonts-via-pyfiglet.md`). Consequence for callers:
+text art height is no longer a fixed 5 lines and a `font` value may be a
+FIGlet-only name not present in `FONTS` — never index `FONTS[font]`
+directly outside `text_to_ascii()`.
+
+If you're tempted to add another third-party dependency elsewhere, that's a
+sign to reconsider, not a precedent to follow.

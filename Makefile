@@ -3,6 +3,9 @@
 
 .PHONY: help run intelligent command test install clean
 
+# Debian and others ship no plain `python`; override with `make PYTHON=python`
+PYTHON ?= python3
+
 # Colors for output
 GREEN = \033[0;32m
 YELLOW = \033[1;33m
@@ -17,47 +20,47 @@ help: ## Show this help
 
 run: ## Start the project in menu mode
 	@echo "$(BLUE)Starting ASCII Generator (menu mode)...$(NC)"
-	python run.py
+	$(PYTHON) run.py
 
 intelligent: ## Start in intelligent mode
 	@echo "$(BLUE)Starting ASCII Generator (intelligent mode)...$(NC)"
-	python run.py --intelligent
+	$(PYTHON) run.py --intelligent
 
 # Command shortcuts
 command-draw: ## Draw a rectangle
-	@python run.py "draw a rectangle 10x5"
+	@$(PYTHON) run.py "draw a rectangle 10x5"
 
 command-circle: ## Draw a circle
-	@python run.py "make a circle with radius 8"
+	@$(PYTHON) run.py "make a circle with radius 8"
 
 command-heart: ## Draw a heart
-	@python run.py "draw a heart"
+	@$(PYTHON) run.py "draw a heart"
 
 command-tree: ## Draw a tree
-	@python run.py "create a tree with height 10"
+	@$(PYTHON) run.py "create a tree with height 10"
 
 command-banner: ## Create a banner
-	@python run.py "make a banner with text ASCII ART"
+	@$(PYTHON) run.py "make a banner with text ASCII ART"
 
 command-text: ## Convert text to ASCII
-	@python run.py "write HELLO with font banner"
+	@$(PYTHON) run.py "write HELLO with font banner"
 
 # Test commands
 test: ## Run basic tests
 	@echo "$(BLUE)Running tests...$(NC)"
-	@python -c "from ascii_art_generator.ascii_art import draw_rectangle, draw_circle, draw_heart, draw_diamond, text_to_ascii; print('Import tests: OK')"
-	@python -c "from ascii_art_generator.cli import ENCommandParser; p = ENCommandParser(); print('Parser tests: OK')"
+	@$(PYTHON) -c "from ascii_art_generator.ascii_art import draw_rectangle, draw_circle, draw_heart, draw_diamond, text_to_ascii; print('Import tests: OK')"
+	@$(PYTHON) -c "from ascii_art_generator.cli import ENCommandParser; p = ENCommandParser(); print('Parser tests: OK')"
 	@echo "$(GREEN)All tests passed!$(NC)"
 
 test-shape: ## Test shape generation
 	@echo "$(BLUE)Testing shapes...$(NC)"
-	@python run.py "draw a rectangle 5x3"
+	@$(PYTHON) run.py "draw a rectangle 5x3"
 	@echo ""
-	@python run.py "make a circle with radius 5"
+	@$(PYTHON) run.py "make a circle with radius 5"
 
 -test-text: ## Test text conversion
 	@echo "$(BLUE)Testing text...$(NC)"
-	@python run.py "write TEST with font small"
+	@$(PYTHON) run.py "write TEST with font small"
 
 # Installation
 install: ## Install dependencies
@@ -82,4 +85,4 @@ dev: run ## Start in development mode (alias for run)
 # Show version
 version: ## Show version
 	@echo "$(BLUE)ASCII Generator v1.0.0$(NC)"
-	@python -c "import sys; print(f'Python: {sys.version}')"
+	@$(PYTHON) -c "import sys; print(f'Python: {sys.version}')"
