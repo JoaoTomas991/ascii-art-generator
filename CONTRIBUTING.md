@@ -1,26 +1,26 @@
 # Contributing to ASCII Generator
 
-Obrigado por quereres contribuir para o **ASCII Generator**.
+Thank you for your interest in contributing to **ASCII Generator**.
 
-Este é um projeto pessoal, mantido por um único colaborador. As contribuições externas são bem-vindas, mas todas as alterações devem ser propostas através de issues e pull requests para manter o projeto organizado.
+This is a personal project maintained by a single contributor. External contributions are welcome, but all changes should be proposed through issues and pull requests to keep the project organized.
 
-## Como começar
+## Getting Started
 
-1. Cria um fork do repositório.
-2. Clona o teu fork:
+1. Fork the repository.
+2. Clone your fork:
 
    ```bash
-   git clone https://github.com/SEU_UTILIZADOR/ascii_generator.git
+   git clone https://github.com/YOUR_USERNAME/ascii_generator.git
    cd ascii_generator
    ```
 
-3. Adiciona o repositório original como `upstream`:
+3. Add the original repository as `upstream`:
 
    ```bash
    git remote add upstream https://github.com/JoaoTomas991/ascii_generator.git
    ```
 
-4. Cria um ambiente virtual e instala as dependências:
+4. Create a virtual environment and install the dependencies:
 
    ```bash
    python3.12 -m venv .venv
@@ -28,146 +28,146 @@ Este é um projeto pessoal, mantido por um único colaborador. As contribuiçõe
    pip install -r requirements.txt
    ```
 
-   No Windows, a ativação pode ser feita com:
+   On Windows, activate the environment with:
 
    ```powershell
    .venv\Scripts\Activate.ps1
    ```
 
-## Requisitos técnicos
+## Technical Requirements
 
-- Python **3.12 ou superior**
+- Python **3.12 or newer**
 - `pip`
-- Pillow, através de `requirements.txt`, quando forem utilizadas funcionalidades de conversão de imagens
+- Pillow, installed through `requirements.txt`, when using image-to-ASCII conversion
 
 ## Issues
 
-Antes de começares uma alteração significativa, abre uma issue para explicar a proposta. Isto ajuda a evitar trabalho duplicado e permite discutir a solução antes da implementação.
+Before starting a significant change, open an issue describing the proposal. This helps avoid duplicated work and allows the solution to be discussed before implementation.
 
-Ao abrir uma issue:
+When opening an issue:
 
-- Usa um título claro e específico.
-- Explica o problema ou a melhoria pretendida.
-- Inclui passos para reproduzir um erro, quando aplicável.
-- Adiciona exemplos de comandos e resultados esperados.
-- Indica a versão do Python utilizada.
+- Use a clear and specific title.
+- Explain the problem or proposed improvement.
+- Include reproduction steps when reporting a bug.
+- Add example commands and expected results.
+- Specify the Python version being used.
 
 ## Branches
 
-A branch principal é `main`. Não devem ser feitas alterações diretamente nessa branch através de contribuições externas.
+The main branch is `main`. External contributions should not be made directly to this branch.
 
-Cria uma branch descritiva a partir de `main`:
+Create a descriptive branch from `main`:
 
 ```bash
 git fetch upstream
 git checkout main
 git rebase upstream/main
-git checkout -b tipo/nome-da-alteracao
+git checkout -b type/change-name
 ```
 
-Convenções recomendadas:
+Recommended branch naming conventions:
 
-- `feature/nova-funcionalidade`
-- `fix/correcao-do-erro`
-- `docs/atualizacao-da-documentacao`
-- `test/adicao-de-testes`
-- `refactor/melhoria-do-codigo`
+- `feature/new-feature`
+- `fix/bug-fix`
+- `docs/documentation-update`
+- `test/add-tests`
+- `refactor/code-improvement`
 
-## Desenvolvimento
+## Development
 
-O código principal está em `ascii_art_generator/`. Antes de enviares alterações:
+The main source code is located in `ascii_art_generator/`. Before submitting changes, run:
 
 ```bash
 make test
 ```
 
-Também deves testar manualmente os comandos relacionados com a alteração. Por exemplo:
+You should also manually test commands related to your change. For example:
 
 ```bash
 python3 run.py "draw a rectangle 10x5"
 python3 run.py "write HELLO"
 ```
 
-Se alterares a conversão de imagens, testa também com uma imagem real e confirma que a dependência Pillow está instalada.
+If you modify image conversion, test it with a real image and confirm that Pillow is installed.
 
-## Padrões de código
+## Code Standards
 
-- Usa Python 3.12+.
-- Segue as convenções da PEP 8.
-- Usa nomes claros para variáveis, funções e classes.
-- Mantém as funções focadas e simples.
-- Adiciona docstrings a funções e classes públicas.
-- Evita adicionar dependências externas sem discutir primeiro numa issue.
-- Atualiza o README ou a documentação quando o comportamento do projeto mudar.
-- Mantém a compatibilidade com as funcionalidades existentes, salvo quando a alteração for explicitamente incompatível.
+- Use Python 3.12+.
+- Follow PEP 8 conventions.
+- Use clear names for variables, functions, and classes.
+- Keep functions focused and reasonably simple.
+- Add docstrings to public functions and classes.
+- Do not add external dependencies without discussing them in an issue first.
+- Update the README or documentation when project behavior changes.
+- Preserve compatibility with existing functionality unless the change is explicitly breaking.
 
-Quando fizer sentido, usa ferramentas de formatação, linting e verificação de tipos no código alterado. O projeto deve continuar sem erros nos testes existentes.
+When appropriate, use formatting, linting, and type-checking tools on the modified code. The project must continue to pass all existing tests.
 
-## Pull requests
+## Pull Requests
 
-As alterações devem ser submetidas através de uma pull request dirigida à branch `main`.
+All changes must be submitted through a pull request targeting the `main` branch.
 
-Uma pull request deve:
+A pull request should:
 
-- Ter um título claro.
-- Explicar o que foi alterado e porquê.
-- Referenciar a issue relacionada, por exemplo `Closes #12`.
-- Incluir testes realizados.
-- Atualizar a documentação, se necessário.
-- Ser limitada a uma alteração coerente, evitando misturar funcionalidades sem relação.
+- Have a clear title.
+- Explain what was changed and why.
+- Reference the related issue, for example `Closes #12`.
+- Include the tests that were performed.
+- Update the documentation when necessary.
+- Contain one coherent change and avoid unrelated modifications.
 
-Exemplo de estrutura para a descrição:
+Suggested pull request description:
 
 ```markdown
-## Resumo
-Descreve brevemente a alteração.
+## Summary
+Briefly describe the change.
 
-## Issue relacionada
+## Related Issue
 Closes #12
 
-## Testes
+## Testing
 - [ ] `make test`
-- [ ] Testes manuais realizados
-- [ ] Documentação atualizada, quando aplicável
+- [ ] Manual testing completed
+- [ ] Documentation updated, if applicable
 
-## Notas
-Indica limitações, decisões ou possíveis impactos.
+## Notes
+Mention limitations, decisions, or possible impacts.
 ```
 
-### Revisão e aprovação
+### Review and Approval
 
-Uma revisão de código é a análise da pull request antes de ela ser integrada na branch `main`. Durante a revisão podem ser verificados:
+Code review is the process of examining a pull request before it is merged into `main`. The review may cover:
 
-- Correção do comportamento implementado.
-- Qualidade e legibilidade do código.
-- Testes suficientes e bem direcionados.
-- Compatibilidade com Python 3.12+.
-- Ausência de alterações desnecessárias.
-- Atualização da documentação.
+- Correctness of the implementation.
+- Code quality and readability.
+- Sufficient and relevant tests.
+- Compatibility with Python 3.12+.
+- Avoidance of unnecessary changes.
+- Documentation updates.
 
-Como o projeto é mantido atualmente por uma só pessoa, não existe um número mínimo fixo de revisores. O mantenedor pode rever e aprovar a pull request sozinho. À medida que o projeto tiver mais colaboradores, esta regra poderá ser alterada para exigir, por exemplo, uma aprovação de outro colaborador antes do merge.
+Because the project is currently maintained by one person, there is no fixed minimum number of reviewers. The maintainer may review and approve a pull request alone. If the project gains more collaborators, this policy may be changed to require approval from another contributor before merging.
 
-Não faças merge de uma pull request enquanto existirem alterações importantes por resolver ou testes a falhar.
+Do not merge a pull request while important changes remain unresolved or tests are failing.
 
 ## Commits
 
-Usa mensagens no formato **Conventional Commits**:
+Use **Conventional Commits** for commit messages:
 
 ```text
-<tipo>(<âmbito>): <descrição>
+<type>(<scope>): <description>
 ```
 
-Tipos recomendados:
+Recommended types:
 
-- `feat`: nova funcionalidade
-- `fix`: correção de um erro
-- `docs`: documentação
-- `test`: testes
-- `refactor`: alteração interna sem mudança de comportamento
-- `chore`: manutenção ou configuração
-- `perf`: melhoria de desempenho
+- `feat`: new feature
+- `fix`: bug fix
+- `docs`: documentation
+- `test`: tests
+- `refactor`: internal change without a behavior change
+- `chore`: maintenance or configuration
+- `perf`: performance improvement
 
-Exemplos:
+Examples:
 
 ```text
 feat(shapes): add pentagon drawing support
@@ -176,32 +176,32 @@ docs: update installation instructions
 test(parser): cover compound commands
 ```
 
-Escreve as mensagens no imperativo, de forma curta e específica. Evita mensagens como `update`, `changes` ou `fix stuff`.
+Write commit messages in the imperative mood, keeping them short and specific. Avoid messages such as `update`, `changes`, or `fix stuff`.
 
-## Dependências
+## Dependencies
 
-As dependências devem ser adicionadas apenas quando forem necessárias. Cada nova dependência deve:
+Dependencies should only be added when necessary. Every new dependency must:
 
-- Ser justificada na pull request.
-- Ser adicionada a `requirements.txt`.
-- Ser compatível com Python 3.12+.
-- Ser documentada no README, quando afetar a instalação ou utilização.
+- Be justified in the pull request.
+- Be added to `requirements.txt`.
+- Support Python 3.12+.
+- Be documented in the README when it affects installation or usage.
 
-## Alterações arquiteturais
+## Architectural Changes
 
-Para alterações relevantes na arquitetura ou no comportamento geral do projeto:
+For significant changes to the architecture or overall project behavior:
 
-1. Abre uma issue para discutir a proposta.
-2. Explica as alternativas consideradas.
-3. Atualiza ou cria um Architecture Decision Record em `docs/adr/`, quando aplicável.
-4. Atualiza a documentação relacionada.
+1. Open an issue to discuss the proposal.
+2. Explain the alternatives that were considered.
+3. Update or create an Architecture Decision Record in `docs/adr/`, when applicable.
+4. Update the relevant documentation.
 
-## Relatórios de segurança
+## Security Reports
 
-Não publiques informação sensível, credenciais ou detalhes de uma vulnerabilidade de segurança numa issue pública. Como ainda não existe um canal privado definido para o projeto, contacta o proprietário do repositório através de um canal privado disponível antes de divulgar publicamente o problema.
+Do not publish sensitive information, credentials, or details about a security vulnerability in a public issue. Since the project currently has no dedicated private security contact, contact the repository owner through an available private channel before making the issue public.
 
-## Licença
+## License
 
-As contribuições serão distribuídas sob a mesma licença escolhida para o projeto. Antes de aceitar contribuições externas, adiciona um ficheiro `LICENSE` ao repositório para definir claramente os termos legais de utilização e redistribuição.
+Contributions will be distributed under the same license selected for the project. The project is licensed under the MIT License; see [`LICENSE`](LICENSE) for details.
 
-Obrigado por contribuíres para o ASCII Generator!
+Thank you for contributing to ASCII Generator!
