@@ -26,6 +26,34 @@ from .image_art import image_to_ascii
 from .learned_words import load_learned_moods, save_learned_mood
 
 
+def setup_console() -> None:
+    """Make Windows consoles render ANSI colors and Unicode output (no-op elsewhere).
+
+    Legacy Windows consoles (cmd.exe, older PowerShell hosts) print raw
+    escape codes unless virtual terminal processing is switched on, and
+    redirected output defaults to the ANSI code page, which can't encode
+    the Unicode emojis/box characters this generator prints.
+    """
+    if sys.platform != 'win32':
+        return
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding='utf-8')
+        except (AttributeError, ValueError):
+            pass
+    try:
+        import ctypes
+        kernel32 = ctypes.windll.kernel32
+        enable_virtual_terminal_processing = 0x0004
+        for std_handle in (-11, -12):  # STD_OUTPUT_HANDLE, STD_ERROR_HANDLE
+            handle = kernel32.GetStdHandle(std_handle)
+            mode = ctypes.c_uint32()
+            if kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
+                kernel32.SetConsoleMode(handle, mode.value | enable_virtual_terminal_processing)
+    except (AttributeError, OSError):
+        pass
+
+
 class Colors:
     """ANSI color codes for terminal output."""
     HEADER = '\033[95m'
@@ -1505,6 +1533,7 @@ INTELLIGENT MODE (type 'i' to activate):
 
 def main():
     """Main entry point."""
+    setup_console()
     cli = ASCIIArtCLI()
     cli.run()
 

@@ -180,8 +180,14 @@ def _figlet_to_ascii(text: str, font: str) -> Optional[str]:
     try:
         rendered = pyfiglet.figlet_format(text, font=figlet_font, width=width)
     except pyfiglet.FontNotFound:
-        rendered = pyfiglet.figlet_format(
-            text, font=FIGLET_FONT_ALIASES['small'], width=width)
+        try:
+            rendered = pyfiglet.figlet_format(
+                text, font=FIGLET_FONT_ALIASES['small'], width=width)
+        except pyfiglet.FontNotFound:
+            # pyfiglet is importable but ships no usable fonts (e.g. a
+            # PyInstaller build missing --collect-data pyfiglet): fall back
+            # to the built-in fonts instead of crashing.
+            return None
 
     lines = rendered.split('\n')
     while lines and not lines[0].strip():
