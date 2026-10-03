@@ -8,10 +8,21 @@ BLUE='\033[0;34m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-# Check if Python 3 is installed
-if ! command -v python3 &> /dev/null; then
-    echo -e "${RED}ERROR: Python 3 not found!${NC}"
-    echo "Please install Python 3.10 or higher"
+# Find a Python 3 interpreter. The name differs per platform: Linux/macOS
+# generally only ship "python3", while on Windows (Git Bash / MSYS) it is
+# usually "python" and a bare "python3" may be a Microsoft Store stub that
+# prints an install prompt and exits non-zero. Resolve it once, into $PYTHON.
+PYTHON=""
+for candidate in python3 python py; do
+    if command -v "$candidate" &> /dev/null && "$candidate" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)' &> /dev/null; then
+        PYTHON="$candidate"
+        break
+    fi
+done
+
+if [ -z "$PYTHON" ]; then
+    echo -e "${RED}ERROR: Python 3.12+ not found!${NC}"
+    echo "Please install Python 3.12 or higher"
     exit 1
 fi
 
@@ -38,27 +49,27 @@ read -p "Option: " choice
 case $choice in
     1)
         echo -e "\n${BLUE}Starting menu mode...${NC}\n"
-        python run.py
+        "$PYTHON" run.py
         ;;
     2)
         echo -e "\n${BLUE}Starting intelligent mode...${NC}\n"
-        python run.py --intelligent
+        "$PYTHON" run.py --intelligent
         ;;
     3)
         read -p "Command (e.g., 'draw a heart'): " cmd
         if [ -n "$cmd" ]; then
             echo -e "\n${BLUE}Executing: $cmd${NC}\n"
-            python run.py "$cmd"
+            "$PYTHON" run.py "$cmd"
         else
             echo -e "${YELLOW}No command provided${NC}"
         fi
         ;;
     4)
         echo -e "\n${BLUE}Help:${NC}\n"
-        python run.py --help
+        "$PYTHON" run.py --help
         ;;
     *)
         echo -e "\n${YELLOW}Invalid option. Using default menu mode...${NC}\n"
-        python run.py
+        "$PYTHON" run.py
         ;;
 esac

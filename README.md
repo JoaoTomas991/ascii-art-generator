@@ -12,31 +12,38 @@ A Python ASCII Art generator: draws geometric shapes, converts text into ASCII l
 
 ## Installation
 
+Works the same on Windows, Linux, and macOS:
+
 ```bash
 git clone https://github.com/JoaoTomas991/ascii_generator.git
 cd ascii_generator
+pip install -e .
 ```
 
-Nothing to install to use shapes, text, patterns, or animations — just run
-it directly with `python3`. To also use image-to-ASCII conversion, install
-Pillow first:
+That installs an `ascii-generator` command on your `PATH` — a native launcher
+on each platform (`ascii-generator.exe` on Windows), so you never have to work
+out which Python binary to call. It is the recommended way to use the project.
+
+To also enable image-to-ASCII conversion, install Pillow:
 
 ```bash
 pip install -r requirements.txt
-# or
-make install
 ```
+
+Nothing has to be installed to use shapes, text, patterns, or animations — you
+can always run the scripts in place instead (see
+[Running without installing](#running-without-installing) below).
 
 ## Usage
 
-There are three ways to use the generator:
+There are three ways to drive the generator, shown below with the installed
+`ascii-generator` command. The two sections after them cover running from a
+clone without installing, and the Unix-only shortcuts.
 
 ### 1. Menu mode (interactive)
 
 ```bash
-python3 run.py
-# or
-make run
+ascii-generator
 ```
 
 Shows a menu with all available shapes, patterns, text, and animations.
@@ -46,22 +53,43 @@ Shows a menu with all available shapes, patterns, text, and animations.
 From the menu, choose `i` to enter intelligent mode and type commands freely in English:
 
 ```bash
-python3 run.py --intelligent
-# or
-make intelligent
+ascii-generator --intelligent
 ```
 
 ### 3. Direct command (single line, non-interactive)
 
 ```bash
-python3 run.py "draw a rectangle 10x5"
-python3 run.py "make a circle with radius 8 color blue"
-python3 run.py "write HELLO with font banner"
+ascii-generator "draw a rectangle 10x5"
+ascii-generator "make a circle with radius 8 color blue"
+ascii-generator "write HELLO with font banner"
 ```
 
-There are also shortcuts in the `Makefile`:
+### Running without installing
+
+`run.py` is the same entry point and works straight from a clone. The catch is
+that the interpreter has a different name per platform — there is no single
+command that works everywhere:
 
 ```bash
+python3 run.py "draw a heart"   # Linux, macOS
+python run.py "draw a heart"    # Windows
+```
+
+On Windows, a bare `python3` is usually the Microsoft Store stub, which prints
+an install prompt instead of running anything. This is the reason
+`pip install -e .` above is the recommended path.
+
+### Unix-only shortcuts
+
+The `Makefile` and `start.sh` are conveniences for Linux and macOS; `make` is
+not available on Windows by default, and `start.sh` needs a POSIX shell. The
+`Makefile` calls `python3`, overridable with `make run PYTHON=python`;
+`start.sh` probes `python3`, `python`, and `py` and uses the first one that is
+actually 3.12+.
+
+```bash
+make run               # menu mode
+make intelligent       # intelligent mode
 make command-draw      # draw a rectangle 10x5
 make command-circle    # make a circle with radius 8
 make command-heart     # draw a heart
@@ -70,7 +98,8 @@ make command-banner    # make a banner with text ASCII ART
 make command-text      # write HELLO with font banner
 ```
 
-Alternative: `./start.sh` opens a small startup menu (menu mode, intelligent mode, direct command, or help).
+`./start.sh` opens a small startup menu (menu mode, intelligent mode, direct
+command, or help).
 
 ## Capabilities
 
@@ -118,19 +147,32 @@ ascii_art_generator/
 ├── smart_generator.py  # advanced shapes, fill/border patterns, random generation
 ├── image_art.py        # image-to-ASCII conversion (the one module that needs Pillow)
 ├── learned_words.py    # persistence for user-taught mood synonyms
+├── console.py          # UTF-8 stdout setup shared by the entry points
 └── main.py             # entry point
 
 run.py             # startup script (menu / intelligent / direct command)
-start.sh           # interactive startup menu
-Makefile           # run and test shortcuts
+setup.py           # packaging; provides the "ascii-generator" command
+start.sh           # interactive startup menu (Unix only)
+Makefile           # run and test shortcuts (Unix only)
 requirements.txt   # Pillow, needed only for image-to-ASCII conversion
 docs/adr/          # architecture decision records
 ```
 
 ## Testing
 
+On Linux and macOS:
+
 ```bash
 make test
 ```
 
-Runs a smoke test against the main imports and the command parser.
+Everywhere, including Windows, the same two checks without `make`:
+
+```bash
+python -c "from ascii_art_generator.ascii_art import draw_rectangle, draw_circle, draw_heart, draw_diamond, text_to_ascii; print('Import tests: OK')"
+python -c "from ascii_art_generator.cli import ENCommandParser; p = ENCommandParser(); print('Parser tests: OK')"
+```
+
+Runs a smoke test against the main imports and the command parser. CI runs
+these on Windows, Linux, and macOS against Python 3.12, 3.13, and 3.14 — see
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml).

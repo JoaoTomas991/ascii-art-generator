@@ -15,14 +15,19 @@ permissions:
 
 jobs:
   test:
-    name: Test on Python ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    name: Test on ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
         python-version:
           - "3.12"
           - "3.13"
+          - "3.14"
 
     steps:
       - name: Check out repository
@@ -44,8 +49,18 @@ jobs:
       - name: Install the project
         run: python -m pip install .
 
-      - name: Run project tests
-        run: make test
+      # Run the smoke tests directly rather than through "make test": make is
+      # not available on windows-latest, so the Makefile can only be exercised
+      # on the Unix runners (see the step further down).
+      # Block scalars, because the printed messages contain ": ", which YAML
+      # would otherwise read as a mapping inside a plain scalar.
+      - name: Check module imports
+        run: |
+          python -c "from ascii_art_generator.ascii_art import draw_rectangle, draw_circle, draw_heart, draw_diamond, text_to_ascii; print('Import tests: OK')"
+
+      - name: Check the command parser
+        run: |
+          python -c "from ascii_art_generator.cli import ENCommandParser; p = ENCommandParser(); print('Parser tests: OK')"
 
       - name: Verify the installed command-line entry point
         run: ascii-generator --help
@@ -53,8 +68,21 @@ jobs:
       - name: Run a direct command smoke test
         run: python run.py "draw a rectangle 10x5"
 
+      - name: Run an image-conversion smoke test
+        run: python run.py "convert image does-not-exist.png width 20"
+
       - name: Compile Python sources
         run: python -m compileall -q ascii_art_generator run.py
+
+      # Unix-only helpers. "bash -n" also catches a start.sh committed with
+      # CRLF line endings, which would break its shebang on Linux/macOS.
+      - name: Check the shell launcher parses
+        if: runner.os != 'Windows'
+        run: bash -n start.sh
+
+      - name: Run the Makefile test target
+        if: runner.os != 'Windows'
+        run: make test
 
   package:
     name: Build and validate Python packages

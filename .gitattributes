@@ -1,0 +1,12 @@
+# Normalize line endings so the repository content does not depend on each
+# contributor's core.autocrlf setting.
+* text=auto
+
+# start.sh must be checked out with LF even on Windows: a CRLF shebang line
+# ("#!/bin/bash\r") makes Linux and macOS fail with "bad interpreter".
+*.sh text eol=lf
+
+# Python sources and CI config stay LF everywhere for the same reason.
+*.py text eol=lf
+*.yml text eol=lf
+Makefile text eol=lf

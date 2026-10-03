@@ -24,6 +24,7 @@ from .smart_generator import (
 )
 from .image_art import image_to_ascii
 from .learned_words import load_learned_moods, save_learned_mood
+from .console import enable_utf8_output
 
 
 class Colors:
@@ -1075,7 +1076,7 @@ class ASCIIArtCLI:
         """
         art, has_dedicated_art = get_animal_art(animal_name)
         if not has_dedicated_art:
-            print(f"{Colors.WARNING}Ainda não tenho um desenho próprio para '{animal_name}' — aqui está um parecido:{Colors.ENDC}")
+            print(f"{Colors.WARNING}No dedicated drawing for '{animal_name}' yet - here is a similar one:{Colors.ENDC}")
         print(f"\n{self._apply_color(art, color)}")
 
     def _render_image(self, params: Dict[str, Any]) -> None:
@@ -1088,9 +1089,9 @@ class ASCIIArtCLI:
         except ImportError as exc:
             print(f"{Colors.FAIL}{exc}{Colors.ENDC}")
         except FileNotFoundError:
-            print(f"{Colors.FAIL}Imagem não encontrada: {path}{Colors.ENDC}")
+            print(f"{Colors.FAIL}Image not found: {path}{Colors.ENDC}")
         except Exception as exc:
-            print(f"{Colors.FAIL}Não foi possível ler a imagem '{path}': {exc}{Colors.ENDC}")
+            print(f"{Colors.FAIL}Could not read image '{path}': {exc}{Colors.ENDC}")
         else:
             print(f"\n{art}\n")
 
@@ -1496,6 +1497,7 @@ INTELLIGENT MODE (type 'i' to activate):
 
 def main():
     """Main entry point."""
+    enable_utf8_output()
     cli = ASCIIArtCLI()
     cli.run()
 

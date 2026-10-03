@@ -1,6 +1,11 @@
 """
 Persistence for words the user has taught the ENCommandParser at runtime
 (e.g. new mood synonyms), so they survive across sessions.
+
+Reads and writes pin encoding="utf-8" explicitly. The default is the platform's
+locale encoding (cp1252 on Windows, UTF-8 on Linux/macOS), which would make the
+file non-portable between systems and can raise UnicodeEncodeError for a taught
+word with non-ASCII characters, since json.dumps runs with ensure_ascii=False.
 """
 
 import json
@@ -12,7 +17,7 @@ LEARNED_WORDS_PATH = Path.home() / ".config" / "ascii_generator" / "learned_word
 
 def _read() -> dict:
     try:
-        return json.loads(LEARNED_WORDS_PATH.read_text())
+        return json.loads(LEARNED_WORDS_PATH.read_text(encoding="utf-8"))
     except (FileNotFoundError, json.JSONDecodeError, OSError):
         return {}
 
@@ -30,4 +35,4 @@ def save_learned_mood(word: str, canonical: str) -> None:
     LEARNED_WORDS_PATH.parent.mkdir(parents=True, exist_ok=True)
     data = _read()
     data.setdefault('moods', {})[word] = canonical
-    LEARNED_WORDS_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+    LEARNED_WORDS_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")

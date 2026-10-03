@@ -19,6 +19,7 @@ Examples:
 
 import sys
 import argparse
+from ascii_art_generator.console import enable_utf8_output
 from ascii_art_generator.main import main as cli_main
 
 
@@ -61,6 +62,10 @@ def run_command(command: str):
 
 def main():
     """Main entry point."""
+    # run_command() below bypasses cli.main(), so this entry point has to set
+    # the output encoding up itself (see ascii_art_generator/console.py).
+    enable_utf8_output()
+
     parser = argparse.ArgumentParser(
         description='ASCII Generator - Command Line Tool',
         formatter_class=argparse.RawDescriptionHelpFormatter,
