@@ -47,6 +47,7 @@ ascii_art_generator/
 ├── cli.py              # ENCommandParser + command-line interface (ASCIIArtCLI, Menu)
 ├── smart_generator.py  # advanced shapes, fill/border patterns, random generation
 ├── animal_scenes.py    # random animal composed as a coin / frame / themed scene
+├── emoji_art.py        # random emoji face composed from head, eyes, brows, mouth and extras
 ├── image_art.py        # image-to-ASCII conversion (the one module that needs Pillow)
 ├── learned_words.py    # persistence for user-taught mood synonyms
 ├── console.py          # UTF-8 stdout setup shared by the entry points

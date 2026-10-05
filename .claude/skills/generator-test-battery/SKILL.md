@@ -40,7 +40,7 @@ output visibly violates the property.
 | `write HELLO with font banner` | same as above — must NOT render a banner box with the default "ASCII" text (that would mean the font name collided with the shape parser again) |
 | `make a rectangle 8x4 with color cyan style dotted` | output must be a dotted pattern (alternating `#`/space), not a solid block (that would mean "style" leaked to the wrong param again) |
 | `make a spiral 20` | must NOT be a solid block of one repeated character on every row — rows should differ from each other and contain blank runs (a real spiral has gaps) |
-| `make an emoji` | output must be a Unicode emoji face (characters outside plain ASCII) |
+| `make an emoji` | output must be a composed ASCII face about as tall as a big animal (around 11 lines, with a round head outline and eyes/mouth inside), not a one-line kaomoji; `draw a sad emoji` must give a sad face (brows `__/` and `\__`) |
 | `make a banner with text COOL` | the word COOL must appear in the rendered banner, not the default "ASCII" |
 | `create a box with text HI` | the word HI must appear in the box |
 | `make a circle with radius 5 color blue and a rectangle 10x5 color red` | output must contain TWO distinct shapes (a circle-like block AND a 10x5 rectangle block), each with its own color — if only one shape appears, compound-command support is broken |

@@ -11,6 +11,8 @@ import shutil
 import sys
 from typing import List, Dict, Optional, Tuple
 
+from .emoji_art import emoji_face
+
 
 # =============================================================================
 # TEXT TO ASCII ART
@@ -607,8 +609,11 @@ def get_animal_art(name: str, big: bool = False) -> Tuple[str, bool]:
     return drawings[random.choice(pool)], False
 
 
-def random_emoji() -> str:
-    """Generate a random ASCII emoji."""
+def random_emoji(big: bool = True) -> str:
+    """Generate a random emoji: a composed face (big=True, the default, about
+    the size of a big animal) or a one-line kaomoji (big=False)."""
+    if big:
+        return '\n'.join(emoji_face()[0])
     emojis = [
         "(^_^)", "(>_<)", "(≧∇≦)", "(≧▽≦)", "(⊙_⊙)",
         "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧", "(✿◠‿◠)", "(◕ ◡ ◕)",

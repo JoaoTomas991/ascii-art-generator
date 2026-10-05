@@ -22,6 +22,7 @@ from .smart_generator import (
     draw_butterfly, draw_flower, get_available_fill_patterns,
     get_available_border_styles, get_available_shapes
 )
+from .emoji_art import emoji_face, emoji_color, MOOD_FACES
 from .image_art import image_to_ascii
 from .learned_words import load_learned_moods, save_learned_mood
 from .console import enable_utf8_output
@@ -1068,7 +1069,7 @@ class ASCIIArtCLI:
     def menu_random_emoji(self) -> None:
         """Random emoji menu."""
         print(f"\n{Colors.OKBLUE}=== Random Emoji ==={Colors.ENDC}")
-        print(f"\n{Colors.OKGREEN}{random_emoji()}{Colors.ENDC}")
+        print(f"\n{self._random_emoji()}")
     
     def menu_banner(self) -> None:
         """Banner menu."""
@@ -1153,7 +1154,7 @@ class ASCIIArtCLI:
         print()
         print(f"{Colors.OKBLUE}Random:{Colors.ENDC}")
         print(f"Animal: {random_animal()}")
-        print(f"Emoji: {random_emoji()}")
+        print(f"Emoji: {random_emoji(big=False)}")
         print()
         print(f"{Colors.OKBLUE}Banner:{Colors.ENDC}")
         print(create_banner("ASCII ART", 40))
@@ -1247,6 +1248,12 @@ INTELLIGENT MODE (type 'i' to activate):
         """Random art from the smart generator; an explicit color replaces its own."""
         return self._override_color(
             '\n'.join(smart_gen.generate_interesting_art('random', width, height)), color)
+
+    def _random_emoji(self, color: Optional[str] = None, mood: Optional[str] = None) -> str:
+        """A composed face (matching the mood, if given), in the given color
+        or one that suits it."""
+        lines, mood = emoji_face(mood if mood in MOOD_FACES else None)
+        return self._apply_color('\n'.join(lines), color or emoji_color(mood))
 
     def _override_color(self, art: str, color: Optional[str] = None) -> str:
         """An explicit color replaces whatever the smart generator picked."""
@@ -1375,7 +1382,7 @@ INTELLIGENT MODE (type 'i' to activate):
             'spiral': lambda: render_shape('spiral', params.get('size', 18), char),
             'random_art': lambda: print(f"\n{self._random_art(params.get('width', 30), params.get('height', 16), color)}"),
             'random_animal': lambda: print(f"\n{self._override_color(chr(10).join(smart_gen.generate_animal_art(big=params.get('big', True))), color)}"),
-            'random_emoji': lambda: print(f"\n{self._apply_color(random_emoji(), color)}"),
+            'random_emoji': lambda: print(f"\n{self._random_emoji(color, params.get('mood'))}"),
             'banner': lambda: print(f"\n{self._create_custom_banner(params.get('text', 'ASCII'), params.get('width', 50), params.get('char', '='), color, border_style)}"),
             'box': lambda: print(f"\n{self._create_custom_box(params.get('text', 'Hello\nWorld'), params.get('char', '#'), color, border_style)}"),
             'spinner': lambda: spinner_animation(params.get('duration', 2.0)),
