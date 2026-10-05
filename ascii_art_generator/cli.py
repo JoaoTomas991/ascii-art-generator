@@ -10,7 +10,7 @@ from typing import Callable, Dict, Any, Optional, Tuple, List
 from .ascii_art import (
     text_to_ascii, draw_rectangle, draw_triangle, draw_circle,
     draw_heart, draw_diamond, generate_gradient, generate_checkerboard,
-    generate_spiral, generate_tree, random_abstract, random_face,
+    generate_spiral, generate_tree, random_abstract,
     random_animal, random_emoji, create_banner, create_box,
     get_available_fonts, spinner_animation, progress_bar,
     get_color_code, get_border_chars, get_fill_style_pattern,
@@ -172,7 +172,6 @@ class ENCommandParser:
         'checkerboard': ['checkerboard', 'chessboard'],
         'random': ['random'],
         # Random
-        'face': ['face'],
         'emoji': ['emoji', 'emoticon'],
         # 'animal'/'creature' pick a fully random animal; every other word
         # here names one specific animal and is recognized even when it has
@@ -700,7 +699,6 @@ class ENCommandParser:
             'abstract': 'random_art',
             'art': 'random_art',
             'painting': 'random_art',
-            'face': 'random_face',
             'emoji': 'random_emoji',
             'emoticon': 'random_emoji',
             'animal': 'random_animal',
@@ -913,8 +911,6 @@ class ASCIIArtCLI:
                            'Generate a spiral', 'Patterns')
         self.menu.add_item('ra', 'Random Art', self.menu_random_art,
                            'Generate random art', 'Random')
-        self.menu.add_item('f', 'Random Face', self.menu_random_face,
-                           'Generate a random face', 'Random')
         self.menu.add_item('a', 'Random Animal', self.menu_random_animal,
                            'Generate a random animal', 'Random')
         self.menu.add_item('e', 'Random Emoji', self.menu_random_emoji,
@@ -1049,11 +1045,6 @@ class ASCIIArtCLI:
         except ValueError:
             print(f"{Colors.FAIL}Invalid input.{Colors.ENDC}")
     
-    def menu_random_face(self) -> None:
-        """Random face menu."""
-        print(f"\n{Colors.OKBLUE}=== Random Face ==={Colors.ENDC}")
-        print(f"\n{Colors.OKGREEN}{random_face()}{Colors.ENDC}")
-    
     def menu_random_animal(self) -> None:
         """Random animal menu."""
         print(f"\n{Colors.OKBLUE}=== Random Animal ==={Colors.ENDC}")
@@ -1146,7 +1137,6 @@ class ASCIIArtCLI:
         print(generate_tree(4))
         print()
         print(f"{Colors.OKBLUE}Random:{Colors.ENDC}")
-        print(f"Face: {random_face()}")
         print(f"Animal: {random_animal()}")
         print(f"Emoji: {random_emoji()}")
         print()
@@ -1164,7 +1154,7 @@ Features:
 - Convert text to ASCII art with different fonts
 - Draw geometric shapes (rectangle, triangle, circle, heart, diamond, star, hexagon, oval, arrow, pentagon, butterfly, flower)
 - Generate patterns (gradient, checkerboard, spiral, crosshatch, honeycomb, wave, zigzag)
-- Create random art, faces, animals and emojis
+- Create random art, animals and emojis
 - Generate banners and text boxes
 - Display animations (spinner, progress bar)
 
@@ -1358,7 +1348,6 @@ INTELLIGENT MODE (type 'i' to activate):
             'checkerboard': lambda: print(f"\n{self._apply_color(generate_checkerboard(params.get('size', 12), params.get('chars', '# ')), color)}"),
             'spiral': lambda: render_shape('spiral', params.get('size', 18), char),
             'random_art': lambda: print(f"\n{self._apply_color(random_abstract(params.get('width', 48), params.get('height', 14)), color)}"),
-            'random_face': lambda: print(f"\n{self._apply_color(random_face(), color)}"),
             'random_animal': lambda: print(f"\n{self._apply_color(random_animal(params.get('big', False)), color)}"),
             'random_emoji': lambda: print(f"\n{self._apply_color(random_emoji(), color)}"),
             'banner': lambda: print(f"\n{self._create_custom_banner(params.get('text', 'ASCII'), params.get('width', 50), params.get('char', '='), color, border_style)}"),

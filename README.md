@@ -114,7 +114,7 @@ command, or help).
 - **Shapes**: rectangle, circle, triangle, heart, diamond, spiral, tree, star, hexagon, oval, arrow, pentagon, butterfly, flower
 - **Text to ASCII**: 4 named fonts — `small`, `block`, `banner`, `shadow` — rendered with real FIGlet fonts when pyfiglet is installed, which also accepts any other FIGlet font name (e.g. `write HELLO with font slant`); without pyfiglet, simpler built-in 5-line fonts are used
 - **Patterns**: gradient, checkerboard, abstract/random art
-- **Random generators**: faces, emojis, animals — naming a specific animal (cat, dog, rabbit, bear, fish, penguin, owl, crow, raven) always draws that animal; asking for "an animal"/"a creature" instead picks one of them at random. Add `big`/`large`/`huge`/`giant` for a bigger, more detailed drawing (e.g. `draw a big cat`)
+- **Random generators**: emojis, animals — naming a specific animal (cat, dog, rabbit, bear, fish, penguin, owl, crow, raven) always draws that animal; asking for "an animal"/"a creature" instead picks one of them at random. Add `big`/`large`/`huge`/`giant` for a bigger, more detailed drawing (e.g. `draw a big cat`)
 - **Banners and boxes** with custom text
 - **Terminal animations**: spinner, progress bar
 - **Styling**: color (ANSI: red, green, blue, yellow, cyan, magenta, white, black + `bright_*` variants, plus `rainbow`/`multicolor` which cycles a color per line), up to 31 fill patterns (always applied inside the shape's own silhouette, never replacing it), and several border styles — see `.claude/skills/ascii-art/SKILL.md` for the full catalog with functions and files

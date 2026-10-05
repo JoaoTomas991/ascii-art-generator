@@ -3,7 +3,7 @@ Console output setup shared by every entry point.
 
 The generated art is not always pure ASCII: border styles use box-drawing
 characters ('bold' uses U+2588, 'rounded' uses U+256D..U+2570), the 'blocks'
-brightness ramp in image_art.py uses shade blocks, and random_face() returns
+brightness ramp in image_art.py uses shade blocks, and random_emoji() can return
 kaomoji. On Windows, sys.stdout only uses UTF-8 while it is attached to a
 console; as soon as output is redirected to a pipe or a file it falls back to
 the locale encoding (cp1252 on a Western install), where those characters do

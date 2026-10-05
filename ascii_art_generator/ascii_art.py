@@ -413,23 +413,6 @@ def random_abstract(width: int = 48, height: int = 14) -> str:
     return '\n'.join(result)
 
 
-def random_face() -> str:
-    """Generate a random ASCII face."""
-    eyes = ['O', 'o', '@', '*', '.', '-', 'x', 'X', '^']
-    noses = ['-', '^', 'v', '<', '>']
-    mouths = [')', '(', 'D', 'P', 'O', 'o', '/', '\\', '|', '_']
-    eye = random.choice(eyes)
-    nose = random.choice(noses)
-    mouth = random.choice(mouths)
-    faces = [
-        f" {eye} {nose} {mouth}",
-        f" {eye}-{mouth}",
-        f" {eye}_{mouth}",
-        f" {eye}{nose}{mouth}",
-    ]
-    return random.choice(faces)
-
-
 ANIMALS = {
     'cat': " /\\_/\\ \n( o.o ) \n > ^ < ",
     'dog': "  / \\__\n (    @\\___\n /         O\n/   (_____/\n/_____/   U",
@@ -821,7 +804,6 @@ def get_all_functions() -> Dict[str, str]:
         'generate_spiral': 'Generate a spiral',
         'generate_tree': 'Generate a tree',
         'random_abstract': 'Generate random abstract art',
-        'random_face': 'Generate a random face',
         'random_animal': 'Generate a random animal',
         'random_emoji': 'Generate a random emoji',
         'create_banner': 'Create a banner',

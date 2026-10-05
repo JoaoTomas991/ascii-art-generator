@@ -46,7 +46,7 @@ forma nova baseada em distância radial, replica esta correção.
 - `generate_gradient(width, height)` — degradê de densidade de caracteres
 - `generate_checkerboard(size, chars)` — tabuleiro/xadrez
 - `random_abstract(width, height)` — arte abstrata aleatória
-- `random_face()` / `random_animal()` / `random_emoji()` — geradores aleatórios de faces, animais (gato, cão, coruja, pinguim, peixe, urso, coelho, corvo) e emojis. Cada animal com desenho próprio tem também uma versão maior em `ANIMALS_BIG` (mesmas chaves que `ANIMALS`), usada quando o comando inclui `big`/`large`/`huge`/`giant` (`ENCommandParser.BIG_WORDS` → `params['big']` → `get_animal_art(name, big)` / `random_animal(big)`), ex. `draw a big cat` (`face`/`emoji` são chaves de forma distintas em `ENCommandParser.SHAPE_SYNONYMS` — "emoji"/"emoticon" já não caem em `random_face`)
+- `random_animal()` / `random_emoji()` — geradores aleatórios de animais (gato, cão, coruja, pinguim, peixe, urso, coelho, corvo) e emojis. Cada animal com desenho próprio tem também uma versão maior em `ANIMALS_BIG` (mesmas chaves que `ANIMALS`), usada quando o comando inclui `big`/`large`/`huge`/`giant` (`ENCommandParser.BIG_WORDS` → `params['big']` → `get_animal_art(name, big)` / `random_animal(big)`), ex. `draw a big cat`
 
 ## Texto para ASCII
 

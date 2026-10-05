@@ -16,7 +16,7 @@ from typing import List, Dict, Optional, Tuple, Callable
 from .ascii_art import (
     draw_rectangle, draw_circle, draw_heart, draw_diamond,
     draw_triangle, generate_tree, generate_spiral, generate_checkerboard,
-    generate_gradient, text_to_ascii, random_abstract, random_face, random_animal, random_emoji,
+    generate_gradient, text_to_ascii, random_abstract, random_animal, random_emoji,
     get_color_code, create_banner, create_box
 )
 
