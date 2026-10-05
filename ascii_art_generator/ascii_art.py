@@ -178,16 +178,22 @@ def _figlet_to_ascii(text: str, font: str) -> Optional[str]:
     figlet_font = FIGLET_FONT_ALIASES.get(font, font)
     width = shutil.get_terminal_size((120, 24)).columns
     try:
-        rendered = pyfiglet.figlet_format(text, font=figlet_font, width=width)
+        figlet = pyfiglet.Figlet(font=figlet_font, width=width)
     except pyfiglet.FontNotFound:
         try:
-            rendered = pyfiglet.figlet_format(
-                text, font=FIGLET_FONT_ALIASES['small'], width=width)
+            figlet = pyfiglet.Figlet(font=FIGLET_FONT_ALIASES['small'], width=width)
         except pyfiglet.FontNotFound:
             # pyfiglet is importable but ships no usable fonts (e.g. a
             # PyInstaller build missing --collect-data pyfiglet): fall back
             # to the built-in fonts instead of crashing.
             return None
+
+    # pyfiglet silently drops characters the font has no glyph for (e.g.
+    # accented letters in most fonts); draw '?' instead, like the built-in
+    # fonts' _MISSING_GLYPH, so they're visibly unsupported.
+    glyphs = figlet.Font.chars
+    text = ''.join(c if c == '\n' or ord(c) in glyphs else '?' for c in text)
+    rendered = figlet.renderText(text)
 
     lines = rendered.split('\n')
     while lines and not lines[0].strip():
