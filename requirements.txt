@@ -1,3 +1,7 @@
-# Standard library only, except for image-to-ASCII conversion
-# (ascii_art_generator/image_art.py) - see .claude/skills/generator-core/SKILL.md.
+# Standard library only, except for two optional, isolated dependencies -
+# see .claude/skills/generator-core/SKILL.md and docs/adr/0002-*.md.
+# Image-to-ASCII conversion (ascii_art_generator/image_art.py):
 Pillow>=10.0
+# FIGlet fonts for text-to-ASCII (ascii_art.py:_figlet_to_ascii); without it
+# text_to_ascii() falls back to the built-in 5-line fonts.
+pyfiglet>=1.0

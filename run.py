@@ -20,6 +20,7 @@ Examples:
 import sys
 import argparse
 from ascii_art_generator.main import main as cli_main
+from ascii_art_generator.cli import setup_console
 
 
 def run_intelligent_mode():
@@ -96,6 +97,7 @@ Supported Commands:
     
     parser.add_argument(
         '-c', '--command',
+        dest='command_option',
         type=str,
         default='',
         help='Command to execute (alternative to positional argument)'
@@ -144,9 +146,10 @@ Supported Commands:
     )
     
     args = parser.parse_args()
+    setup_console()
     
     # Build command from arguments
-    command = args.command or args.command
+    command = args.command or args.command_option
     
     if args.intelligent:
         # Run in intelligent mode
@@ -178,4 +181,16 @@ Supported Commands:
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
+    except Exception:
+        # A standalone executable (PyInstaller) started by double-click runs
+        # in its own console window, which would close before the error
+        # could be read - keep it open until the user presses Enter.
+        if getattr(sys, 'frozen', False) and len(sys.argv) == 1:
+            import traceback
+            traceback.print_exc()
+            input("\nPress Enter to close...")
+        raise

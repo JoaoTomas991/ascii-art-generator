@@ -1,0 +1,89 @@
+# Builds standalone executables (no Python needed to run them) with
+# PyInstaller for Windows, macOS and Linux, smoke-tests each one, and
+# uploads them as workflow artifacts. Pushing a tag like v1.0.0 also
+# attaches them to a GitHub Release.
+name: Build executables
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write  # needed to create the GitHub Release on tag pushes
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            name: ascii_generator-windows
+            exe: ascii_generator-windows.exe
+          - os: macos-latest
+            name: ascii_generator-macos
+            exe: ascii_generator-macos
+          - os: ubuntu-latest
+            name: ascii_generator-linux
+            exe: ascii_generator-linux
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: python -m pip install pyinstaller -r requirements.txt
+
+      - name: Build executable
+        # --collect-data pyfiglet bundles the FIGlet font files; without it
+        # `write` silently falls back to the built-in fonts.
+        run: python -m PyInstaller --onefile --name ${{ matrix.name }} --collect-data pyfiglet run.py
+
+      - name: Smoke test
+        run: |
+          set -euo pipefail
+          EXE="dist/${{ matrix.exe }}"
+
+          "$EXE" "draw a rectangle 4x2" | tee out.txt
+          grep -q '####' out.txt
+
+          # 'slant' only exists in pyfiglet, and its letters are drawn with
+          # slashes - proves the FIGlet fonts made it into the executable.
+          "$EXE" "write HI with font slant" | tee out.txt
+          grep -q '/' out.txt
+
+          # Unicode output through a pipe (UTF-8 setup on Windows).
+          "$EXE" "make an emoji"
+          "$EXE" -c "draw a heart size 1" --color red
+
+          # Pillow is bundled and can decode an image.
+          python -c "from PIL import Image; Image.new('RGB', (40, 20), (200, 50, 50)).save('smoke.png')"
+          "$EXE" "convert image smoke.png width 20" | tee out.txt
+          test -s out.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: dist/${{ matrix.exe }}
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
