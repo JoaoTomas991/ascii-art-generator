@@ -7,6 +7,7 @@ This module contains all the ASCII art generation functions.
 import math
 import random
 import time
+import shutil
 import sys
 from typing import List, Dict, Optional, Tuple
 
@@ -147,8 +148,67 @@ FONTS = {
 }
 
 
+# The project's font names map onto real FIGlet fonts when pyfiglet is
+# installed; any other FIGlet font name (e.g. "slant", "ansi_shadow") is
+# also accepted as-is. The built-in FONTS above are only the fallback.
+FIGLET_FONT_ALIASES = {
+    'small': 'small',
+    'block': 'block',
+    'banner': 'banner3',
+    'shadow': 'shadow',
+}
+
+# Drawn for characters a built-in font has no glyph for, so they're visibly
+# unsupported instead of silently turning into blank space.
+_MISSING_GLYPH = [" ??? ", "?   ?", "  ?? ", "     ", "  ?  "]
+
+
+def _figlet_to_ascii(text: str, font: str) -> Optional[str]:
+    """Render text with pyfiglet, or return None if it isn't installed.
+
+    The import is deferred (like Pillow in image_art.py) so pyfiglet stays
+    an optional dependency: without it, text_to_ascii() falls back to the
+    built-in fonts.
+    """
+    try:
+        import pyfiglet
+    except ImportError:
+        return None
+
+    figlet_font = FIGLET_FONT_ALIASES.get(font, font)
+    width = shutil.get_terminal_size((120, 24)).columns
+    try:
+        figlet = pyfiglet.Figlet(font=figlet_font, width=width)
+    except pyfiglet.FontNotFound:
+        try:
+            figlet = pyfiglet.Figlet(font=FIGLET_FONT_ALIASES['small'], width=width)
+        except pyfiglet.FontNotFound:
+            # pyfiglet is importable but ships no usable fonts (e.g. a
+            # PyInstaller build missing --collect-data pyfiglet): fall back
+            # to the built-in fonts instead of crashing.
+            return None
+
+    # pyfiglet silently drops characters the font has no glyph for (e.g.
+    # accented letters in most fonts); draw '?' instead, like the built-in
+    # fonts' _MISSING_GLYPH, so they're visibly unsupported.
+    glyphs = figlet.Font.chars
+    text = ''.join(c if c == '\n' or ord(c) in glyphs else '?' for c in text)
+    rendered = figlet.renderText(text)
+
+    lines = rendered.split('\n')
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    return '\n'.join(lines)
+
+
 def text_to_ascii(text: str, font: str = 'small') -> str:
     """Convert text to ASCII art using the specified font."""
+    figlet = _figlet_to_ascii(text, font)
+    if figlet is not None:
+        return figlet
+
     if font not in FONTS:
         font = 'small'
     
@@ -156,19 +216,12 @@ def text_to_ascii(text: str, font: str = 'small') -> str:
     lines = [[] for _ in range(5)]
     
     for char in text.upper():
-        if char in font_data:
-            char_lines = font_data[char]
-            for idx, line in enumerate(char_lines):
-                lines[idx].append(line)
-        else:
-            for idx in range(5):
-                lines[idx].append("     ")
+        char_lines = font_data.get(char, _MISSING_GLYPH)
+        for idx, line in enumerate(char_lines):
+            lines[idx].append(line)
     
-    result = []
-    for line in lines:
-        result.append(''.join(line))
-    
-    return '\n'.join(result)
+    # One column of spacing so neighbouring letters don't run together.
+    return '\n'.join(' '.join(line) for line in lines)
 
 
 # =============================================================================
@@ -390,10 +443,109 @@ ANIMALS = {
 }
 
 
-def random_animal() -> str:
-    """Generate a random ASCII animal."""
-    animal = random.choice(list(ANIMALS.keys()))
-    return ANIMALS[animal]
+# Bigger, more detailed drawings of the same animals, used for "draw a big
+# cat" / "a large dog" etc. Every key in ANIMALS must also exist here, so
+# get_animal_art(name, big=True) works for any animal with dedicated art.
+ANIMALS_BIG = {name: art.strip('\n') for name, art in {
+'cat': r"""
+     /\_____/\
+    /  o   o  \
+   ( ==  ^  == )
+    )         (
+   (           )
+  ( (  )   (  ) )
+ (__(__)___(__)__)
+""",
+'dog': r"""
+   .-"-.______.-"-.
+  /  /          \  \
+ |  /   o    o   \  |
+ | |      __      | |
+  \|     (__)     |/
+    \    \__/    /
+     '.________.'
+      /        \
+     (_|      |_)
+""",
+'owl': r"""
+   ,_         _,
+   |\\.-'~~~'-.//|
+   \`         `/
+  /    _   _    \
+  |   (o) (o)   |
+  \      V      /
+   \  \_____/  /
+    `.       .'
+     /`-----`\
+    /  |   |  \
+    ^^^^   ^^^^
+""",
+'penguin': r"""
+      .---.
+     / o o \
+     \  v  /
+    /'-----'\
+   / /     \ \
+  ( (       ) )
+   \ \     / /
+    '-'---'-'
+     _/   \_
+""",
+'fish': r"""
+        _.-'''''-._
+      .'  o        '.  /|
+     (  <)   ))  ))  ><  |
+      '.           .'  \|
+        '-._____.-'
+""",
+'bear': r"""
+   .-.       .-.
+  (   '-----'   )
+   \  o     o  /
+   |     ^     |
+    \  '---'  /
+   .'-._____.-'.
+  /  /       \  \
+ (__(         )__)
+     \__/ \__/
+""",
+'rabbit': r"""
+    (\       /)
+     \\     //
+      )\___/(
+     ( o   o )
+    (  = v =  )
+     (  ---  )
+   ( _)     (_ )
+   (__)-----(__)
+""",
+'crow': r"""
+         ___
+       _/ o \__
+      /       __>
+     /  /\   (
+    /  /  \   \
+   <__/    \___\
+       |    |
+   ----+----+----
+""",
+'raven': r"""
+  __                 __
+  \ \__    ___    __/ /
+   \   \__/ o \__/   /
+    \______   ______/
+           \ /
+            V
+""",
+}.items()}
+assert set(ANIMALS) == set(ANIMALS_BIG), \
+    'ANIMALS and ANIMALS_BIG must have the same animals'
+
+
+def random_animal(big: bool = False) -> str:
+    """Generate a random ASCII animal (a bigger drawing if big=True)."""
+    drawings = ANIMALS_BIG if big else ANIMALS
+    return random.choice(list(drawings.values()))
 
 
 # Visual families used to pick a plausible fallback drawing for animal
@@ -463,20 +615,22 @@ KNOWN_ANIMAL_WORDS: List[str] = sorted(
 )
 
 
-def get_animal_art(name: str) -> Tuple[str, bool]:
+def get_animal_art(name: str, big: bool = False) -> Tuple[str, bool]:
     """Get ASCII art for an animal by name.
 
     Returns (art, has_dedicated_art). Many animal words are recognized by
     the command parser without a bespoke drawing existing for them - in
     that case this falls back to a drawing from the same visual family when
     one is known (e.g. "eagle" -> a bird we do draw), or a random animal
-    otherwise, instead of failing outright.
+    otherwise, instead of failing outright. big=True picks the larger
+    drawing from ANIMALS_BIG instead of ANIMALS.
     """
-    if name in ANIMALS:
-        return ANIMALS[name], True
+    drawings = ANIMALS_BIG if big else ANIMALS
+    if name in drawings:
+        return drawings[name], True
     family = ANIMAL_WORD_FAMILY.get(name)
-    pool = ANIMAL_FAMILIES.get(family, list(ANIMALS.keys()))
-    return ANIMALS[random.choice(pool)], False
+    pool = ANIMAL_FAMILIES.get(family, list(drawings.keys()))
+    return drawings[random.choice(pool)], False
 
 
 def random_emoji() -> str:

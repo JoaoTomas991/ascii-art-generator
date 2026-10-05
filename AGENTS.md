@@ -16,6 +16,8 @@ A Python ASCII Art generator: geometric shapes, text converted into ASCII letter
 - Standard library only, with one deliberate exception: `ascii_art_generator/image_art.py`
   (image-to-ASCII conversion, `convert image ...`) needs Pillow, declared in
   `requirements.txt` (`pip install -r requirements.txt` or `make install`).
+- Optional: pyfiglet, used by `text_to_ascii()` in `ascii_art.py` for FIGlet
+  fonts (deferred import; falls back to the built-in fonts when missing).
 - Everything else needs nothing installed; run directly with `python3`.
 
 ## Running
@@ -53,9 +55,11 @@ ascii_art_generator/
 
 ## Code conventions
 
-- No external dependencies, with one deliberate, documented exception:
-  `image_art.py`/Pillow (see Environment above). Don't add another
-  third-party library without an equally clear, explicit reason.
+- No external dependencies, with two deliberate, documented exceptions:
+  `image_art.py`/Pillow and the optional pyfiglet import in `text_to_ascii()`
+  (see Environment above and `docs/adr/0002-figlet-fonts-via-pyfiglet.md`).
+  Don't add another third-party library without an equally clear, explicit
+  reason.
 - Generator functions are inconsistent about return type: most `ascii_art.py` functions return a single `'\n'`-joined `str`, while `smart_generator.py`'s own shape functions (`draw_star`, `draw_hexagon`, ...) return `List[str]`. Anything in `smart_generator.py` that consumes a shape function's output must call `_normalize_lines(art)` first — iterating a `str` yields characters, not lines, which silently corrupts art into one character per line. This bit us once already; don't reintroduce it.
 - Command synonyms (shapes, colors, fonts, fill patterns, borders) are centralized in `ENCommandParser`'s `*_SYNONYMS` dicts, with a reverse `*_to_key` lookup table built in `__init__`. A word used as a synonym in more than one dict key will silently lose earlier entries (Python dict literals don't merge duplicate keys) — grep for the word across `SHAPE_SYNONYMS` before adding it.
 - When adding a new shape/style: implement the generator function, register synonyms in `ENCommandParser.SHAPE_SYNONYMS`, map it in `shape_to_command`, test with a real command, and update the `ascii-art` skill.

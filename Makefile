@@ -8,6 +8,9 @@ PYTHON ?= python3
 
 .PHONY: help run intelligent command test install clean
 
+# Debian and others ship no plain `python`; override with `make PYTHON=python`
+PYTHON ?= python3
+
 # Colors for output
 GREEN = \033[0;32m
 YELLOW = \033[1;33m

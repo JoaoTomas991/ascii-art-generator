@@ -9,6 +9,9 @@ A Python ASCII Art generator: draws geometric shapes, converts text into ASCII l
 - Standard library only, with one deliberate exception: image-to-ASCII
   conversion (`convert image ...`) needs [Pillow](https://pypi.org/project/Pillow/)
   to decode image files. Everything else has no external dependencies.
+- Optional: [pyfiglet](https://pypi.org/project/pyfiglet/) for proper FIGlet
+  fonts in text-to-ASCII (`write ...`). Without it, `write` still works using
+  the simpler built-in fonts.
 
 ## Installation
 
@@ -24,10 +27,15 @@ That installs an `ascii-generator` command on your `PATH` — a native launcher
 on each platform (`ascii-generator.exe` on Windows), so you never have to work
 out which Python binary to call. It is the recommended way to use the project.
 
-To also enable image-to-ASCII conversion, install Pillow:
+To also enable image-to-ASCII conversion and FIGlet text fonts, install the
+optional dependencies:
 
 ```bash
 pip install -r requirements.txt
+# or
+make install
+# or, on Debian/Ubuntu (no pip needed)
+sudo apt install python3-pil python3-pyfiglet
 ```
 
 Nothing has to be installed to use shapes, text, patterns, or animations — you
@@ -104,9 +112,9 @@ command, or help).
 ## Capabilities
 
 - **Shapes**: rectangle, circle, triangle, heart, diamond, spiral, tree, star, hexagon, oval, arrow, pentagon, butterfly, flower
-- **Text to ASCII**: 4 fonts — `small`, `block`, `banner`, `shadow`
+- **Text to ASCII**: 4 named fonts — `small`, `block`, `banner`, `shadow` — rendered with real FIGlet fonts when pyfiglet is installed, which also accepts any other FIGlet font name (e.g. `write HELLO with font slant`); without pyfiglet, simpler built-in 5-line fonts are used
 - **Patterns**: gradient, checkerboard, abstract/random art
-- **Random generators**: faces, emojis, animals — naming a specific animal (cat, dog, rabbit, bear, fish, penguin, owl, crow, raven) always draws that animal; asking for "an animal"/"a creature" instead picks one of them at random
+- **Random generators**: faces, emojis, animals — naming a specific animal (cat, dog, rabbit, bear, fish, penguin, owl, crow, raven) always draws that animal; asking for "an animal"/"a creature" instead picks one of them at random. Add `big`/`large`/`huge`/`giant` for a bigger, more detailed drawing (e.g. `draw a big cat`)
 - **Banners and boxes** with custom text
 - **Terminal animations**: spinner, progress bar
 - **Styling**: color (ANSI: red, green, blue, yellow, cyan, magenta, white, black + `bright_*` variants, plus `rainbow`/`multicolor` which cycles a color per line), up to 31 fill patterns (always applied inside the shape's own silhouette, never replacing it), and several border styles — see `.claude/skills/ascii-art/SKILL.md` for the full catalog with functions and files
@@ -138,6 +146,88 @@ convert image /tmp/photo.png width 80 color
 - The `"and"` compound-command splitter is word-based, so a color list like `"with color red and blue"` on a single shape may get misread as two shapes.
 - `teach` can only alias a new word to one of the 5 built-in moods — it cannot create a new mood or a new visual effect.
 
+## Running on Windows
+
+The generator itself is plain Python and runs natively on Windows; only the
+`start.sh` and `Makefile` helpers need a Unix shell. Use the `py` launcher
+(installed with Python from [python.org](https://www.python.org/downloads/windows/))
+in PowerShell or Command Prompt instead:
+
+```powershell
+git clone https://github.com/JoaoTomas991/ascii_generator.git
+cd ascii_generator
+
+# optional: image-to-ASCII and FIGlet fonts
+py -m pip install -r requirements.txt
+
+py run.py                                   # menu mode
+py run.py --intelligent                     # intelligent mode
+py run.py "draw a heart size 2 color red"   # direct command
+```
+
+Notes:
+
+- If `py` isn't found, use `python` instead (`python run.py ...`).
+- Colors and Unicode emojis work best in
+  [Windows Terminal](https://aka.ms/terminal) (the default on Windows 11).
+  The generator also enables ANSI color support in the classic
+  `cmd.exe`/PowerShell console on Windows 10+.
+- Words taught with `teach` are saved to
+  `%USERPROFILE%\.config\ascii_generator\learned_words.json`.
+- For `start.sh` / `make` shortcuts, use WSL or Git Bash — or just run the
+  equivalent `py run.py ...` command shown above.
+
+macOS works the same as Linux (`python3 run.py`, `make`, `./start.sh`). For
+true-color image output (`convert image ... color`), use a terminal with
+24-bit color support such as iTerm2.
+
+## Standalone executables (no Python needed)
+
+A GitHub Actions workflow
+([`.github/workflows/build-executables.yml`](.github/workflows/build-executables.yml))
+uses [PyInstaller](https://pyinstaller.org/) to build a single-file
+executable for Windows, macOS and Linux, with Pillow and the FIGlet fonts
+bundled in. Each build is smoke-tested before it's published.
+
+**Getting a build:**
+
+- **Released versions:** pushing a tag like `v1.0.0` attaches the three
+  executables to that tag's page under *Releases*.
+- **Any commit:** in the *Actions* tab, open *Build executables* → *Run
+  workflow*. When it finishes, download the executables from the run's
+  *Artifacts* section (they come zipped).
+
+**Running it:**
+
+```powershell
+# Windows: double-click for the menu, or from PowerShell / cmd:
+.\ascii_generator-windows.exe "draw a heart size 2 color red"
+```
+
+```bash
+# macOS / Linux: mark it executable first
+chmod +x ascii_generator-linux
+./ascii_generator-linux "draw a heart size 2 color red"
+```
+
+Notes:
+
+- The executables aren't code-signed. Windows SmartScreen or antivirus
+  software may warn about them (choose *More info* → *Run anyway*). On
+  macOS, run `xattr -d com.apple.quarantine ascii_generator-macos` once, or
+  allow it under *System Settings → Privacy & Security*.
+- The macOS build targets Apple Silicon (M1 and later).
+- A single-file build unpacks itself on each launch, so it takes a second
+  or two to start.
+
+To build one locally instead (PyInstaller can only target the OS it runs on):
+
+```bash
+pip install pyinstaller -r requirements.txt
+pyinstaller --onefile --name ascii_generator --collect-data pyfiglet run.py
+# output: dist/ascii_generator (dist\ascii_generator.exe on Windows)
+```
+
 ## Project structure
 
 ```
@@ -154,7 +244,7 @@ run.py             # startup script (menu / intelligent / direct command)
 setup.py           # packaging; provides the "ascii-generator" command
 start.sh           # interactive startup menu (Unix only)
 Makefile           # run and test shortcuts (Unix only)
-requirements.txt   # Pillow, needed only for image-to-ASCII conversion
+requirements.txt   # Pillow (image-to-ASCII) and pyfiglet (FIGlet text fonts), both optional
 docs/adr/          # architecture decision records
 ```
 
