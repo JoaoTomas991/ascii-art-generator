@@ -13,10 +13,11 @@ This module provides intelligent ASCII art generation with:
 import random
 import math
 from typing import List, Dict, Optional, Tuple, Callable
+from .animal_scenes import animal_scene, scene_color
 from .ascii_art import (
     draw_rectangle, draw_circle, draw_heart, draw_diamond,
     draw_triangle, generate_tree, generate_spiral, generate_checkerboard,
-    generate_gradient, text_to_ascii, random_abstract, random_animal, random_emoji,
+    generate_gradient, text_to_ascii, random_emoji,
     get_color_code, create_banner, create_box
 )
 
@@ -634,7 +635,7 @@ class SmartGenerator:
     
     def _generate_random_art(self, width: int = 30, height: int = 16) -> List[str]:
         """Generate completely random interesting art."""
-        choice = random.choice(['shape', 'text', 'pattern', 'combination'])
+        choice = random.choice(['shape', 'text', 'pattern', 'combination', 'animal'])
         
         if choice == 'shape':
             return self._generate_random_shape(width, height)
@@ -642,9 +643,18 @@ class SmartGenerator:
             return self._generate_random_text_art(width, height)
         elif choice == 'pattern':
             return self._generate_random_pattern(width, height)
+        elif choice == 'animal':
+            return self.generate_animal_art()
         else:
             return self._generate_combination_art(width, height)
     
+    def generate_animal_art(self, animal: Optional[str] = None, big: bool = True,
+                            setting: Optional[str] = None) -> List[str]:
+        """An animal in a coin, frame or scene, colored to suit the setting."""
+        art, setting = animal_scene(animal, big, setting)
+        color = scene_color(setting)
+        return [self._apply_color(line, color) if line else line for line in art]
+
     def _generate_minimal_art(self, width: int = 30, height: int = 16) -> List[str]:
         """Generate minimal clean art."""
         shape = random.choice(['rectangle', 'circle', 'triangle'])
@@ -677,6 +687,8 @@ class SmartGenerator:
     
     def _generate_nature_art(self, width: int = 30, height: int = 16) -> List[str]:
         """Generate nature-inspired art."""
+        if random.random() < 0.4:
+            return self.generate_animal_art()
         shape = random.choice(['tree', 'butterfly', 'flower'])
         fill = random.choice(['solid', 'dotted', 'sparse_random'])
         border = 'none'
@@ -832,14 +844,12 @@ class SmartGenerator:
 
     def _generate_random_pattern(self, width: int = 30, height: int = 16) -> List[str]:
         """Generate random pattern."""
-        pattern = random.choice(['checkerboard', 'gradient', 'random_art', 'spiral'])
+        pattern = random.choice(['checkerboard', 'gradient', 'spiral'])
 
         if pattern == 'checkerboard':
             art = generate_checkerboard(min(width, height))
         elif pattern == 'gradient':
             art = generate_gradient(width, height)
-        elif pattern == 'random_art':
-            art = random_abstract(width, height)
         elif pattern == 'spiral':
             art = generate_spiral(min(width, height), '#')
         else:

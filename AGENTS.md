@@ -12,7 +12,7 @@ A Python ASCII Art generator: geometric shapes, text converted into ASCII letter
 
 ## Environment
 
-- Python 3.10+
+- Python 3.12+ (`setup.py` requires it; `cli.py` uses a backslash inside an f-string expression)
 - Standard library only, with one deliberate exception: `ascii_art_generator/image_art.py`
   (image-to-ASCII conversion, `convert image ...`) needs Pillow, declared in
   `requirements.txt` (`pip install -r requirements.txt` or `make install`).
@@ -25,6 +25,7 @@ A Python ASCII Art generator: geometric shapes, text converted into ASCII letter
 ```bash
 python3 run.py                              # interactive menu
 python3 run.py --intelligent                # intelligent mode (natural language)
+python3 run.py --version                    # which code is running (editable / installed copy / checkout, git branch)
 python3 run.py "draw a rectangle 10x5"       # direct command, non-interactive
 ```
 
@@ -45,9 +46,12 @@ ascii_art_generator/
 ├── ascii_art.py        # base shapes, fonts, patterns, banners, animations
 ├── cli.py              # ENCommandParser + command-line interface (ASCIIArtCLI, Menu)
 ├── smart_generator.py  # advanced shapes, fill/border patterns, random generation
+├── animal_scenes.py    # random animal composed as a coin / frame / themed scene
 ├── image_art.py        # image-to-ASCII conversion (the one module that needs Pillow)
 ├── learned_words.py    # persistence for user-taught mood synonyms
-└── main.py             # entry point
+├── console.py          # UTF-8 stdout setup shared by the entry points
+├── install_info.py     # `--version` info and stale installed-copy warning
+└── main.py             # menu entry point (the packaged `ascii-generator` command is `run.py:main`)
 ```
 
 - **Base** shapes/patterns live in `ascii_art.py`; **advanced** shapes/patterns (star, hexagon, oval, arrow, pentagon, butterfly, flower, the 31 fill patterns, the 12 rich border styles) live in `smart_generator.py`.
@@ -67,7 +71,7 @@ ascii_art_generator/
 
 ## Known limitations
 
-- The `"and"` compound-command splitter is word-based: a color list on a single shape (`"with color red and blue"`) can be misread as two shapes, since there's no quoting to disambiguate.
+- The `"and"` compound-command splitter is word-based: a color list on a single shape (`"with color red and blue"`) is read as a compound command with one part: the first color is applied, the second is silently dropped and a spurious `[1/1]` header is printed.
 
 ## Safety and changes
 

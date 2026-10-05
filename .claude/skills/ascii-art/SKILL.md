@@ -14,6 +14,8 @@ funcionalidades novas.
 - `ascii_art_generator/ascii_art.py` — formas base, fontes, padrões, banners/caixas, animações, cores ANSI.
 - `ascii_art_generator/smart_generator.py` — formas avançadas (estrela, hexágono, oval, seta, pentágono, borboleta, flor), padrões de preenchimento e bordas ricas, geração "inteligente" (`smart_gen`).
 - `ascii_art_generator/cli.py` — `ENCommandParser`, que converte comandos em inglês (linguagem natural) nos parâmetros das funções abaixo. É o único parser usado pela `ASCIIArtCLI` (o antigo `PTCommandParser`, nunca ligado à aplicação, foi removido).
+- `ascii_art_generator/animal_scenes.py` — `animal_scene(name, big, setting)`: animal numa moeda (`$NOME`), moldura ou cena temática (meadow, rain, snow, beach, space, forest); devolve `(linhas, tipo)` e `scene_color(tipo)` sugere a cor. Usado por `smart_gen.generate_animal_art()`.
+- `ascii_art_generator/install_info.py` — `describe()` (`--version`) e `stale_copy_warning()` (aviso quando o comando instalado é uma cópia mais antiga da pasta de origem; ver `run.py`).
 - `ascii_art_generator/image_art.py` — `image_to_ascii(path, width, ramp, color, invert)`, converte um ficheiro de imagem real (PNG/JPG/...) em ASCII art por rampa de brilho. Único módulo do projeto com dependência de terceiros (Pillow — ver `.claude/skills/generator-core/SKILL.md`).
 
 ## Formas geométricas
@@ -23,7 +25,7 @@ funcionalidades novas.
 | Retângulo | `draw_rectangle(width, height, char, filled)` | ascii_art.py | width, height, char, filled |
 | Triângulo | `draw_triangle(height, char, direction)` | ascii_art.py | height, char, direction: up/down/left/right |
 | Círculo | `draw_circle(radius, char)` | ascii_art.py | radius, char (corrige aspect-ratio do terminal — ver nota abaixo) |
-| Coração | `draw_heart(size, char)` | ascii_art.py | size: 1–12, default 6 (gerado algoritmicamente, escala com o tamanho) |
+| Coração | `draw_heart(size, char)` | ascii_art.py | size: 1–12 na função, default 6; o parser limita a 1–8 (gerado algoritmicamente, escala com o tamanho) |
 | Diamante | `draw_diamond(size, char)` | ascii_art.py | size, char |
 | Árvore | `generate_tree(height, char)` | ascii_art.py | height, char |
 | Espiral | `generate_spiral(size, char)` | ascii_art.py | size, char (espiral de Arquimedes traçada na grelha, não um preenchimento sólido) |
@@ -45,8 +47,8 @@ forma nova baseada em distância radial, replica esta correção.
 
 - `generate_gradient(width, height)` — degradê de densidade de caracteres
 - `generate_checkerboard(size, chars)` — tabuleiro/xadrez
-- `random_abstract(width, height)` — arte abstrata aleatória
-- `random_animal()` / `random_emoji()` — geradores aleatórios de animais (gato, cão, coruja, pinguim, peixe, urso, coelho, corvo) e emojis. Cada animal com desenho próprio tem também uma versão maior em `ANIMALS_BIG` (mesmas chaves que `ANIMALS`), usada quando o comando inclui `big`/`large`/`huge`/`giant` (`ENCommandParser.BIG_WORDS` → `params['big']` → `get_animal_art(name, big)` / `random_animal(big)`), ex. `draw a big cat`
+- Arte aleatória: `random`, `art` e `painting` (ex. `make random art`, `make a painting 20x10 color red`) vão para `ASCIIArtCLI._random_art()` → `smart_gen.generate_interesting_art("random", w, h)` (já não existe `random_abstract`; era ruído puro sem estrutura). O tamanho é só uma indicação para o gerador, não uma dimensão exata. Cor explícita substitui a que o gerador escolher. `abstract`/`pattern`/`design` são outra coisa: estilo `abstract` do modo inteligente (`generate_from_command`), sem tamanho nem cor
+- `random_animal()` (desenho simples; o comando/menu "random animal" usa `smart_gen.generate_animal_art()` → `animal_scenes.animal_scene()`: moeda `$NOME`, moldura ou cena, com decoração/cor aleatórias) / `random_emoji()` — geradores aleatórios de animais (gato, cão, coruja, pinguim, peixe, urso, coelho, corvo/gralha `crow`, corvo-real `raven`) e emojis. Cada animal com desenho próprio tem também uma versão maior em `ANIMALS_BIG` (mesmas chaves que `ANIMALS`), usada quando o comando inclui `big`/`large`/`huge`/`giant` (`ENCommandParser.BIG_WORDS` → `params['big']` → `get_animal_art(name, big)`), ex. `draw a big cat`. O `random animal`/`draw an animal` usa o desenho grande por omissão (`big=True`); `a random animal`/`a random emoji` são lidos como animal/emoji, não como arte aleatória
 
 ## Texto para ASCII
 
@@ -163,7 +165,7 @@ convert image /tmp/photo.png width 80 color
 
 ### Limitações conhecidas do `ENCommandParser`
 
-- **O separador `"and"` é baseado em palavras.** Uma lista de cores numa única forma (`"with color red and blue"`) pode ser lida por engano como duas formas — não há forma de desambiguar sem aspas/parâmetros nomeados.
+- **O separador `"and"` é baseado em palavras.** Uma lista de cores numa única forma (`"with color red and blue"`) é lida como um comando composto de uma só parte: aplica a primeira cor, descarta a segunda e imprime um cabeçalho `[1/1]` — não há forma de desambiguar sem aspas/parâmetros nomeados.
 
 ## Ao adicionar uma forma/estilo novo
 

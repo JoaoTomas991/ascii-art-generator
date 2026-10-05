@@ -22,6 +22,7 @@ import argparse
 from ascii_art_generator.console import enable_utf8_output
 from ascii_art_generator.main import main as cli_main
 from ascii_art_generator.cli import setup_console
+from ascii_art_generator.install_info import describe, stale_copy_warning
 
 
 def run_intelligent_mode():
@@ -61,6 +62,18 @@ def run_command(command: str):
         print("  - write HELLO with font banner")
 
 
+def print_version():
+    """Print the version and where the running code comes from."""
+    info = describe()
+    print(f"ascii-generator {info['version']}")
+    print(f"  mode:   {info['mode']}")
+    print(f"  code:   {info['code']}")
+    if info['source']:
+        print(f"  source: {info['source']}")
+    if info['branch'] or info['commit']:
+        print(f"  git:    {info['branch'] or '(detached)'} @ {info['commit'] or '?'}")
+
+
 def main():
     """Main entry point."""
     # run_command() below bypasses cli.main(), so this entry point has to set
@@ -94,6 +107,12 @@ Supported Commands:
         help='Command in English (e.g., "draw a heart")'
     )
     
+    parser.add_argument(
+        '--version',
+        action='store_true',
+        help='Show the version and which code is running (editable, copy, branch)'
+    )
+
     parser.add_argument(
         '-i', '--intelligent',
         action='store_true',
@@ -151,6 +170,15 @@ Supported Commands:
     )
     
     args = parser.parse_args()
+
+    if args.version:
+        print_version()
+        return
+
+    warning = stale_copy_warning()
+    if warning:
+        print(warning, file=sys.stderr)
+
     setup_console()
     
     # Build command from arguments

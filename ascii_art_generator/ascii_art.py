@@ -404,15 +404,6 @@ def generate_tree(height: int = 8, char: str = '*') -> str:
 # =============================================================================
 
 
-def random_abstract(width: int = 48, height: int = 14) -> str:
-    """Generate random abstract ASCII art."""
-    chars = '.*:;+*#@&$%^~!=-'
-    result = []
-    for _ in range(height):
-        result.append(''.join([random.choice(chars) for _ in range(width)]))
-    return '\n'.join(result)
-
-
 ANIMALS = {
     'cat': " /\\_/\\ \n( o.o ) \n > ^ < ",
     'dog': "  / \\__\n (    @\\___\n /         O\n/   (_____/\n/_____/   U",
@@ -803,7 +794,6 @@ def get_all_functions() -> Dict[str, str]:
         'generate_checkerboard': 'Generate a checkerboard',
         'generate_spiral': 'Generate a spiral',
         'generate_tree': 'Generate a tree',
-        'random_abstract': 'Generate random abstract art',
         'random_animal': 'Generate a random animal',
         'random_emoji': 'Generate a random emoji',
         'create_banner': 'Create a banner',

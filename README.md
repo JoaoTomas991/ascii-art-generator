@@ -1,6 +1,6 @@
 # ASCII Generator
 
-A Python ASCII Art generator: draws geometric shapes, converts text into ASCII letters, generates patterns, and runs simple terminal animations — all through natural-language (English) commands or an interactive menu.
+A Python ASCII Art generator: draws geometric shapes, converts text into ASCII letters, generates patterns, and runs simple terminal animations, all through natural-language (English) commands or an interactive menu.
 
 ## Requirements
 
@@ -23,7 +23,7 @@ cd ascii_generator
 pip install -e .
 ```
 
-That installs an `ascii-generator` command on your `PATH` — a native launcher
+That installs an `ascii-generator` command on your `PATH`, a native launcher
 on each platform (`ascii-generator.exe` on Windows), so you never have to work
 out which Python binary to call. It is the recommended way to use the project.
 
@@ -38,7 +38,7 @@ make install
 sudo apt install python3-pil python3-pyfiglet
 ```
 
-Nothing has to be installed to use shapes, text, patterns, or animations — you
+Nothing has to be installed to use shapes, text, patterns, or animations. You
 can always run the scripts in place instead (see
 [Running without installing](#running-without-installing) below).
 
@@ -64,6 +64,12 @@ From the menu, choose `i` to enter intelligent mode and type commands freely in 
 ascii-generator --intelligent
 ```
 
+`ascii-generator --version` shows which code the command is running (editable
+install, installed copy or source checkout, plus the git branch). A regular
+install is a snapshot of the sources; if it falls behind the project folder the
+command prints a warning on startup. For development, install it editable so it
+always follows the folder: `uv tool install --editable .`
+
 ### 3. Direct command (single line, non-interactive)
 
 ```bash
@@ -75,8 +81,8 @@ ascii-generator "write HELLO with font banner"
 ### Running without installing
 
 `run.py` is the same entry point and works straight from a clone. The catch is
-that the interpreter has a different name per platform — there is no single
-command that works everywhere:
+that the interpreter has a different name per platform, so no single
+command works everywhere:
 
 ```bash
 python3 run.py "draw a heart"   # Linux, macOS
@@ -111,15 +117,15 @@ command, or help).
 
 ## Capabilities
 
-- **Shapes**: rectangle, circle, triangle, heart, diamond, spiral, tree, star, hexagon, oval, arrow, pentagon, butterfly, flower
-- **Text to ASCII**: 4 named fonts — `small`, `block`, `banner`, `shadow` — rendered with real FIGlet fonts when pyfiglet is installed, which also accepts any other FIGlet font name (e.g. `write HELLO with font slant`); without pyfiglet, simpler built-in 5-line fonts are used
-- **Patterns**: gradient, checkerboard, abstract/random art
-- **Random generators**: emojis, animals — naming a specific animal (cat, dog, rabbit, bear, fish, penguin, owl, crow, raven) always draws that animal; asking for "an animal"/"a creature" instead picks one of them at random. Add `big`/`large`/`huge`/`giant` for a bigger, more detailed drawing (e.g. `draw a big cat`)
-- **Banners and boxes** with custom text
-- **Terminal animations**: spinner, progress bar
-- **Styling**: color (ANSI: red, green, blue, yellow, cyan, magenta, white, black + `bright_*` variants, plus `rainbow`/`multicolor` which cycles a color per line), up to 31 fill patterns (always applied inside the shape's own silhouette, never replacing it), and several border styles — see `.claude/skills/ascii-art/SKILL.md` for the full catalog with functions and files
-- **Moods (teachable)**: `happy`, `sad`, `angry`, `calm`, `sleepy` — recognized anywhere in a command and applied as a default color (unless you already gave one explicitly). Teach new synonyms with `teach <word> as <mood>` (e.g. `teach ecstatic as happy`), either in intelligent mode or as a direct one-shot command; taught words persist across sessions in `~/.config/ascii_generator/learned_words.json`. See [`docs/adr/0001-taught-mood-synonyms.md`](docs/adr/0001-taught-mood-synonyms.md) for why this is deliberately a small, taught dictionary rather than automatic word detection or NLP.
-- **Image to ASCII**: `convert image <path> [width N] [color]` converts a real image file (PNG/JPG/...) into ASCII art using a brightness ramp, with an option for true 24-bit color per character (requires Pillow — see Requirements).
+- Shapes: rectangle, circle, triangle, heart, diamond, spiral, tree, star, hexagon, oval, arrow, pentagon, butterfly, flower
+- Text to ASCII: 4 named fonts (`small`, `block`, `banner`, `shadow`), rendered with real FIGlet fonts when pyfiglet is installed, which also accepts any other FIGlet font name (e.g. `write HELLO with font slant`). Without pyfiglet, simpler built-in 5-line fonts are used
+- Patterns: gradient, checkerboard, abstract/random art
+- Random generators: emojis and animals. A random animal is composed as a coin, a framed portrait or a themed scene (meadow, rain, snow, beach, space, forest), e.g. a "$DOG" coin; see `animal_scenes.py`. Naming a specific animal (cat, dog, rabbit, bear, fish, penguin, owl, crow, raven) always draws that animal, while asking for "an animal" or "a creature" picks one of them at random. Add `big`/`large`/`huge`/`giant` for a bigger, more detailed drawing (e.g. `draw a big cat`)
+- Banners and boxes with custom text
+- Terminal animations: spinner, progress bar
+- Styling: color (ANSI: red, green, blue, yellow, cyan, magenta, white, black + `bright_*` variants, plus `rainbow`/`multicolor`, which cycles a color per line), up to 31 fill patterns (always applied inside the shape's own silhouette, never replacing it), and several border styles. See `.claude/skills/ascii-art/SKILL.md` for the full catalog with functions and files
+- Moods (teachable): `happy`, `sad`, `angry`, `calm`, `sleepy`, recognized anywhere in a command and applied as a default color (unless you already gave one explicitly). Teach new synonyms with `teach <word> as <mood>` (e.g. `teach ecstatic as happy`), either in intelligent mode or as a direct one-shot command; taught words persist across sessions in `~/.config/ascii_generator/learned_words.json`. See [`docs/adr/0001-taught-mood-synonyms.md`](docs/adr/0001-taught-mood-synonyms.md) for why this is deliberately a small, taught dictionary rather than automatic word detection or NLP.
+- Image to ASCII: `convert image <path> [width N] [color]` converts a real image file (PNG/JPG/...) into ASCII art using a brightness ramp, with an option for true 24-bit color per character (requires Pillow; see Requirements).
 
 ### Example commands
 
@@ -143,8 +149,8 @@ convert image /tmp/photo.png width 80 color
 ### Known limitations
 
 - No GIF animations (terminal only); colors depend on the terminal's ANSI support.
-- The `"and"` compound-command splitter is word-based, so a color list like `"with color red and blue"` on a single shape may get misread as two shapes.
-- `teach` can only alias a new word to one of the 5 built-in moods — it cannot create a new mood or a new visual effect.
+- The `"and"` compound-command splitter is word-based, so a color list like `"with color red and blue"` on a single shape is read as a one-part compound command: the second color is dropped.
+- `teach` can only alias a new word to one of the 5 built-in moods, and it cannot create a new mood or a new visual effect.
 
 ## Running on Windows
 
@@ -174,7 +180,7 @@ Notes:
   `cmd.exe`/PowerShell console on Windows 10+.
 - Words taught with `teach` are saved to
   `%USERPROFILE%\.config\ascii_generator\learned_words.json`.
-- For `start.sh` / `make` shortcuts, use WSL or Git Bash — or just run the
+- For `start.sh` / `make` shortcuts, use WSL or Git Bash, or just run the
   equivalent `py run.py ...` command shown above.
 
 macOS works the same as Linux (`python3 run.py`, `make`, `./start.sh`). For
@@ -189,15 +195,15 @@ uses [PyInstaller](https://pyinstaller.org/) to build a single-file
 executable for Windows, macOS and Linux, with Pillow and the FIGlet fonts
 bundled in. Each build is smoke-tested before it's published.
 
-**Getting a build:**
+To get a build:
 
-- **Released versions:** pushing a tag like `v1.0.0` attaches the three
-  executables to that tag's page under *Releases*.
-- **Any commit:** in the *Actions* tab, open *Build executables* → *Run
+- For a released version, push a tag like `v1.0.0`. That attaches the three
+  executables to the tag's page under *Releases*.
+- For any commit, open the *Actions* tab, then *Build executables* → *Run
   workflow*. When it finishes, download the executables from the run's
   *Artifacts* section (they come zipped).
 
-**Running it:**
+To run it:
 
 ```powershell
 # Windows: double-click for the menu, or from PowerShell / cmd:
@@ -237,7 +243,9 @@ ascii_art_generator/
 ├── smart_generator.py  # advanced shapes, fill/border patterns, random generation
 ├── image_art.py        # image-to-ASCII conversion (the one module that needs Pillow)
 ├── learned_words.py    # persistence for user-taught mood synonyms
+├── animal_scenes.py    # random animal in a coin / frame / scene
 ├── console.py          # UTF-8 stdout setup shared by the entry points
+├── install_info.py     # `--version` info and stale installed-copy warning
 └── main.py             # entry point
 
 run.py             # startup script (menu / intelligent / direct command)
@@ -264,5 +272,5 @@ python -c "from ascii_art_generator.cli import ENCommandParser; p = ENCommandPar
 ```
 
 Runs a smoke test against the main imports and the command parser. CI runs
-these on Windows, Linux, and macOS against Python 3.12, 3.13, and 3.14 — see
+these on Windows, Linux, and macOS against Python 3.12, 3.13, and 3.14; see
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml).

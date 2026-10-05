@@ -10,7 +10,7 @@ from typing import Callable, Dict, Any, Optional, Tuple, List
 from .ascii_art import (
     text_to_ascii, draw_rectangle, draw_triangle, draw_circle,
     draw_heart, draw_diamond, generate_gradient, generate_checkerboard,
-    generate_spiral, generate_tree, random_abstract,
+    generate_spiral, generate_tree,
     random_animal, random_emoji, create_banner, create_box,
     get_available_fonts, spinner_animation, progress_bar,
     get_color_code, get_border_chars, get_fill_style_pattern,
@@ -561,6 +561,15 @@ class ENCommandParser:
                     shape_idx = i
                     break
         
+        # "random" is an adjective when it precedes what to draw: "a random
+        # animal" / "a random emoji" must not be swallowed by plain random art.
+        if shape == 'random':
+            for token in tokens[shape_idx + 1:]:
+                if self.shape_to_key.get(token) in ('animal', 'emoji'):
+                    shape = self.shape_to_key[token]
+                    shape_word = token
+                    break
+
         # Extract parameters
         params = {}
         
@@ -696,9 +705,6 @@ class ENCommandParser:
             'checkerboard': 'checkerboard',
             'chessboard': 'checkerboard',
             'random': 'random_art',
-            'abstract': 'random_art',
-            'art': 'random_art',
-            'painting': 'random_art',
             'emoji': 'random_emoji',
             'emoticon': 'random_emoji',
             'animal': 'random_animal',
@@ -729,6 +735,12 @@ class ENCommandParser:
         
         command_name = shape_to_command.get(shape, shape) if shape else None
 
+        # "art"/"painting" share the 'abstract' shape key with "abstract",
+        # "pattern" and "design" (smart-mode patterns), but they ask for
+        # free-form random art, which takes a size and a color.
+        if shape == 'abstract' and shape_word in ('art', 'painting'):
+            command_name = 'random_art'
+
         # "dog"/"cat"/etc. are synonyms for the generic 'animal' shape key,
         # but unlike "animal"/"creature" they name one specific animal —
         # route those to specific_animal so e.g. "dog" always draws a dog
@@ -745,7 +757,7 @@ class ENCommandParser:
                 any(t in self.BIG_WORDS for t in tokens):
             final_params['big'] = True
         if numbers:
-            if command_name in ['rectangle']:
+            if command_name in ['rectangle', 'random_art']:
                 if len(numbers) >= 2:
                     final_params['width'] = numbers[0]
                     final_params['height'] = numbers[1]
@@ -761,7 +773,7 @@ class ENCommandParser:
             elif command_name == 'heart':
                 if numbers:
                     final_params['size'] = min(max(numbers[0], 1), 8)
-            elif command_name in ['checkerboard', 'gradient', 'random_art']:
+            elif command_name in ['checkerboard', 'gradient']:
                 if numbers:
                     final_params['size'] = numbers[0]
 
@@ -1039,17 +1051,20 @@ class ASCIIArtCLI:
         """Random art menu."""
         print(f"\n{Colors.OKBLUE}=== Random Art ==={Colors.ENDC}")
         try:
-            width = int(input("Width: ") or "48")
-            height = int(input("Height: ") or "14")
-            print(f"\n{Colors.OKGREEN}{random_abstract(width, height)}{Colors.ENDC}")
+            width = int(input("Width [30]: ") or "30")
+            height = int(input("Height [16]: ") or "16")
+            art = self._random_art(width, height)
+            if '\033[' not in art:
+                art = f"{Colors.OKGREEN}{art}{Colors.ENDC}"
+            print(f"\n{art}")
         except ValueError:
             print(f"{Colors.FAIL}Invalid input.{Colors.ENDC}")
     
     def menu_random_animal(self) -> None:
         """Random animal menu."""
         print(f"\n{Colors.OKBLUE}=== Random Animal ==={Colors.ENDC}")
-        print(f"\n{Colors.OKGREEN}{random_animal()}{Colors.ENDC}")
-    
+        print(f"\n{chr(10).join(smart_gen.generate_animal_art())}")
+
     def menu_random_emoji(self) -> None:
         """Random emoji menu."""
         print(f"\n{Colors.OKBLUE}=== Random Emoji ==={Colors.ENDC}")
@@ -1228,6 +1243,17 @@ INTELLIGENT MODE (type 'i' to activate):
         
         return output
 
+    def _random_art(self, width: int, height: int, color: Optional[str] = None) -> str:
+        """Random art from the smart generator; an explicit color replaces its own."""
+        return self._override_color(
+            '\n'.join(smart_gen.generate_interesting_art('random', width, height)), color)
+
+    def _override_color(self, art: str, color: Optional[str] = None) -> str:
+        """An explicit color replaces whatever the smart generator picked."""
+        if color:
+            return self._apply_color(re.sub(r'\033\[[0-9;]*m', '', art), color)
+        return art
+
     def _apply_color(self, content: str, color: Optional[str] = None) -> str:
         """Apply color to content if specified."""
         if color:
@@ -1347,8 +1373,8 @@ INTELLIGENT MODE (type 'i' to activate):
             'gradient': lambda: print(f"\n{self._apply_color(generate_gradient(params.get('width', 32), params.get('height', 8)), color)}"),
             'checkerboard': lambda: print(f"\n{self._apply_color(generate_checkerboard(params.get('size', 12), params.get('chars', '# ')), color)}"),
             'spiral': lambda: render_shape('spiral', params.get('size', 18), char),
-            'random_art': lambda: print(f"\n{self._apply_color(random_abstract(params.get('width', 48), params.get('height', 14)), color)}"),
-            'random_animal': lambda: print(f"\n{self._apply_color(random_animal(params.get('big', False)), color)}"),
+            'random_art': lambda: print(f"\n{self._random_art(params.get('width', 30), params.get('height', 16), color)}"),
+            'random_animal': lambda: print(f"\n{self._override_color(chr(10).join(smart_gen.generate_animal_art(big=params.get('big', True))), color)}"),
             'random_emoji': lambda: print(f"\n{self._apply_color(random_emoji(), color)}"),
             'banner': lambda: print(f"\n{self._create_custom_banner(params.get('text', 'ASCII'), params.get('width', 50), params.get('char', '='), color, border_style)}"),
             'box': lambda: print(f"\n{self._create_custom_box(params.get('text', 'Hello\nWorld'), params.get('char', '#'), color, border_style)}"),
