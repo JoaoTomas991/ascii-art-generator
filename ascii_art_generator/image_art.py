@@ -49,8 +49,9 @@ def image_to_ascii(path: str, width: int = 100, ramp: str = 'standard',
         from PIL import Image
     except ImportError as exc:
         raise ImportError(
-            "Image conversion requires Pillow. Install it with: "
-            "pip install -r requirements.txt"
+            "Image conversion requires Pillow. From the project folder, "
+            "install it with: pip install -e \".[images]\" "
+            "(for a uv tool install: uv tool install --editable \".[images]\" --force)"
         ) from exc
 
     chars = ASCII_RAMPS.get(ramp, ASCII_RAMPS['standard'])

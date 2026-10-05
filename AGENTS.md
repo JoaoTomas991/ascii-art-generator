@@ -15,7 +15,9 @@ A Python ASCII Art generator: geometric shapes, text converted into ASCII letter
 - Python 3.12+ (`setup.py` requires it; `cli.py` uses a backslash inside an f-string expression)
 - Standard library only, with one deliberate exception: `ascii_art_generator/image_art.py`
   (image-to-ASCII conversion, `convert image ...`) needs Pillow, declared in
-  `requirements.txt` (`pip install -r requirements.txt` or `make install`).
+  `requirements.txt` (`pip install -r requirements.txt` or `make install`) and
+  as the `images` extra in `setup.py` (`pip install -e ".[images]"`; `".[all]"`
+  adds pyfiglet).
 - Optional: pyfiglet, used by `text_to_ascii()` in `ascii_art.py` for FIGlet
   fonts (deferred import; falls back to the built-in fonts when missing).
 - Everything else needs nothing installed; run directly with `python3`.

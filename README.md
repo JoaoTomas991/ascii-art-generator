@@ -28,7 +28,23 @@ on each platform (`ascii-generator.exe` on Windows), so you never have to work
 out which Python binary to call. It is the recommended way to use the project.
 
 To also enable image-to-ASCII conversion and FIGlet text fonts, install the
-optional dependencies:
+optional dependencies. They are not part of the default install, so the
+`ascii-generator` command only gets them if you ask for them:
+
+```bash
+pip install -e ".[all]"       # Pillow (images) and pyfiglet (fonts)
+pip install -e ".[images]"    # only Pillow
+pip install -e ".[fonts]"     # only pyfiglet
+```
+
+With `uv`, which keeps each tool in its own environment, a plain `pip install`
+does not reach the command, so install the tool with the extras instead:
+
+```bash
+uv tool install --editable ".[all]" --force
+```
+
+Other ways to get the same dependencies:
 
 ```bash
 pip install -r requirements.txt

@@ -8,6 +8,14 @@ from setuptools import find_packages, setup
 ROOT_DIR = Path(__file__).parent
 README_PATH = ROOT_DIR / "README.md"
 
+# Optional dependencies, installed with e.g. pip install -e ".[all]". Keep the
+# versions in step with requirements.txt.
+EXTRAS = {
+    "images": ["Pillow>=10.0"],  # convert image ...
+    "fonts": ["pyfiglet>=1.0"],  # FIGlet fonts for write ...
+}
+EXTRAS["all"] = [dep for deps in EXTRAS.values() for dep in deps]
+
 
 setup(
     name="ascii-generator",
@@ -22,9 +30,7 @@ setup(
     py_modules=["run"],
     include_package_data=True,
     python_requires=">=3.12",
-    extras_require={
-        "images": ["Pillow>=10.0"],
-    },
+    extras_require=EXTRAS,
     entry_points={
         "console_scripts": [
             "ascii-generator=run:main",
