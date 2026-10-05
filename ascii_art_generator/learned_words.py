@@ -12,7 +12,7 @@ LEARNED_WORDS_PATH = Path.home() / ".config" / "ascii_generator" / "learned_word
 
 def _read() -> dict:
     try:
-        return json.loads(LEARNED_WORDS_PATH.read_text())
+        return json.loads(LEARNED_WORDS_PATH.read_text(encoding='utf-8'))
     except (FileNotFoundError, json.JSONDecodeError, OSError):
         return {}
 
@@ -30,4 +30,4 @@ def save_learned_mood(word: str, canonical: str) -> None:
     LEARNED_WORDS_PATH.parent.mkdir(parents=True, exist_ok=True)
     data = _read()
     data.setdefault('moods', {})[word] = canonical
-    LEARNED_WORDS_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+    LEARNED_WORDS_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding='utf-8')

@@ -11,7 +11,7 @@ NC='\033[0m'
 # Check if Python 3 is installed
 if ! command -v python3 &> /dev/null; then
     echo -e "${RED}ERROR: Python 3 not found!${NC}"
-    echo "Please install Python 3.10 or higher"
+    echo "Please install Python 3.12 or higher"
     exit 1
 fi
 
@@ -38,27 +38,27 @@ read -p "Option: " choice
 case $choice in
     1)
         echo -e "\n${BLUE}Starting menu mode...${NC}\n"
-        python run.py
+        python3 run.py
         ;;
     2)
         echo -e "\n${BLUE}Starting intelligent mode...${NC}\n"
-        python run.py --intelligent
+        python3 run.py --intelligent
         ;;
     3)
         read -p "Command (e.g., 'draw a heart'): " cmd
         if [ -n "$cmd" ]; then
             echo -e "\n${BLUE}Executing: $cmd${NC}\n"
-            python run.py "$cmd"
+            python3 run.py "$cmd"
         else
             echo -e "${YELLOW}No command provided${NC}"
         fi
         ;;
     4)
         echo -e "\n${BLUE}Help:${NC}\n"
-        python run.py --help
+        python3 run.py --help
         ;;
     *)
         echo -e "\n${YELLOW}Invalid option. Using default menu mode...${NC}\n"
-        python run.py
+        python3 run.py
         ;;
 esac

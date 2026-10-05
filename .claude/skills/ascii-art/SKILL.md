@@ -46,12 +46,14 @@ forma nova baseada em distância radial, replica esta correção.
 - `generate_gradient(width, height)` — degradê de densidade de caracteres
 - `generate_checkerboard(size, chars)` — tabuleiro/xadrez
 - `random_abstract(width, height)` — arte abstrata aleatória
-- `random_face()` / `random_animal()` / `random_emoji()` — geradores aleatórios de faces, animais (gato, cão, coruja, pinguim, peixe, urso, coelho, corvo) e emojis (`face`/`emoji` são chaves de forma distintas em `ENCommandParser.SHAPE_SYNONYMS` — "emoji"/"emoticon" já não caem em `random_face`)
+- `random_face()` / `random_animal()` / `random_emoji()` — geradores aleatórios de faces, animais (gato, cão, coruja, pinguim, peixe, urso, coelho, corvo) e emojis. Cada animal com desenho próprio tem também uma versão maior em `ANIMALS_BIG` (mesmas chaves que `ANIMALS`), usada quando o comando inclui `big`/`large`/`huge`/`giant` (`ENCommandParser.BIG_WORDS` → `params['big']` → `get_animal_art(name, big)` / `random_animal(big)`), ex. `draw a big cat` (`face`/`emoji` são chaves de forma distintas em `ENCommandParser.SHAPE_SYNONYMS` — "emoji"/"emoticon" já não caem em `random_face`)
 
 ## Texto para ASCII
 
-`text_to_ascii(text, font)` com 4 fontes disponíveis (`FONTS` em ascii_art.py):
-`small`, `block`, `banner`, `shadow` — cada uma com 5 linhas de altura, letras A-Z (algumas fontes também `!` e `?`).
+`text_to_ascii(text, font)` com 4 nomes de fonte: `small`, `block`, `banner`, `shadow`.
+
+- **Com `pyfiglet` instalado** (caminho principal): `_figlet_to_ascii()` mapeia esses nomes para fontes FIGlet reais via `FIGLET_FONT_ALIASES` (`small`→`small`, `block`→`block`, `banner`→`banner3`, `shadow`→`shadow`) e aceita também qualquer outro nome de fonte FIGlet (`slant`, `big`, `doom`, `ansi_shadow`, ... — 500+). Nome desconhecido → fonte `small`. Suporta dígitos, minúsculas e pontuação; a altura varia por fonte (não assumir 5 linhas). Quebra linha à largura do terminal.
+- **Sem `pyfiglet`** (fallback): fontes internas `FONTS` em ascii_art.py, 5 linhas de altura, só A-Z (algumas fontes também `!` e `?`), uma coluna de espaço entre letras; caracteres sem glifo aparecem como `?` (`_MISSING_GLYPH`).
 
 ## Banners e caixas
 
