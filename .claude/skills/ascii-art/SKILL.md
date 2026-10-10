@@ -99,12 +99,15 @@ moods/efeitos novos, só sinónimos para os existentes.
 
 Básico (`get_fill_style_pattern` em ascii_art.py): `empty, solid, dotted, striped_h, striped_v, crosshatch, plus, star, random, gradient`.
 
-Avançado (`SmartGenerator.FILL_PATTERNS` em smart_generator.py — 31 padrões):
-`solid, empty, dotted, striped, horizontal_stripes, vertical_stripes, cross, crosshatch, diagonal, anti_diagonal, x_pattern, grid, checkerboard, dense_checkerboard, random, sparse_random, dense_random, dots, stars, plus_signs, mixed, left_gradient, right_gradient, top_gradient, bottom_gradient, center_gradient, spiral_pattern, concentric, wave, zigzag, honeycomb`.
+Avançado (`SmartGenerator.FILL_PATTERNS` em smart_generator.py — 32 padrões):
+`solid, empty, dotted, striped, horizontal_stripes, vertical_stripes, cross, crosshatch, diagonal, anti_diagonal, x_pattern, grid, checkerboard, dense_checkerboard, random, sparse_random, dense_random, dots, stars, plus_signs, mixed, left_gradient, right_gradient, top_gradient, bottom_gradient, center_gradient, dense_gradient, spiral_pattern, concentric, wave, zigzag, honeycomb`.
 
-Os 5 `*_gradient` usam `create_directional_gradient` — uma rampa de
+Os 6 `*_gradient` usam `create_directional_gradient` — uma rampa de
 densidade suave (`GRADIENT_RAMP = ' .:-=+*#%@'`), não um corte binário
-metade/metade.
+metade/metade. `dense_gradient` é o da esquerda para a direita, mas com
+`DENSE_GRADIENT_RAMP = '=+*#%@'` (só a metade pesada), para formas sem
+células vazias ou quase vazias. `gradient` sozinho é sinónimo de
+`left_gradient`.
 
 **Aplicação mascarada pela silhueta**: quando um destes padrões (≠ `solid`)
 é aplicado a uma forma (via `_apply_style_to_art` em cli.py, ou

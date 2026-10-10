@@ -154,7 +154,7 @@ class ENCommandParser:
     # Synonyms for shapes
     SHAPE_SYNONYMS = {
         # Basic shapes
-        'rectangle': ['rectangle', 'rect', 'square', 'box'],
+        'rectangle': ['rectangle', 'rect', 'square'],
         'triangle': ['triangle', 'tri', 'pyramid'],
         'circle': ['circle', 'circ', 'ball', 'wheel'],
         'heart': ['heart'],
@@ -267,7 +267,7 @@ class ENCommandParser:
     FILL_PATTERN_SYNONYMS = {
         'solid': ['solid', 'filled', 'full'],
         'empty': ['empty', 'hollow'],
-        'dotted': ['dotted', 'dots'],
+        'dotted': ['dotted'],
         'striped': ['striped', 'stripes'],
         'horizontal_stripes': ['horizontal_stripes', 'horizontal', 'h_stripes'],
         'vertical_stripes': ['vertical_stripes', 'vertical', 'v_stripes'],
@@ -284,20 +284,19 @@ class ENCommandParser:
         'dense_random': ['dense_random', 'dense-random'],
         'dots': ['dots'],
         'stars': ['stars'],
-        'plus_signs': ['plus_signs', 'plus-signs', 'pluses'],
+        'plus_signs': ['plus_signs', 'plus-signs', 'pluses', 'plus'],
         'mixed': ['mixed'],
-        'left_gradient': ['left_gradient', 'left-gradient'],
+        'left_gradient': ['left_gradient', 'left-gradient', 'gradient'],
         'right_gradient': ['right_gradient', 'right-gradient'],
         'top_gradient': ['top_gradient', 'top-gradient'],
         'bottom_gradient': ['bottom_gradient', 'bottom-gradient'],
         'center_gradient': ['center_gradient', 'center-gradient'],
+        'dense_gradient': ['dense_gradient', 'dense-gradient'],
         'spiral_pattern': ['spiral_pattern', 'spiral-pattern'],
         'concentric': ['concentric'],
         'wave': ['wave'],
         'zigzag': ['zigzag'],
         'honeycomb': ['honeycomb'],
-        'plus': ['plus', 'cross'],
-        'gradient': ['gradient'],
     }
     
     # Border style synonyms
@@ -307,7 +306,7 @@ class ENCommandParser:
         'dashed': ['dashed'],
         'dotted': ['dotted'],
         'wavy': ['wavy'],
-        'bold': ['bold', 'thick'],
+        'bold': ['bold'],
         'light': ['light', 'thin'],
         'thick': ['thick'],
         'fancy': ['fancy', 'decorative'],
@@ -678,7 +677,6 @@ class ENCommandParser:
         shape_to_command = {
             'rectangle': 'rectangle',
             'square': 'rectangle',
-            'box': 'rectangle',
             'triangle': 'triangle',
             'pyramid': 'triangle',
             'circle': 'circle',
@@ -748,6 +746,21 @@ class ENCommandParser:
         # instead of a random pick among all animals.
         if shape == 'animal' and shape_word not in (None, 'animal', 'creature'):
             command_name = 'specific_animal'
+
+        # "box" is the text box ("a box with text HI"), but "a box 10x5"
+        # whose only content is dimensions asks for a rectangle - otherwise
+        # the dimensions get captured as the box's text ("10X5"). A box
+        # whose text merely contains a number ("a box HELLO 2025") stays one.
+        if command_name == 'box' and shape_idx >= 0:
+            content = []
+            for tok in tokens[shape_idx + 1:]:
+                if tok in ('color', 'colour', 'font', 'style', 'fill', 'filled',
+                           'pattern', 'border', 'edge', 'char', 'character'):
+                    break
+                if tok not in ('a', 'an', 'the', 'with', 'of', 'size'):
+                    content.append(tok)
+            if content and all(re.fullmatch(r'\d+(x\d+)?|x|by', t) for t in content):
+                command_name = 'rectangle'
 
         # Build params with numbers
         final_params = params.copy()

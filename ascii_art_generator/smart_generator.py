@@ -82,7 +82,8 @@ def apply_fill_pattern(width: int, height: int, pattern: str, char: str = '#') -
         'top_gradient': lambda w, h: create_directional_gradient(w, h, 'top'),
         'bottom_gradient': lambda w, h: create_directional_gradient(w, h, 'bottom'),
         'center_gradient': lambda w, h: create_directional_gradient(w, h, 'center'),
-        
+        'dense_gradient': lambda w, h: create_directional_gradient(w, h, 'left', DENSE_GRADIENT_RAMP),
+
         # Special patterns
         'spiral_pattern': lambda w, h: create_spiral_pattern(w, h, char),
         'concentric': lambda w, h: create_concentric_pattern(w, h, char),
@@ -95,20 +96,25 @@ def apply_fill_pattern(width: int, height: int, pattern: str, char: str = '#') -
         grid = patterns[pattern](width, height)
         return [''.join(row) for row in grid]
     else:
-        # Default to solid
-        return [[char * width] for _ in range(height)]
+        # Default to solid (List[str] like the branch above - a list of
+        # lists here crashed mask_fill_pattern on unknown pattern names)
+        return [char * width for _ in range(height)]
 
 
 GRADIENT_RAMP = ' .:-=+*#%@'
+# Heavy half of the ramp only, so a dense_gradient never leaves blank or
+# near-blank cells inside the shape.
+DENSE_GRADIENT_RAMP = '=+*#%@'
 
 
-def _ramp_char(t: float) -> str:
+def _ramp_char(t: float, ramp: str = GRADIENT_RAMP) -> str:
     """Map a 0..1 fraction to a character in the light->heavy density ramp."""
-    idx = min(len(GRADIENT_RAMP) - 1, max(0, int(t * len(GRADIENT_RAMP))))
-    return GRADIENT_RAMP[idx]
+    idx = min(len(ramp) - 1, max(0, int(t * len(ramp))))
+    return ramp[idx]
 
 
-def create_directional_gradient(width: int, height: int, direction: str) -> List[List[str]]:
+def create_directional_gradient(width: int, height: int, direction: str,
+                                ramp: str = GRADIENT_RAMP) -> List[List[str]]:
     """Create a smooth density gradient across the grid (light to heavy).
 
     Unlike a binary half-and-half split, every column/row gets its own
@@ -130,7 +136,7 @@ def create_directional_gradient(width: int, height: int, direction: str) -> List
                 dist = math.hypot(x - width / 2, y - height / 2)
                 max_dist = math.hypot(width / 2, height / 2) or 1
                 t = 1 - dist / max_dist
-            row.append(_ramp_char(t))
+            row.append(_ramp_char(t, ramp))
         grid.append(row)
     return grid
 
@@ -561,7 +567,7 @@ class SmartGenerator:
         'grid', 'checkerboard', 'dense_checkerboard', 'random', 'sparse_random',
         'dense_random', 'dots', 'stars', 'plus_signs', 'mixed',
         'left_gradient', 'right_gradient', 'top_gradient', 'bottom_gradient',
-        'center_gradient', 'spiral_pattern', 'concentric', 'wave', 'zigzag', 'honeycomb'
+        'center_gradient', 'dense_gradient', 'spiral_pattern', 'concentric', 'wave', 'zigzag', 'honeycomb'
     ]
     
     # Available border styles
