@@ -291,6 +291,7 @@ class ENCommandParser:
         'top_gradient': ['top_gradient', 'top-gradient'],
         'bottom_gradient': ['bottom_gradient', 'bottom-gradient'],
         'center_gradient': ['center_gradient', 'center-gradient'],
+        'dense_gradient': ['dense_gradient', 'dense-gradient'],
         'spiral_pattern': ['spiral_pattern', 'spiral-pattern'],
         'concentric': ['concentric'],
         'wave': ['wave'],

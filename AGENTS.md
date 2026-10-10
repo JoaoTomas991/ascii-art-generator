@@ -57,7 +57,7 @@ ascii_art_generator/
 └── main.py             # menu entry point (the packaged `ascii-generator` command is `run.py:main`)
 ```
 
-- **Base** shapes/patterns live in `ascii_art.py`; **advanced** shapes/patterns (star, hexagon, oval, arrow, pentagon, butterfly, flower, the 31 fill patterns, the 12 rich border styles) live in `smart_generator.py`.
+- **Base** shapes/patterns live in `ascii_art.py`; **advanced** shapes/patterns (star, hexagon, oval, arrow, pentagon, butterfly, flower, the 32 fill patterns, the 12 rich border styles) live in `smart_generator.py`.
 - `ENCommandParser` in `cli.py` is the **only** command parser used by the app (`ASCIIArtCLI.__init__` instantiates it directly). Don't build an alternative parser without actually wiring it into the CLI — the project used to carry a dead `PTCommandParser` (never instantiated) that was removed for exactly that reason.
 
 ## Code conventions

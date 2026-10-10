@@ -38,7 +38,7 @@ O projeto suporta:
 - **Banners e Caixas**: com texto personalizado
 - **Estilos**:
   - **Cores**: red, green, blue, yellow, cyan, magenta, white, black (e variantes `bright_*`/`light_*`), mais `rainbow`/`multicolor` (cicla uma cor por linha)
-  - **Preenchimento**: solid, empty, dotted, striped, crosshatch, checkerboard, gradient (rampa de densidade real, não binária), random, entre outros (31 padrões em `smart_generator.py`) — sempre aplicado só dentro da silhueta da forma (`mask_fill_pattern`), nunca substituindo-a por um retângulo
+  - **Preenchimento**: solid, empty, dotted, striped, crosshatch, checkerboard, gradient (rampa de densidade real, não binária), random, entre outros (32 padrões em `smart_generator.py`, incluindo `dense_gradient`, que usa só a metade pesada da rampa) — sempre aplicado só dentro da silhueta da forma (`mask_fill_pattern`), nunca substituindo-a por um retângulo
   - **Bordas**: simple, double, dashed, wavy, bold, light, fancy, rounded, entre outras
 - **Moods**: happy, sad, angry, calm, sleepy — cada um aplica uma cor por omissão (a menos que o utilizador já tenha indicado `color`). Novos sinónimos podem ser ensinados em runtime no modo inteligente com `teach <word> as <mood>`, e ficam persistidos entre sessões em `~/.config/ascii_generator/learned_words.json`
 - **Imagem para ASCII**: `convert image <caminho> [width N] [color]` converte um ficheiro de imagem real (PNG/JPG/...) numa rampa de brilho ASCII, com opção de cor real 24-bit por carácter (`ascii_art_generator/image_art.py`, requer Pillow — `pip install -r requirements.txt`)
