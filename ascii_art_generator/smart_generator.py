@@ -95,8 +95,9 @@ def apply_fill_pattern(width: int, height: int, pattern: str, char: str = '#') -
         grid = patterns[pattern](width, height)
         return [''.join(row) for row in grid]
     else:
-        # Default to solid
-        return [[char * width] for _ in range(height)]
+        # Default to solid (List[str] like the branch above - a list of
+        # lists here crashed mask_fill_pattern on unknown pattern names)
+        return [char * width for _ in range(height)]
 
 
 GRADIENT_RAMP = ' .:-=+*#%@'
