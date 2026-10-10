@@ -26,6 +26,8 @@ Gerador de ASCII Art que cria arte a partir de texto, formas geométricas e padr
 - `.claude/agents/docs-sync-auditor.md` — subagent que compara as afirmações em README/CLAUDE/AGENTS/skill `ascii-art` (contagens, listas, exemplos, limitações) contra o código real e reporta desvios. Usa antes de publicar o repositório ou cortar um release.
 - `.claude/agents/pitfall-reviewer.md` — subagent de revisão especializado nos 6 padrões de bug já vistos neste projeto (mismatch `str`/`List[str]`, chaves duplicadas, mismatch de argumentos, mismatch de chave de parâmetro, off-by-one na captura de texto, dicionários de dados duplicados entre ficheiros). Invoca-o antes de commit/PR que toque em `ascii_art_generator/*.py`.
 - `.claude/skills/adr/SKILL.md` — como documentar decisões de arquitetura significativas em `docs/adr/`
+- `.claude/skills/pre-commit/SKILL.md` — orquestra `generator-tester` + `pitfall-reviewer` em paralelo e junta os relatórios num veredicto; usa antes de commit/PR que toque em `ascii_art_generator/*.py`
+- `.claude/skills/release-check/SKILL.md` — orquestra `generator-tester`, `shape-coverage-auditor`, `docs-sync-auditor` (e `pitfall-reviewer` desde a última tag) em paralelo; usa antes de um release (tag `v*`) ou de publicar o repositório
 
 ## Capacidades do Projeto
 O projeto suporta:
