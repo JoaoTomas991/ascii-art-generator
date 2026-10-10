@@ -21,6 +21,10 @@ git describe --tags --abbrev=0 2>/dev/null || echo "no previous tag"
 Audit the commit you just printed. If the tree isn't clean, stop and ask
 the user whether to commit, stash or audit something else.
 
+Pick the interpreter the same way as in `pre-commit`: if `python3
+--version` is older than 3.12, tell every agent to use a 3.12+ one
+(`python3.12`, ...) in place of `python3`.
+
 ## 2. Launch the agents in parallel
 
 In **one** message, with `run_in_background: false`, launch:

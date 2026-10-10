@@ -19,6 +19,12 @@ git diff HEAD --stat -- ascii_art_generator/
 If nothing under `ascii_art_generator/` changed (docs, skills, CI only),
 skip the agents and say so: there is nothing for them to check.
 
+Then pick the interpreter: the project needs Python >= 3.12 (`setup.py`)
+and `cli.py` doesn't even import on 3.11. If `python3 --version` is older,
+find a 3.12+ one (`python3.12`, `python3.13`, ...) and tell each agent to
+use it in place of `python3` (and `make test PYTHON=<it>`); otherwise
+every check fails with a SyntaxError that says nothing about the change.
+
 ## 2. Launch both agents in parallel
 
 In **one** message, with `run_in_background: false` (the verdict depends
