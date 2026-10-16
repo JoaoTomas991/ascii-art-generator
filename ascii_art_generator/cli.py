@@ -781,9 +781,20 @@ class ENCommandParser:
             elif command_name == 'circle':
                 if numbers:
                     final_params['radius'] = numbers[0]
-            elif command_name in ['triangle', 'diamond', 'tree', 'spiral']:
-                if numbers:
-                    final_params['size'] = numbers[0]
+            elif command_name in ['triangle', 'tree']:
+                # execute_parsed_command reads these two as 'height'
+                final_params['height'] = numbers[0]
+            elif command_name in ['diamond', 'spiral', 'star', 'hexagon', 'pentagon',
+                                  'butterfly', 'flower', 'arrow']:
+                final_params['size'] = numbers[0]
+            elif command_name == 'oval':
+                if len(numbers) >= 2:
+                    final_params['width'] = numbers[0]
+                    final_params['height'] = numbers[1]
+                else:
+                    # default oval is 5:1, so keep that ratio for a single number
+                    final_params['width'] = numbers[0]
+                    final_params['height'] = max(1, numbers[0] // 5)
             elif command_name == 'heart':
                 if numbers:
                     final_params['size'] = min(max(numbers[0], 1), 8)

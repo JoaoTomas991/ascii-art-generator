@@ -223,6 +223,21 @@ def mask_fill_pattern(art: List[str], fill: str, char: str) -> List[str]:
 
     height = len(art)
     width = max(len(row) for row in art)
+
+    if fill == 'empty':
+        # The bounding-box pattern would only keep the box edge, leaving stray
+        # fragments on non-rectangular shapes; outline the silhouette instead.
+        rows = [row.ljust(width) for row in art]
+
+        def filled(y: int, x: int) -> bool:
+            return 0 <= y < height and 0 <= x < width and rows[y][x] != ' '
+
+        return [''.join(
+            char if filled(y, x) and not all(
+                filled(y + dy, x + dx) for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)))
+            else ' '
+            for x in range(width)
+        ).rstrip() for y in range(height)]
     pattern = apply_fill_pattern(width, height, fill, char)
 
     result = []
@@ -273,13 +288,13 @@ def apply_border(grid: List[str], border_style: str, char: str = '#') -> List[st
         'double': lambda: ['=' * width] + padded_grid + ['=' * width],
         'dashed': lambda: ['-' * width] + padded_grid + ['-' * width],
         'dotted': lambda: ['.' * width] + padded_grid + ['.' * width],
-        'thick': lambda: [char * 2 * width] + [char * 2 + ' ' * (width * 2 - 4) + char * 2 for _ in padded_grid] + [char * 2 * width],
-        'bold': lambda: [char * width] + [char + ' ' * (width - 2) + char for _ in padded_grid] + [char * width],
+        'thick': lambda: [char * (width + 4)] + [char * 2 + row + char * 2 for row in padded_grid] + [char * (width + 4)],
+        'bold': lambda: [char * (width + 2)] + [char + row + char for row in padded_grid] + [char * (width + 2)],
         'fancy': lambda: create_fancy_border(padded_grid, char),
         'rounded': lambda: create_rounded_border(padded_grid, char),
         '3d': lambda: create_3d_border(padded_grid, char),
         'shadow': lambda: create_shadow_border(padded_grid, char),
-        'double_line': lambda: ['+' + '=' * (width - 2) + '+'] + ['|' + ' ' * (width - 2) + '|' for _ in padded_grid] + ['+' + '=' * (width - 2) + '+'],
+        'double_line': lambda: ['+' + '=' * width + '+'] + ['|' + row + '|' for row in padded_grid] + ['+' + '=' * width + '+'],
     }
     
     if border_style in border_styles:
@@ -291,11 +306,11 @@ def apply_border(grid: List[str], border_style: str, char: str = '#') -> List[st
 def create_fancy_border(grid: List[str], char: str) -> List[str]:
     """Create a fancy decorative border."""
     width = max(len(row) for row in grid)
-    border_line = char * width
+    border_line = char * (width + 4)
     
     result = [border_line]
     for row in grid:
-        result.append(f"{char} {row.ljust(width - 2)} {char}")
+        result.append(f"{char} {row.ljust(width)} {char}")
     result.append(border_line)
     
     return result
@@ -306,10 +321,10 @@ def create_rounded_border(grid: List[str], char: str) -> List[str]:
     width = max(len(row) for row in grid)
     
     # Use Unicode box drawing characters for rounded corners
-    h_line = '─' * (width - 2)
+    h_line = '─' * (width + 2)
     result = [f"╭{h_line}╮"]
     for row in grid:
-        result.append(f"│ {row.ljust(width - 2)} │")
+        result.append(f"│ {row.ljust(width)} │")
     result.append(f"╰{h_line}╯")
     
     return result
@@ -319,18 +334,14 @@ def create_3d_border(grid: List[str], char: str) -> List[str]:
     """Create a 3D effect border."""
     width = max(len(row) for row in grid)
     
-    result = [char * width]
+    result = [char * (width + 2)]
     for row in grid:
-        result.append(f"{char}{' ' * (width - 2)}{char}")
-    result.append(char * width)
+        result.append(f"{char}{row.ljust(width)}{char}")
+    result.append(char * (width + 2))
     
-    # Add shadow effect
-    shadow_line = ' ' + char * (width - 1)
-    for i in range(len(result)):
-        if i == len(result) - 1:
-            result.append(shadow_line)
-        else:
-            result[i] = ' ' + result[i]
+    # Add shadow effect: indent the frame one column, then draw the shadow under it
+    result = [' ' + line for line in result]
+    result.append('  ' + char * (width + 1))
     
     return result
 
@@ -378,29 +389,27 @@ def _point_in_polygon(px: float, py: float, poly: List[Tuple[float, float]]) -> 
     return inside
 
 
-def draw_star(size: int = 7, char: str = '*') -> List[str]:
-    """Draw a filled 4-pointed star (concave sparkle shape, distinct from a diamond)."""
-    size = min(max(size, 3), 12)
-    outer_r = size
-    inner_r = size * 0.42
-    poly = _star_vertices(4, outer_r, inner_r)
+def _rasterize_polygon(poly: List[Tuple[float, float]], char: str, supersample: int = 3) -> List[str]:
+    """Rasterize a polygon (in square world units) to a tight block of lines.
 
-    width = size * 4 + 3
-    height = size * 2 + 3
-    cx, cy = width / 2, height / 2
-    supersample = 3
+    x is stretched 2x on output to correct for characters being roughly twice
+    as tall as they are wide. A cell is filled when at least half of its
+    supersampled points fall inside the polygon.
+    """
+    x0 = math.floor(min(p[0] for p in poly) * 2) - 1
+    x1 = math.ceil(max(p[0] for p in poly) * 2) + 1
+    y0 = math.floor(min(p[1] for p in poly)) - 1
+    y1 = math.ceil(max(p[1] for p in poly)) + 1
 
     result = []
-    for y in range(height):
+    for y in range(y0, y1):
         line = []
-        for x in range(width):
+        for x in range(x0, x1):
             hits = 0
             for sy in range(supersample):
                 for sx in range(supersample):
-                    # x is halved to correct for characters being roughly
-                    # twice as tall as they are wide.
-                    wx = (x + (sx + 0.5) / supersample - cx) / 2.0
-                    wy = y + (sy + 0.5) / supersample - cy
+                    wx = (x + (sx + 0.5) / supersample) / 2.0
+                    wy = y + (sy + 0.5) / supersample
                     if _point_in_polygon(wx, wy, poly):
                         hits += 1
             line.append(char if hits * 2 >= supersample * supersample else ' ')
@@ -410,7 +419,14 @@ def draw_star(size: int = 7, char: str = '*') -> List[str]:
         result.pop(0)
     while result and not result[-1].strip():
         result.pop()
-    return result
+    indent = min((len(l) - len(l.lstrip()) for l in result if l.strip()), default=0)
+    return [l[indent:] for l in result]
+
+
+def draw_star(size: int = 7, char: str = '*') -> List[str]:
+    """Draw a filled 5-pointed star, first point straight up."""
+    size = min(max(size, 3), 12)
+    return _rasterize_polygon(_star_vertices(5, size, size * 0.4), char)
 
 
 def draw_hexagon(size: int = 8, char: str = '#') -> List[str]:
@@ -433,21 +449,24 @@ def draw_hexagon(size: int = 8, char: str = '#') -> List[str]:
 
 
 def draw_oval(width: int = 40, height: int = 8, char: str = '#') -> List[str]:
-    """Draw an oval/ellipse shape."""
+    """Draw an oval/ellipse filling a width x height cell box (sampled at cell centres)."""
+    width, height = max(width, 1), max(height, 1)
+    rx, ry = width / 2, height / 2
     result = []
-    center_x, center_y = width // 2, height // 2
-    
     for y in range(height):
         line = []
         for x in range(width):
-            # Ellipse equation
-            if ((x - center_x) ** 2 * height ** 2 + (y - center_y) ** 2 * width ** 2) <= (width * height / 2) ** 2:
-                line.append(char)
-            else:
-                line.append(' ')
-        result.append(''.join(line))
-    
-    return result
+            dx, dy = (x + 0.5 - rx) / rx, (y + 0.5 - ry) / ry
+            line.append(char if dx * dx + dy * dy <= 1 else ' ')
+        result.append(''.join(line).rstrip())
+
+    # Very narrow or flat boxes can miss every cell centre on an edge row.
+    while result and not result[0].strip():
+        result.pop(0)
+    while result and not result[-1].strip():
+        result.pop()
+    indent = min((len(l) - len(l.lstrip()) for l in result if l.strip()), default=0)
+    return [l[indent:] for l in result] or [char]
 
 
 def draw_arrow(direction: str = 'right', size: int = 8, char: str = '#') -> List[str]:
@@ -479,72 +498,102 @@ def draw_arrow(direction: str = 'right', size: int = 8, char: str = '#') -> List
 
 
 def draw_pentagon(size: int = 8, char: str = '#') -> List[str]:
-    """Draw a pentagon (triangular roof over a rectangular body)."""
+    """Draw a regular pentagon, point straight up."""
     size = max(size, 3)
-    width = 2 * size - 1
-    result = []
+    radius = size * 0.75
+    poly = [(radius * math.cos(-math.pi / 2 + i * 2 * math.pi / 5),
+             radius * math.sin(-math.pi / 2 + i * 2 * math.pi / 5)) for i in range(5)]
+    return _rasterize_polygon(poly, char)
 
-    for i in range(size):
-        stars = 2 * i + 1
-        offset = (width - stars) // 2
-        result.append(' ' * offset + char * stars)
 
-    body_height = max(2, size // 2)
-    for _ in range(body_height):
-        result.append(char * width)
-
-    return result
+def _dist_to_segment(px: float, py: float, ax: float, ay: float, bx: float, by: float) -> float:
+    """Distance from a point to the segment a-b."""
+    dx, dy = bx - ax, by - ay
+    t = ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)
+    t = max(0.0, min(1.0, t))
+    return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
 
 
 def draw_butterfly(size: int = 8, char: str = '*') -> List[str]:
-    """Draw a butterfly shape."""
+    """Draw a butterfly: rounded upper and lower wings, a slim body and two antennae.
+
+    Each cell is tested in square world units (x halved to correct for the
+    terminal's tall characters); the wings are mirrored ellipses, kept apart
+    from the body by a thin gap.
+    """
+    size = max(size, 5)
+    s = float(size)
+    body_rx, body_ry = max(0.35, 0.09 * s), 0.78 * s
+    gap = body_rx + 0.35
+
     result = []
-    
-    # Upper wings
-    for y in range(size):
-        spaces = size - y - 1
-        stars = 2 * y + 1
-        line = ' ' * spaces + char * stars + ' ' * (2 * (size - y)) + char * stars
-        result.append(line)
-    
-    # Body
-    result.append(' ' * size + char * 3)
-    result.append(' ' * (size + 1) + char)
-    
-    # Lower wings
-    for y in range(size - 1, -1, -1):
-        spaces = size - y - 1
-        stars = 2 * y + 1
-        line = ' ' * spaces + char * stars + ' ' * (2 * (size - y)) + char * stars
-        result.append(line)
-    
-    return result
+    for y in range(int(-1.25 * s), int(0.95 * s) + 1):
+        line = []
+        for x in range(int(-2.2 * s), int(2.2 * s) + 1):
+            wx, wy = abs(x + 0.5) / 2.0, y + 0.5
+            body = (wx / body_rx) ** 2 + (wy / body_ry) ** 2 <= 1
+            upper = ((wx - 0.62 * s) / (0.52 * s)) ** 2 + ((wy + 0.32 * s) / (0.58 * s)) ** 2 <= 1
+            lower = ((wx - 0.42 * s) / (0.36 * s)) ** 2 + ((wy - 0.46 * s) / (0.40 * s)) ** 2 <= 1
+            wing = (upper or lower) and wx > gap
+            feeler = _dist_to_segment(wx, wy, 0.1 * s, -0.75 * s, 0.38 * s, -1.15 * s) < 0.3
+            line.append(char if body or wing or feeler else ' ')
+        result.append(''.join(line).rstrip())
+
+    while result and not result[0].strip():
+        result.pop(0)
+    while result and not result[-1].strip():
+        result.pop()
+    indent = min(len(l) - len(l.lstrip()) for l in result if l.strip())
+    return [l[indent:] for l in result]
 
 
 def draw_flower(size: int = 7, char: str = '@') -> List[str]:
-    """Draw a flower shape.
+    """Draw a five-petal flower with a hollow ring around its centre, on a stem.
 
-    x is scanned at double resolution and halved before the distance check
-    to compensate for terminal characters being roughly twice as tall as
-    they are wide - otherwise the ring of petals renders egg-shaped instead
-    of round (same correction as draw_circle/draw_star).
+    Each petal is an ellipse pointing outward from the centre, tested in
+    square world units (x halved to correct for the terminal's tall
+    characters) so the flower is not squashed.
     """
-    result = []
+    size = max(size, 4)
+    radius = float(size)
+    stem = max(2, size // 2)
+    center_r, ring_r = 0.2 * radius, 0.34 * radius
+    petal_d, petal_a, petal_b = 0.62 * radius, 0.40 * radius, 0.25 * radius
 
-    # Petals
-    for y in range(size * 2 + 1):
+    def in_petal(wx: float, wy: float) -> bool:
+        for i in range(5):
+            ang = -math.pi / 2 + i * 2 * math.pi / 5
+            ux, uy = math.cos(ang), math.sin(ang)
+            along = wx * ux + wy * uy - petal_d
+            across = -wx * uy + wy * ux
+            if (along / petal_a) ** 2 + (across / petal_b) ** 2 <= 1:
+                return True
+        return False
+
+    result = []
+    for y in range(int(-radius) - 1, int(radius) + 2 + stem):
         line = []
-        for x in range(size * 4 + 1):
-            dx = (x - size * 2) / 2
-            dy = y - size
-            dist = math.sqrt(dx * dx + dy * dy)
-            if abs(dist - size) < 1.5:
+        for x in range(-int(radius * 2) - 2, int(radius * 2) + 3):
+            wx, wy = (x + 0.5) / 2.0, y + 0.5
+            r = math.hypot(wx, wy)
+            if r <= center_r:
                 line.append(char)
+            elif r <= ring_r:
+                line.append(' ')
+            elif in_petal(wx, wy):
+                line.append(char)
+            elif radius * 0.55 < wy < radius + stem and abs(x + 0.5) <= 1:
+                line.append('|')
             else:
                 line.append(' ')
-        result.append(''.join(line))
+        result.append(''.join(line).rstrip())
 
-    return result
+    while result and not result[0].strip():
+        result.pop(0)
+    while result and not result[-1].strip():
+        result.pop()
+    indent = min(len(l) - len(l.lstrip()) for l in result if l.strip())
+    return [l[indent:] for l in result]
 
 
 # =============================================================================

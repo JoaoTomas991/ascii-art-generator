@@ -297,29 +297,36 @@ def draw_circle(radius: int, char: str = 'O') -> str:
 
 
 def draw_heart(size: int = 6, char: str = '*') -> str:
-    """Draw a heart shape, scaled by size (rounded lobes, pointed base).
+    """Draw a heart shape, scaled by size (round lobes, smooth pointed base).
 
-    Built on a row-count grid, then stretched 2x horizontally - terminal
-    characters are roughly twice as tall as they are wide, so without this
-    the heart reads narrower/taller than it should (same correction
-    draw_circle/draw_star/draw_flower apply via their distance formulas;
-    here it's a straight character-repeat since the heart isn't built from
-    a distance test). Row count (height) is unaffected by this.
+    Samples the classic implicit heart curve (x^2 + y^2 - 1)^3 - x^2 * y^3 <= 0
+    on a character grid. The grid is 5 * size + 1 rows tall and about 2.1x as
+    many columns wide, which compensates for terminal characters being
+    roughly twice as tall as they are wide. The result is left-right
+    symmetric, with a dip between the lobes and no trailing padding.
     """
     size = min(max(size, 1), 12)
-    n = size * 4
+    rows = 5 * size + 1
+    cols = int(rows * 2.1) // 2 * 2   # even, so the cleft sits on a column boundary
 
-    contents = []
-    for i in range(n // 2, n + 1, 2):
-        gap = n - i
-        contents.append(char * i + ' ' * gap + char * i)
-    for i in range(n, 0, -1):
-        contents.append(char * (2 * i - 1))
+    # The curve spans x in [-1.135, 1.135] and y in [-1.0, 1.235]; pad slightly.
+    x_max, y_min, y_max = 1.15, -1.01, 1.25
+    lines = []
+    for r in range(rows):
+        y = y_max - (r + 0.5) * (y_max - y_min) / rows
+        line = []
+        for c in range(cols):
+            x = -x_max + (c + 0.5) * (2 * x_max) / cols
+            inside = (x * x + y * y - 1) ** 3 - x * x * y ** 3 <= 0
+            line.append(char if inside else ' ')
+        lines.append(''.join(line).rstrip())
 
-    width = max(len(line) for line in contents)
-    centered = [line.center(width) for line in contents]
-    stretched = [''.join(ch * 2 for ch in line) for line in centered]
-    return '\n'.join(stretched)
+    while lines and not lines[-1]:   # the sampling grid is padded; drop empty edge rows
+        lines.pop()
+    while lines and not lines[0]:
+        lines.pop(0)
+    indent = min(len(l) - len(l.lstrip()) for l in lines if l.strip())
+    return '\n'.join(l[indent:] for l in lines)
 
 
 def draw_diamond(size: int, char: str = '*') -> str:
