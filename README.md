@@ -15,34 +15,40 @@ A Python ASCII Art generator: draws geometric shapes, converts text into ASCII l
 
 ## Installation
 
-Works the same on Windows, Linux, and macOS:
+Works the same on Windows, Linux, and macOS. If you only want to try it
+without installing Python, grab a standalone executable instead (see
+[Standalone executables](#standalone-executables-no-python-needed)).
+
+The recommended way to install from source is [pipx](https://pipx.pypa.io/)
+(or `uv`), which puts the command on your `PATH` in its own isolated
+environment and works even where the system Python is locked down:
 
 ```bash
 git clone https://github.com/JoaoTomas991/ascii_generator.git
 cd ascii_generator
-pip install -e .
+pipx install ".[all]"             # or: uv tool install ".[all]"
 ```
 
 That installs an `ascii-generator` command on your `PATH`, a native launcher
 on each platform (`ascii-generator.exe` on Windows), so you never have to work
-out which Python binary to call. It is the recommended way to use the project.
+out which Python binary to call. `[all]` also enables image-to-ASCII
+conversion (Pillow) and FIGlet text fonts (pyfiglet). Use `".[images]"` or
+`".[fonts]"` for only one of them, or plain `"."` for neither.
 
-To also enable image-to-ASCII conversion and FIGlet text fonts, install the
-optional dependencies. They are not part of the default install, so the
-`ascii-generator` command only gets them if you ask for them:
+Getting pipx: `sudo apt install pipx` (Debian/Ubuntu), `brew install pipx`
+(macOS), `pip install pipx` (Windows).
 
-```bash
-pip install -e ".[all]"       # Pillow (images) and pyfiglet (fonts)
-pip install -e ".[images]"    # only Pillow
-pip install -e ".[fonts]"     # only pyfiglet
-```
-
-With `uv`, which keeps each tool in its own environment, a plain `pip install`
-does not reach the command, so install the tool with the extras instead:
+For development, use an editable install inside a virtual environment:
 
 ```bash
-uv tool install --editable ".[all]" --force
+python3 -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -e ".[all]"
 ```
+
+On Debian, Ubuntu, and Homebrew Python, a plain `pip install` outside a
+virtual environment fails with `externally-managed-environment`. Use pipx or
+a venv as above. On Debian, `python3 -m venv` may also need
+`sudo apt install python3-venv`.
 
 Other ways to get the same dependencies:
 
@@ -84,7 +90,7 @@ ascii-generator --intelligent
 install, installed copy or source checkout, plus the git branch). A regular
 install is a snapshot of the sources; if it falls behind the project folder the
 command prints a warning on startup. For development, install it editable so it
-always follows the folder: `uv tool install --editable .`
+always follows the folder: `uv tool install --editable .` or `pipx install --editable .`
 
 ### 3. Direct command (single line, non-interactive)
 
@@ -107,7 +113,7 @@ python run.py "draw a heart"    # Windows
 
 On Windows, a bare `python3` is usually the Microsoft Store stub, which prints
 an install prompt instead of running anything. This is the reason
-`pip install -e .` above is the recommended path.
+the installed `ascii-generator` command (see Installation) is the recommended path.
 
 ### Unix-only shortcuts
 
