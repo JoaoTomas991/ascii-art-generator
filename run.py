@@ -17,6 +17,7 @@ Examples:
     python run.py "write HELLO with font banner"  # Execute command and exit
 """
 
+import os
 import sys
 import argparse
 from ascii_art_generator.console import enable_utf8_output
@@ -27,10 +28,8 @@ from ascii_art_generator.install_info import describe, stale_copy_warning
 
 def run_intelligent_mode():
     """Run in intelligent mode with pre-activated English command parsing."""
-    # Simulate pressing 'i' to enter intelligent mode
-    sys.argv = ['ascii_art_generator', 'i']
     try:
-        cli_main()
+        cli_main(intelligent=True)
     except SystemExit:
         pass
 
@@ -120,6 +119,12 @@ Supported Commands:
     )
     
     parser.add_argument(
+        '--no-animation',
+        action='store_true',
+        help='Skip the animated startup banner (also: ASCII_GENERATOR_NO_ANIMATION=1)'
+    )
+
+    parser.add_argument(
         '-c', '--command',
         dest='command_option',
         type=str,
@@ -170,6 +175,9 @@ Supported Commands:
     )
     
     args = parser.parse_args()
+
+    if args.no_animation:
+        os.environ['ASCII_GENERATOR_NO_ANIMATION'] = '1'
 
     if args.version:
         print_version()

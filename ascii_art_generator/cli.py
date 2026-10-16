@@ -2,9 +2,11 @@
 Command Line Interface for ASCII Generator
 """
 
+import itertools
+import re
+import shutil
 import sys
 import time
-import re
 from typing import Callable, Dict, Any, Optional, Tuple, List
 
 from .ascii_art import (
@@ -26,6 +28,7 @@ from .emoji_art import emoji_face, emoji_color, MOOD_FACES
 from .image_art import image_to_ascii
 from .learned_words import load_learned_moods, save_learned_mood
 from .console import enable_utf8_output
+from .intro import show_intro, banner_lines, LiveLines, WIDTH
 
 
 def setup_console() -> None:
@@ -87,40 +90,89 @@ class Menu:
             'description': description, 'category': category
         }
     
-    def display(self) -> None:
-        """Display the menu."""
-        print(f"\n{Colors.HEADER}{'=' * 60}{Colors.ENDC}")
-        print(f"{Colors.HEADER}{self.title:^60}{Colors.ENDC}")
-        print(f"{Colors.HEADER}{'=' * 60}{Colors.ENDC}")
+    def display(self) -> List[Tuple[int, str]]:
+        """Display the menu; return the (line index, text) of the animatable header lines."""
+        # Same banner as the intro: the logo and the subtitle animate, the rules stay magenta.
+        logo, frame = banner_lines()
+        out = [f"{Colors.BOLD}{Colors.HEADER}{line}{Colors.ENDC}" for line in logo + frame]
+        live = [(j, line) for j, line in enumerate(logo)]
+        live.append((len(logo) + 1, frame[1]))      # the 'G E N E R A T O R' subtitle
         
-        categories = {}
+        # One block per category, laid out in as many columns as the terminal
+        # fits, so the whole menu (and with it the banner) stays on screen.
+        categories: Dict[str, List[Tuple[str, str]]] = {}
         for key, item in sorted(self.items.items()):
-            category = item['category']
-            if category not in categories:
-                categories[category] = []
-            categories[category].append((key, item))
-        
-        for category, items in categories.items():
-            if category != "Main":
-                print(f"\n{Colors.OKBLUE}{category}{Colors.ENDC}")
-                print("-" * len(category))
-            
-            for key, item in items:
-                label = item['label']
-                desc = item['description']
-                if desc:
-                    print(f"  {Colors.OKGREEN}[{key}]{Colors.ENDC} {label:20} - {desc}")
-                else:
-                    print(f"  {Colors.OKGREEN}[{key}]{Colors.ENDC} {label}")
-        
-        print(f"\n{Colors.WARNING}[{self.exit_option[0]}]{Colors.ENDC} {self.exit_option[1]}")
-        print()
-    
+            categories.setdefault(item['category'], []).append(
+                (f"{Colors.OKGREEN}[{key}]{Colors.ENDC} {item['label']}", f"[{key}] {item['label']}"))
+        main = categories.setdefault('Main', [])
+        main.append((f"{Colors.WARNING}[{self.exit_option[0]}]{Colors.ENDC} {self.exit_option[1]}",
+                     f"[{self.exit_option[0]}] {self.exit_option[1]}"))
+
+        blocks = []   # each block: list of (coloured, plain) lines
+        for category, entries in categories.items():
+            blocks.append([(f"{Colors.OKBLUE}{category}{Colors.ENDC}", category)] + entries)
+
+        col_w = max(len(plain) for block in blocks for _, plain in block) + 3
+        ncols = max(1, min(3, shutil.get_terminal_size((80, 24)).columns // col_w))
+        def column_height(assigned: List[List[Tuple[str, str]]]) -> int:
+            return sum(len(b) for b in assigned) + max(0, len(assigned) - 1)
+
+        # Pick the block-to-column assignment with the shortest tallest column
+        # (ties keep the earliest blocks in the leftmost columns); blocks keep
+        # their order inside a column. Few blocks, so trying them all is cheap;
+        # a menu with many more categories just fills the shortest column.
+        if len(blocks) <= 9:
+            assignment = min(
+                itertools.product(range(ncols), repeat=len(blocks)),
+                key=lambda choice: (
+                    max(column_height([b for b, c in zip(blocks, choice) if c == col])
+                        for col in range(ncols)),
+                    choice))
+        else:
+            heights = [0] * ncols
+            assignment = []
+            for block in blocks:
+                col = heights.index(min(heights))
+                heights[col] += len(block) + 1
+                assignment.append(col)
+
+        columns: List[List[Tuple[str, str]]] = [[] for _ in range(ncols)]
+        for block, col in zip(blocks, assignment):
+            if columns[col]:
+                columns[col].append(('', ''))
+            columns[col].extend(block)
+
+        for row in range(max(len(col) for col in columns)):
+            cells = []
+            for col in columns:
+                colored, plain = col[row] if row < len(col) else ('', '')
+                cells.append(colored + ' ' * (col_w - len(plain)))
+            out.append(''.join(cells).rstrip())
+        out.append('')
+        print('\n'.join(out))
+        self._printed_lines = len(out)
+        self._max_width = max(len(re.sub(r'\x1b\[[0-9;]*m', '', line)) for line in out)
+        return live
+
     def run(self) -> None:
         """Run the menu loop."""
+        if sys.stdin is None:    # stdin closed (`<&-`): input() would raise RuntimeError
+            print(f"{Colors.WARNING}No input available (stdin is closed).{Colors.ENDC}")
+            return
         while True:
-            self.display()
-            choice = input(f"{Colors.BOLD}Enter your choice: {Colors.ENDC}").strip()
+            live = self.display()
+            # Rainbow rule right above the prompt; it stays on screen even when
+            # the menu is taller than the terminal and the header has scrolled off.
+            wave = '━' * WIDTH
+            print(f"{Colors.BOLD}{Colors.HEADER}{wave}{Colors.ENDC}")
+            below = self._printed_lines + 1       # lines printed since the menu began
+            targets = [(below - idx, text) for idx, text in live] + [(1, wave)]
+            try:
+                with LiveLines(targets, min_cols=self._max_width):
+                    choice = input(f"{Colors.BOLD}Enter your choice: {Colors.ENDC}").strip()
+            except EOFError:
+                print(f"\n{Colors.OKGREEN}Goodbye!{Colors.ENDC}")
+                break
             
             if choice.lower() == self.exit_option[0].lower():
                 print(f"\n{Colors.OKGREEN}Goodbye!{Colors.ENDC}")
@@ -130,6 +182,9 @@ class Menu:
                 try:
                     self.items[choice]['action']()
                     input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
+                except EOFError:
+                    print(f"\n{Colors.OKGREEN}Goodbye!{Colors.ENDC}")
+                    break
                 except Exception as e:
                     print(f"{Colors.FAIL}Error: {e}{Colors.ENDC}")
                     time.sleep(2)
@@ -1455,14 +1510,19 @@ INTELLIGENT MODE (type 'i' to activate):
 
         return art
     
+    def _show_intro(self) -> None:
+        """Show the startup banner once per session (run() and intelligent mode both ask)."""
+        if getattr(self, '_intro_shown', False):
+            return
+        self._intro_shown = True
+        show_intro()
+
     def run_intelligent_mode(self) -> None:
         """Run the CLI in intelligent mode (natural language)."""
-        print(f"\n{Colors.HEADER}")
-        print("  _____ _   _ _   _  ____ _____ _____ ____")
-        print(" / ____| \\ | | \\ | |/ ___|_   _|_   _|  _ \\")
-        print("| |    |  \\| |  \\| | |   | | | | | | | |_) |")
-        print("| |___ | |\\  | |\\  | |___| | | | | | |  _ <")
-        print(" \\____||_| \\_|_| \\_|\\____|_| |_| |_| |_| \\_\\" + f"{Colors.ENDC}")
+        if sys.stdin is None:    # stdin closed (`<&-`): input() would raise RuntimeError
+            print(f"{Colors.WARNING}No input available (stdin is closed).{Colors.ENDC}")
+            return
+        self._show_intro()
         
         print(f"\n{Colors.OKBLUE}=== INTELLIGENT MODE ==={Colors.ENDC}")
         print(f"{Colors.OKBLUE}Type in natural English (e.g., 'draw a heart' or 'make a rectangle 10x5'){Colors.ENDC}")
@@ -1507,6 +1567,9 @@ INTELLIGENT MODE (type 'i' to activate):
                     
             except KeyboardInterrupt:
                 print(f"\n{Colors.WARNING}Use 'q' to quit or 'menu' to return to menu.{Colors.ENDC}")
+            except EOFError:
+                print(f"\n{Colors.OKGREEN}Goodbye!{Colors.ENDC}")
+                sys.exit(0)
             except Exception as e:
                 print(f"{Colors.FAIL}Error: {e}{Colors.ENDC}")
     
@@ -1565,12 +1628,6 @@ INTELLIGENT MODE (type 'i' to activate):
     
     def run(self) -> None:
         """Run the CLI."""
-        print(f"\n{Colors.HEADER}")
-        print("  _____ _   _ _   _  ____ _____ _____ ____")
-        print(" / ____| \\ | | \\ | |/ ___|_   _|_   _|  _ \\")
-        print("| |    |  \\| |  \\| | |   | | | | | | | |_) |")
-        print("| |___ | |\\  | |\\  | |___| | | | | | |  _ <")
-        print(" \\____||_| \\_|_| \\_|\\____|_| |_| |_| |_| \\_\\" + f"{Colors.ENDC}")
         # Check if we should start in intelligent mode
         if self.intelligent_mode:
             self.run_intelligent_mode()
@@ -1578,11 +1635,12 @@ INTELLIGENT MODE (type 'i' to activate):
             self.menu.run()
 
 
-def main():
-    """Main entry point."""
+def main(intelligent: bool = False):
+    """Main entry point; `intelligent=True` skips the menu and starts in intelligent mode."""
     setup_console()
     enable_utf8_output()
     cli = ASCIIArtCLI()
+    cli.intelligent_mode = intelligent
     cli.run()
 
 

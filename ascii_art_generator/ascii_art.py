@@ -158,6 +158,7 @@ FIGLET_FONT_ALIASES = {
     'block': 'block',
     'banner': 'banner3',
     'shadow': 'shadow',
+    'solid': 'banner',      # pyfiglet's solid-stroke '#' font (used for the startup banner)
 }
 
 # Drawn for characters a built-in font has no glyph for, so they're visibly
@@ -195,7 +196,13 @@ def _figlet_to_ascii(text: str, font: str) -> Optional[str]:
     # fonts' _MISSING_GLYPH, so they're visibly unsupported.
     glyphs = figlet.Font.chars
     text = ''.join(c if c == '\n' or ord(c) in glyphs else '?' for c in text)
-    rendered = figlet.renderText(text)
+    try:
+        rendered = figlet.renderText(text)
+    except pyfiglet.CharNotPrinted:
+        # Terminal narrower than a single glyph: pyfiglet refuses to render.
+        # Give up on wrapping to the terminal width instead of crashing.
+        figlet.width = 1000
+        rendered = figlet.renderText(text)
 
     lines = rendered.split('\n')
     while lines and not lines[0].strip():

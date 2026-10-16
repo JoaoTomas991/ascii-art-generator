@@ -86,6 +86,10 @@ From the menu, choose `i` to enter intelligent mode and type commands freely in 
 ascii-generator --intelligent
 ```
 
+The interactive modes open with an animated banner (plain ANSI, no extra
+packages). It is skipped automatically when the output is not a terminal; pass
+`--no-animation` or set `ASCII_GENERATOR_NO_ANIMATION=1` to turn it off.
+
 `ascii-generator --version` shows which code the command is running (editable
 install, installed copy or source checkout, plus the git branch). A regular
 install is a snapshot of the sources; if it falls behind the project folder the
