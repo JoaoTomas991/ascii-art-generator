@@ -6,7 +6,7 @@
 #   make run PYTHON=python
 PYTHON ?= python3
 
-.PHONY: help run intelligent command test install clean
+.PHONY: help run intelligent command test install clean web
 
 # Debian and others ship no plain `python`; override with `make PYTHON=python`
 PYTHON ?= python3
@@ -49,6 +49,10 @@ command-banner: ## Create a banner
 
 command-text: ## Convert text to ASCII
 	@$(PYTHON) run.py "write HELLO with font banner"
+
+# Browser version
+web: ## Build the browser version into _site/ and serve it on http://localhost:8000
+	$(PYTHON) scripts/build_web.py --serve
 
 # Test commands
 test: ## Run basic tests

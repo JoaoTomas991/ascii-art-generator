@@ -29,7 +29,11 @@ python3 run.py                              # interactive menu
 python3 run.py --intelligent                # intelligent mode (natural language)
 python3 run.py --version                    # which code is running (editable / installed copy / checkout, git branch)
 python3 run.py "draw a rectangle 10x5"       # direct command, non-interactive
+python3 run.py --no-animation               # skip the animated banner (or ASCII_GENERATOR_NO_ANIMATION=1, or TERM=dumb)
+make web                                    # build the browser version into _site/ and serve it on :8000
 ```
+
+The banner and menu animation (`intro.py`) only run on an interactive terminal; piped output gets a static banner. The browser version (`web/`) runs the same package through Pyodide: `scripts/build_web.py` zips the package next to the page, and `web_bridge.run_command()` is the only entry point the page calls.
 
 See [README.md](README.md) for all modes and examples.
 
@@ -54,7 +58,12 @@ ascii_art_generator/
 ├── learned_words.py    # persistence for user-taught mood synonyms
 ├── console.py          # UTF-8 stdout setup shared by the entry points
 ├── install_info.py     # `--version` info and stale installed-copy warning
+├── intro.py            # animated startup banner + LiveLines (keeps menu lines animating while input() waits)
+├── web_bridge.py       # run_command(): runs a command, returns its output as text (used by the web page)
 └── main.py             # menu entry point (the packaged `ascii-generator` command is `run.py:main`)
+
+web/                    # static browser version: index.html, style.css, app.js (runs the package in Pyodide)
+scripts/build_web.py    # builds web/ + the zipped package into _site/ (`make web`, .github/workflows/pages.yml)
 ```
 
 - **Base** shapes/patterns live in `ascii_art.py`; **advanced** shapes/patterns (star, hexagon, oval, arrow, pentagon, butterfly, flower, the 32 fill patterns, the 12 rich border styles) live in `smart_generator.py`.
@@ -66,7 +75,17 @@ ascii_art_generator/
   `image_art.py`/Pillow and the optional pyfiglet import in `text_to_ascii()`
   (see Environment above and `docs/adr/0002-figlet-fonts-via-pyfiglet.md`).
   Don't add another third-party library without an equally clear, explicit
-  reason.
+  reason. The browser page loads Pyodide (and installs Pillow and pyfiglet
+  inside it) from a CDN at runtime; that is not a Python dependency of the
+  package, which stays standard-library only.
+- `intro.py` and `web_bridge.py` are standard library only too. `LiveLines`
+  redraws printed lines by cursor offset (ESC 7/8 + cursor-up), so it assumes
+  no printed line wraps; it switches itself off when the terminal is narrower
+  than the widest line. Keep that assumption if you change the menu layout.
+- Shape functions take their size from the command's bare number: the parser
+  stores it as `height` for `triangle`/`tree`, `width`+`height` for `oval` and
+  `rectangle`, `radius` for `circle` and `size` for everything else. The key
+  must match what `execute_parsed_command` reads (see the pitfall list).
 - Generator functions are inconsistent about return type: most `ascii_art.py` functions return a single `'\n'`-joined `str`, while `smart_generator.py`'s own shape functions (`draw_star`, `draw_hexagon`, ...) return `List[str]`. Anything in `smart_generator.py` that consumes a shape function's output must call `_normalize_lines(art)` first — iterating a `str` yields characters, not lines, which silently corrupts art into one character per line. This bit us once already; don't reintroduce it.
 - Command synonyms (shapes, colors, fonts, fill patterns, borders) are centralized in `ENCommandParser`'s `*_SYNONYMS` dicts, with a reverse `*_to_key` lookup table built in `__init__`. A word used as a synonym in more than one dict key will silently lose earlier entries (Python dict literals don't merge duplicate keys) — grep for the word across `SHAPE_SYNONYMS` before adding it.
 - When adding a new shape/style: implement the generator function, register synonyms in `ENCommandParser.SHAPE_SYNONYMS`, map it in `shape_to_command`, test with a real command, and update the `ascii-art` skill.
