@@ -18,14 +18,14 @@ const EXAMPLES = {
 const $ = (selector) => document.querySelector(selector);
 const els = {
   form: $("#command-form"), input: $("#command"), run: $("#run"), status: $("#status"),
-  output: $("#output"), chips: $("#chips"), copyText: $("#copy-text"), copyLink: $("#copy-link"),
+  output: $("#output"), chips: $("#chips"), copyText: $("#copy-text"), copyChat: $("#copy-chat"), copyLink: $("#copy-link"),
   imageForm: $("#image-form"), imageFile: $("#image-file"), imageWidth: $("#image-width"),
   imageColor: $("#image-color"), imageRun: $("#image-run"),
 };
 
 let runCommand = null;      // set once Python is ready
 let pyodide = null;
-let lastText = "";          // plain text of the last result, for "Copy text"
+let lastText = "";          // plain text of the last result, for "Copy text" and "Copy for chat"
 const commandHistory = [];     // not `history`: that name is window.history
 let historyPos = 0;
 
@@ -97,6 +97,21 @@ function ansiToHtml(text) {
 
 const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, "");
 
+// The drawing as plain text: no colour codes, no trailing spaces, no blank lines at either end.
+function plainText(text) {
+  const lines = stripAnsi(text).split("\n").map((line) => line.replace(/\s+$/, ""));
+  while (lines.length && !lines[0]) lines.shift();
+  while (lines.length && !lines[lines.length - 1]) lines.pop();
+  return lines.join("\n");
+}
+
+// Chat apps (WhatsApp, Telegram, Discord, Slack) draw text between triple backticks in a
+// monospace font. Without them the font is proportional and the drawing falls apart.
+const forChat = (text) => "```\n" + text + "\n```";
+const widestLine = (text) => Math.max(0, ...text.split("\n").map((line) => line.length));
+// Phone screens fit fewer columns than a desktop chat window, so wide drawings may wrap.
+const CHAT_WIDTH_HINT = 36;
+
 // --- UI helpers ----------------------------------------------------------
 function setStatus(message, isError = false) {
   els.status.textContent = message;
@@ -104,7 +119,7 @@ function setStatus(message, isError = false) {
 }
 
 function setReady(ready) {
-  for (const el of [els.input, els.run, els.copyText, els.copyLink, els.imageFile, els.imageRun]) {
+  for (const el of [els.input, els.run, els.copyText, els.copyChat, els.copyLink, els.imageFile, els.imageRun]) {
     el.disabled = !ready;
   }
   document.querySelectorAll(".chip").forEach((chip) => { chip.disabled = !ready; });
@@ -112,7 +127,7 @@ function setReady(ready) {
 
 function show(raw) {
   const text = raw.replace(/^\n+/, "");
-  lastText = stripAnsi(text).trimEnd();
+  lastText = plainText(text);
   els.output.innerHTML = ansiToHtml(text);
   els.output.scrollTop = 0;
   document.body.dataset.rendered = String(lastText.length);    // handy for automated checks
@@ -229,6 +244,13 @@ async function copy(text, button, done) {
   setTimeout(() => { button.textContent = label; }, 1400);
 }
 els.copyText.addEventListener("click", () => copy(lastText, els.copyText, "Copied"));
+els.copyChat.addEventListener("click", async () => {
+  await copy(forChat(lastText), els.copyChat, "Copied");
+  const width = widestLine(lastText);
+  if (width > CHAT_WIDTH_HINT) {
+    setStatus(`Copied for chat. This drawing is ${width} columns wide, so a narrow phone screen may wrap it.`);
+  }
+});
 els.copyLink.addEventListener("click", () => copy(location.href, els.copyLink, "Copied"));
 
 els.imageForm.addEventListener("submit", async (event) => {

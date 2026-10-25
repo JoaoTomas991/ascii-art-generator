@@ -6,7 +6,15 @@ All notable changes to this project are listed here. The format follows
 
 ## [Unreleased]
 
-Nothing yet. Ideas for what comes next are in [ROADMAP.md](ROADMAP.md).
+### Added
+
+- Browser version: a **Copy for chat** button that wraps the drawing in triple backticks, so WhatsApp, Telegram, Discord and Slack show it in a monospace font instead of a proportional one that breaks the alignment. It also warns when the drawing is wider than 36 columns, which a phone screen may wrap.
+
+### Changed
+
+- Browser version: **Copy text** no longer includes trailing spaces on each line or blank lines at the start and end.
+
+Ideas for what comes next are in [ROADMAP.md](ROADMAP.md).
 
 ## [1.0.0] - 2026-10-25
 
