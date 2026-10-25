@@ -8,7 +8,7 @@ All notable changes to this project are listed here. The format follows
 
 ### Added
 
-- Browser version: a **Copy for chat** button that wraps the drawing in triple backticks, so WhatsApp, Telegram, Discord and Slack show it in a monospace font instead of a proportional one that breaks the alignment. It also warns when the drawing is wider than 36 columns, which a phone screen may wrap.
+- Browser version: a **Copy for WhatsApp, Telegram…** button that wraps the drawing in triple backticks, so WhatsApp, Telegram, Discord and Slack show it in a monospace font instead of a proportional one that breaks the alignment. It also warns when the drawing is wider than 36 columns, which a phone screen may wrap.
 
 ### Changed
 

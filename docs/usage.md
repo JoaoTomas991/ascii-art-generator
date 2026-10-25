@@ -46,7 +46,7 @@ ascii-art-generator "write HELLO with font banner"
 ## In the browser
 
 Open <https://joaotomas991.github.io/ascii-art-generator/>, type the same commands or click an example, and
-convert an image from your computer; nothing is uploaded. **Copy text** copies the drawing as plain text. **Copy for chat** wraps it in triple backticks, which WhatsApp, Telegram, Discord and Slack show in a monospace font, so the drawing keeps its shape when you paste it; wide drawings can still wrap on a narrow phone screen, and the page tells you when that is likely. After you run a command, **Copy link** copies a URL
+convert an image from your computer; nothing is uploaded. **Copy text** copies the drawing as plain text. **Copy for WhatsApp, Telegram…** wraps it in triple backticks, which WhatsApp, Telegram, Discord and Slack show in a monospace font, so the drawing keeps its shape when you paste it; wide drawings can still wrap on a narrow phone screen, and the page tells you when that is likely. After you run a command, **Copy link** copies a URL
 like `https://joaotomas991.github.io/ascii-art-generator/?cmd=draw+a+heart` that opens the page with that
 command already run. The first visit downloads about 10 MB of Python runtime. For how the page is built and
 published, see [development.md](development.md#browser-version).

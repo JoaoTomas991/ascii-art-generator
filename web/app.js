@@ -25,7 +25,7 @@ const els = {
 
 let runCommand = null;      // set once Python is ready
 let pyodide = null;
-let lastText = "";          // plain text of the last result, for "Copy text" and "Copy for chat"
+let lastText = "";          // plain text of the last result, for "Copy text" and the chat-app button
 const commandHistory = [];     // not `history`: that name is window.history
 let historyPos = 0;
 
@@ -233,10 +233,28 @@ els.input.addEventListener("keydown", (event) => {
   }
 });
 
+// navigator.clipboard only exists in a secure context (https or localhost). Opening the page over
+// plain http, for example from a phone on the local network, needs the older execCommand route.
+function legacyCopy(text) {
+  const area = document.createElement("textarea");
+  area.value = text;
+  area.setAttribute("readonly", "");
+  area.style.cssText = "position:fixed;top:0;left:0;opacity:0";
+  document.body.appendChild(area);
+  area.select();
+  area.setSelectionRange(0, text.length);
+  try {
+    return document.execCommand("copy");
+  } finally {
+    area.remove();
+  }
+}
+
 async function copy(text, button, done) {
   const label = button.textContent;
   try {
-    await navigator.clipboard.writeText(text);
+    if (navigator.clipboard) await navigator.clipboard.writeText(text);
+    else if (!legacyCopy(text)) throw new Error("copy command refused");
     button.textContent = done;
   } catch (_) {
     button.textContent = "Copy failed";
@@ -248,7 +266,7 @@ els.copyChat.addEventListener("click", async () => {
   await copy(forChat(lastText), els.copyChat, "Copied");
   const width = widestLine(lastText);
   if (width > CHAT_WIDTH_HINT) {
-    setStatus(`Copied for chat. This drawing is ${width} columns wide, so a narrow phone screen may wrap it.`);
+    setStatus(`Copied. This drawing is ${width} columns wide, so a narrow phone screen may wrap it.`);
   }
 });
 els.copyLink.addEventListener("click", () => copy(location.href, els.copyLink, "Copied"));
