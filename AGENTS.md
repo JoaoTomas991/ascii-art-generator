@@ -35,7 +35,7 @@ make web                                    # build the browser version into _si
 
 The banner and menu animation (`intro.py`) only run on an interactive terminal; piped output gets a static banner. The browser version (`web/`) runs the same package through Pyodide: `scripts/build_web.py` zips the package next to the page, and `web_bridge.run_command()` is the only entry point the page calls.
 
-See [README.md](README.md) for all modes and examples.
+See [README.md](README.md) for an overview and [docs/usage.md](docs/usage.md) for all modes and examples.
 
 ## Testing
 

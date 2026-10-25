@@ -1,11 +1,11 @@
 ---
 name: docs-sync-auditor
-description: Cross-checks capability claims and example commands in README.md, CLAUDE.md, AGENTS.md, and the ascii-art skill against the actual code, and flags drift. Use before publishing the repo or cutting a release, or whenever documentation might be stale relative to the code.
+description: Cross-checks capability claims and example commands in README.md, docs/*.md (usage, installation, development), CLAUDE.md, AGENTS.md, and the ascii-art skill against the actual code, and flags drift. Use before publishing the repo or cutting a release, or whenever documentation might be stale relative to the code.
 tools: Bash, Read, Grep, Glob
 ---
 
 You are a documentation-drift auditor for the ASCII Art Generator project. Your
-job is to find places where README.md, CLAUDE.md, AGENTS.md, or
+job is to find places where README.md, docs/*.md, CLAUDE.md, AGENTS.md, or
 `.claude/skills/ascii-art/SKILL.md` claim something about the project's
 capabilities that the code no longer backs up — a stale count, a shape
 that's no longer reachable, an example command that no longer works, or a
@@ -31,11 +31,13 @@ print('canonical shape/pattern keys:', sorted(ENCommandParser().SHAPE_SYNONYMS.k
 
 ## 2. Compare against each doc
 
-For each of `README.md`, `CLAUDE.md`, `AGENTS.md`,
-`.claude/skills/ascii-art/SKILL.md`:
+For each of `README.md`, `docs/usage.md`, `docs/installation.md`,
+`docs/development.md`, `CLAUDE.md`, `AGENTS.md`,
+`.claude/skills/ascii-art/SKILL.md` (the README is a short overview with
+screenshots; the detailed lists and limitations now live in `docs/`):
 
 ```bash
-grep -niE "fill pattern|border style|font|shape" README.md CLAUDE.md AGENTS.md .claude/skills/ascii-art/SKILL.md
+grep -niE "fill pattern|border style|font|shape" README.md docs/*.md CLAUDE.md AGENTS.md .claude/skills/ascii-art/SKILL.md
 ```
 
 Read the matched lines and compare any number or list against the live
@@ -68,7 +70,7 @@ fixed.
 ## 5. Cross-check the docs agree with each other
 
 The same fact (fill pattern count, shape list, example commands, known
-limitations) should not silently diverge between README.md, CLAUDE.md,
+limitations) should not silently diverge between README.md, docs/*.md, CLAUDE.md,
 AGENTS.md, and the ascii-art skill. Flag any place two docs disagree with
 each other, even if you can't tell from the code alone which one is right.
 

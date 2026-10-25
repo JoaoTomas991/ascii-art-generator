@@ -32,7 +32,7 @@ In **one** message, with `run_in_background: false`, launch:
 - `generator-tester` — regression battery on the current tree.
 - `shape-coverage-auditor` — every declared shape/color/font synonym
   through the real pipeline.
-- `docs-sync-auditor` — README/CLAUDE/AGENTS/`ascii-art` skill claims
+- `docs-sync-auditor` — README/docs/CLAUDE/AGENTS/`ascii-art` skill claims
   against the code.
 - `pitfall-reviewer` — the six known bug patterns, on
   `git diff <last-tag>..HEAD -- ascii_art_generator/`. With no previous
