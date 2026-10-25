@@ -2,6 +2,8 @@
 
 A Python ASCII Art generator: draws geometric shapes, converts text into ASCII letters, generates patterns, and runs simple terminal animations, all through natural-language (English) commands or an interactive menu.
 
+**[Try it in your browser](https://joaotomas991.github.io/ascii-art-generator/)**: no install, nothing is uploaded.
+
 ## Requirements
 
 - Python 3.12+ (needed because `cli.py` uses a backslash inside an f-string
@@ -220,6 +222,8 @@ true-color image output (`convert image ... color`), use a terminal with
 24-bit color support such as iTerm2.
 
 ## Try it in the browser
+
+The live version is at <https://joaotomas991.github.io/ascii-art-generator/>.
 
 The `web/` folder is a static page that runs the real generator inside your
 browser through [Pyodide](https://pyodide.org) (Python compiled to WebAssembly).

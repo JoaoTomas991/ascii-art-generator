@@ -199,7 +199,7 @@ For significant changes to the architecture or overall project behavior:
 
 ## Security Reports
 
-Do not publish sensitive information, credentials, or details about a security vulnerability in a public issue. Since the project currently has no dedicated private security contact, contact the repository owner through an available private channel before making the issue public.
+Do not publish sensitive information, credentials, or details about a security vulnerability in a public issue. Report it privately instead, from the repository's **Security** tab with **Report a vulnerability** ([direct link](https://github.com/JoaoTomas991/ascii-art-generator/security/advisories/new)).
 
 ## License
 
