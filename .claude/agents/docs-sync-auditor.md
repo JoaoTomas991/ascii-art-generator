@@ -60,7 +60,7 @@ or otherwise doesn't visibly do what the surrounding doc text claims.
 
 ## 4. Check "known limitations" sections are still true
 
-Read every "Known limitations" / "Limitações conhecidas" section in the
+Read every "Known limitations" section in the
 four files. For each bullet that references a specific broken command or
 behavior, try to reproduce it (usually via `python3 run.py "..."`). If it
 no longer reproduces, that bullet is stale and should be flagged for

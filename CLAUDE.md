@@ -1,67 +1,67 @@
-# ASCII Art Generator - Configuração do Agente
+# ASCII Art Generator - Agent Configuration
 
-## Visão Geral do Projeto
-Gerador de ASCII Art que cria arte a partir de texto, formas geométricas e padrões. A CLI entende comandos em **inglês** em linguagem natural (via `ENCommandParser`).
+## Project Overview
+An ASCII art generator that creates art from text, geometric shapes and patterns. The CLI understands natural-language commands in **English** (through `ENCommandParser`).
 
-## Comportamento Geral
-- **Idioma**: Responde sempre em **Português de Portugal** (PT-PT) — isto aplica-se à tua comunicação como agente, não à linguagem dos comandos da CLI (que é inglês, ver acima)
-- **Tom**: Técnico, direto e amigável (sem emojis)
-- **Estilo**: Soluções mínimas, focadas e bem testadas
-- **Segurança**: Nunca executes código destrutivo, apagues ficheiros ou faças commit/push sem autorização explícita
+## General Behavior
+- **Language**: everything in this repository is written in English: code, comments, documentation, commit messages and agent instructions. The CLI commands are English too (see above)
+- **Tone**: technical, direct and friendly (no emojis)
+- **Style**: minimal, focused, well-tested solutions
+- **Safety**: never run destructive code, delete files, or commit/push without explicit authorization
 
-## Estrutura do Código
-- `ascii_art_generator/ascii_art.py` — geração de formas, texto e padrões
-- `ascii_art_generator/cli.py` — interface de linha de comandos e `ENCommandParser` (parsing de linguagem natural em inglês)
-- `ascii_art_generator/smart_generator.py` — formas avançadas, padrões de preenchimento/borda, geração "inteligente"/aleatória
-- `ascii_art_generator/image_art.py` — conversão de imagem real (PNG/JPG/...) para ASCII por rampa de brilho; dependência de terceiros Pillow (ver `requirements.txt`); a outra dependência opcional é o `pyfiglet`, importado só dentro de `text_to_ascii()` em `ascii_art.py`
-- `ascii_art_generator/animal_scenes.py` — animal aleatório numa moeda, moldura ou cena temática
-- `ascii_art_generator/emoji_art.py` — cara de emoji grande composta por cabeça, olhos, sobrancelhas, boca e extras
-- `ascii_art_generator/learned_words.py` — persistência dos sinónimos de mood ensinados (`teach`)
-- `ascii_art_generator/console.py` / `install_info.py` — UTF-8 no stdout; `--version` e aviso de cópia instalada desatualizada
-- `ascii_art_generator/intro.py` — banner de arranque animado (`show_intro`, `banner_lines`) e `LiveLines`, a thread que continua a animar linhas já impressas enquanto o menu espera por `input()`; só biblioteca padrão
-- `ascii_art_generator/web_bridge.py` — `run_command(texto)`: corre um comando e devolve o que ele imprime (com ANSI) como `str`; usado pela versão web
-- `ascii_art_generator/main.py` — ponto de entrada
-- `run.py` / `start.sh` — scripts de arranque (`run.py --no-animation` desliga a animação)
-- `web/` + `scripts/build_web.py` — versão estática para browser (Pyodide); `make web` constrói `_site/` e serve em `localhost:8000`; `.github/workflows/pages.yml` publica no GitHub Pages
+## Code Structure
+- `ascii_art_generator/ascii_art.py` — shape, text and pattern generation
+- `ascii_art_generator/cli.py` — command-line interface and `ENCommandParser` (English natural-language parsing)
+- `ascii_art_generator/smart_generator.py` — advanced shapes, fill/border patterns, "smart"/random generation
+- `ascii_art_generator/image_art.py` — conversion of a real image (PNG/JPG/...) to ASCII with a brightness ramp; third-party dependency Pillow (see `requirements.txt`); the other optional dependency is `pyfiglet`, imported only inside `text_to_ascii()` in `ascii_art.py`
+- `ascii_art_generator/animal_scenes.py` — random animal on a coin, in a frame or in a themed scene
+- `ascii_art_generator/emoji_art.py` — large emoji face composed of a head, eyes, brows, a mouth and extras
+- `ascii_art_generator/learned_words.py` — persistence of the taught mood synonyms (`teach`)
+- `ascii_art_generator/console.py` / `install_info.py` — UTF-8 on stdout; `--version` and the warning about a stale installed copy
+- `ascii_art_generator/intro.py` — animated startup banner (`show_intro`, `banner_lines`) and `LiveLines`, the thread that keeps animating lines that are already printed while the menu waits on `input()`; standard library only
+- `ascii_art_generator/web_bridge.py` — `run_command(text)`: runs a command and returns what it prints (with ANSI) as a `str`; used by the web version
+- `ascii_art_generator/main.py` — entry point
+- `run.py` / `start.sh` — startup scripts (`run.py --no-animation` turns the animation off)
+- `web/` + `scripts/build_web.py` — static browser version (Pyodide); `make web` builds `_site/` and serves it on `localhost:8000`; `.github/workflows/pages.yml` publishes it to GitHub Pages
 
-## Skills e Subagentes deste Projeto
-- `.claude/skills/ascii-art/SKILL.md` — catálogo completo de formas/fontes/cores/estilos
-- `.claude/skills/generator-core/SKILL.md` — convenções e armadilhas ao editar `ascii_art_generator/*.py` (consulta antes de mexer no core)
-- `.claude/skills/generator-test-battery/SKILL.md` — a bateria de testes de regressão em si (o quê testar); pode ser invocada inline ou pelo subagent abaixo
-- `.claude/agents/generator-tester.md` — subagent fino que invoca a skill acima num contexto isolado e devolve só um relatório PASS/FAIL; invoca-o sempre depois de alterar `ascii_art.py`, `cli.py`, `smart_generator.py`, `intro.py`, `web_bridge.py` ou `main.py`
-- `.claude/agents/shape-coverage-auditor.md` — subagent que testa exaustivamente todos os sinónimos declarados (todas as formas/cores/fontes) contra o pipeline real, para apanhar formas mortas/inalcançáveis e chaves duplicadas nos dicionários de sinónimos. Usa antes de um release ou depois de adicionar várias formas.
-- `.claude/agents/docs-sync-auditor.md` — subagent que compara as afirmações em README/docs/CLAUDE/AGENTS/skill `ascii-art` (contagens, listas, exemplos, limitações) contra o código real e reporta desvios. Usa antes de publicar o repositório ou cortar um release.
-- `.claude/agents/pitfall-reviewer.md` — subagent de revisão especializado nos 6 padrões de bug já vistos neste projeto (mismatch `str`/`List[str]`, chaves duplicadas, mismatch de argumentos, mismatch de chave de parâmetro, off-by-one na captura de texto, dicionários de dados duplicados entre ficheiros). Invoca-o antes de commit/PR que toque em `ascii_art_generator/*.py`.
-- `.claude/skills/adr/SKILL.md` — como documentar decisões de arquitetura significativas em `docs/adr/`
-- `.claude/skills/pre-commit/SKILL.md` — orquestra `generator-tester` + `pitfall-reviewer` em paralelo e junta os relatórios num veredicto; usa antes de commit/PR que toque em `ascii_art_generator/*.py`
-- `.claude/skills/release-check/SKILL.md` — orquestra `generator-tester`, `shape-coverage-auditor`, `docs-sync-auditor` (e `pitfall-reviewer` desde a última tag) em paralelo; usa antes de um release (tag `v*`) ou de publicar o repositório
+## Project Skills and Subagents
+- `.claude/skills/ascii-art/SKILL.md` — full catalog of shapes/fonts/colors/styles
+- `.claude/skills/generator-core/SKILL.md` — conventions and pitfalls when editing `ascii_art_generator/*.py` (read it before touching the core)
+- `.claude/skills/generator-test-battery/SKILL.md` — the regression test battery itself (what to test); can be invoked inline or through the subagent below
+- `.claude/agents/generator-tester.md` — thin subagent that invokes the skill above in an isolated context and returns only a PASS/FAIL report; always invoke it after changing `ascii_art.py`, `cli.py`, `smart_generator.py`, `intro.py`, `web_bridge.py` or `main.py`
+- `.claude/agents/shape-coverage-auditor.md` — subagent that exhaustively tests every declared synonym (all shapes/colors/fonts) against the real pipeline, to catch dead or unreachable shapes and duplicate keys in the synonym dictionaries. Use it before a release or after adding several shapes.
+- `.claude/agents/docs-sync-auditor.md` — subagent that compares the claims in README/docs/CLAUDE/AGENTS/the `ascii-art` skill (counts, lists, examples, limitations) against the real code and reports drift. Use it before publishing the repository or cutting a release.
+- `.claude/agents/pitfall-reviewer.md` — review subagent specialized in the 6 bug patterns already seen in this project (`str`/`List[str]` mismatch, duplicate keys, argument mismatch, parameter-key mismatch, off-by-one in text capture, data dictionaries duplicated across files). Invoke it before a commit/PR that touches `ascii_art_generator/*.py`.
+- `.claude/skills/adr/SKILL.md` — how to document significant architecture decisions in `docs/adr/`
+- `.claude/skills/pre-commit/SKILL.md` — runs `generator-tester` + `pitfall-reviewer` in parallel and merges the reports into one verdict; use it before a commit/PR that touches `ascii_art_generator/*.py`
+- `.claude/skills/release-check/SKILL.md` — runs `generator-tester`, `shape-coverage-auditor`, `docs-sync-auditor` (and `pitfall-reviewer` since the last tag) in parallel; use it before a release (`v*` tag) or before publishing the repository
 
-## Capacidades do Projeto
-O projeto suporta:
-- **Formas geométricas**: retângulo, círculo, triângulo, coração, diamante, espiral, árvore, estrela (5 pontas), hexágono, oval, seta, pentágono, borboleta, flor. Um número solto no comando dá o tamanho da forma (`draw a star 8`, `draw a triangle 5`); o oval aceita `30x8`
-- **Texto para ASCII**: conversão de texto com múltiplas fontes (small, block, banner, shadow), (mais o alias `solid`, a fonte `banner` do pyfiglet usada no logo), renderizadas com fontes FIGlet reais via `pyfiglet` (opcional; aceita também qualquer outro nome de fonte FIGlet, ex. `slant`) e com fallback para as fontes internas de 5 linhas se o pyfiglet não estiver instalado
-- **Padrões**: gradiente, tabuleiro (checkerboard), aleatório, abstrato
-- **Animações**: spinner, barra de progresso
-- **Banners e Caixas**: com texto personalizado
-- **Estilos**:
-  - **Cores**: red, green, blue, yellow, cyan, magenta, white, black (e variantes `bright_*`/`light_*`), mais `rainbow`/`multicolor` (cicla uma cor por linha)
-  - **Preenchimento**: solid, empty, dotted, striped, crosshatch, checkerboard, gradient (rampa de densidade real, não binária), random, entre outros (32 padrões em `smart_generator.py`, incluindo `dense_gradient`, que usa só a metade pesada da rampa) — sempre aplicado só dentro da silhueta da forma (`mask_fill_pattern`), nunca substituindo-a por um retângulo
-  - **Bordas**: simple, double, dashed, wavy, bold, light, fancy, rounded, entre outras (12 em `smart_generator.py`); todas preservam o conteúdo da forma e têm a moldura com a largura das linhas. O preenchimento `empty` desenha o contorno da silhueta, não o retângulo da caixa
-- **Moods**: happy, sad, angry, calm, sleepy — cada um aplica uma cor por omissão (a menos que o utilizador já tenha indicado `color`). Novos sinónimos podem ser ensinados em runtime no modo inteligente com `teach <word> as <mood>`, e ficam persistidos entre sessões em `~/.config/ascii_generator/learned_words.json`
-- **Banner e menu animados**: o menu é um banner (logo `ASCII` em fonte pesada com traço fino, esticado na horizontal, subtítulo `A R T   G E N E R A T O R`) mais as categorias em até 3 colunas; o logo, o subtítulo e a linha `━` por cima do prompt animam em arco-íris enquanto o menu espera. A animação só corre num terminal interativo e desliga-se com `--no-animation`, `ASCII_GENERATOR_NO_ANIMATION=1` ou `TERM=dumb`; em terminais com menos de 66 colunas fica estática, e só anima as linhas que ainda estão visíveis (banner e menu cabem em cerca de 24 linhas com 69 colunas ou mais, e em cerca de 29 linhas com 66 a 68 colunas, quando o menu passa a 2 colunas)
-- **Versão web**: `web/` corre o gerador a sério no browser com Pyodide (sem servidor); `make web` para experimentar localmente; `?cmd=` na URL corre um comando ao abrir; tamanhos acima de 300 são recusados para não bloquear o separador
-- **Imagem para ASCII**: `convert image <caminho> [width N] [color]` converte um ficheiro de imagem real (PNG/JPG/...) numa rampa de brilho ASCII, com opção de cor real 24-bit por carácter (`ascii_art_generator/image_art.py`, requer Pillow — `pip install -r requirements.txt`)
+## Project Capabilities
+The project supports:
+- **Geometric shapes**: rectangle, circle, triangle, heart, diamond, spiral, tree, star (5 points), hexagon, oval, arrow, pentagon, butterfly, flower. A bare number in the command sets the shape size (`draw a star 8`, `draw a triangle 5`); the oval accepts `30x8`
+- **Text to ASCII**: text conversion with several fonts (small, block, banner, shadow), plus the alias `solid`, pyfiglet's `banner` font, used for the logo. Rendered with real FIGlet fonts through `pyfiglet` (optional; it also accepts any other FIGlet font name, e.g. `slant`), with a fallback to the built-in 5-line fonts when pyfiglet is not installed
+- **Patterns**: gradient, checkerboard, random, abstract
+- **Animations**: spinner, progress bar
+- **Banners and boxes**: with custom text
+- **Styles**:
+  - **Colors**: red, green, blue, yellow, cyan, magenta, white, black (and the `bright_*`/`light_*` variants), plus `rainbow`/`multicolor` (cycles one color per line)
+  - **Fill**: solid, empty, dotted, striped, crosshatch, checkerboard, gradient (a real density ramp, not binary), random, among others (32 patterns in `smart_generator.py`, including `dense_gradient`, which uses only the heavy half of the ramp). Always applied only inside the shape's silhouette (`mask_fill_pattern`), never replacing it with a rectangle
+  - **Borders**: simple, double, dashed, wavy, bold, light, fancy, rounded, among others (12 in `smart_generator.py`); all of them keep the shape's content and the frame is as wide as the lines. The `empty` fill draws the silhouette's outline, not the box rectangle
+- **Moods**: happy, sad, angry, calm, sleepy. Each applies a default color (unless the user already gave a `color`). New synonyms can be taught at runtime in intelligent mode with `teach <word> as <mood>`, and they persist between sessions in `~/.config/ascii_generator/learned_words.json`
+- **Animated banner and menu**: the menu is a banner (the `ASCII` logo in a heavy font with thin strokes stretched horizontally, and the subtitle `A R T   G E N E R A T O R`) plus the categories in up to 3 columns; the logo, the subtitle and the `━` line above the prompt animate in rainbow colors while the menu waits. The animation only runs in an interactive terminal and is turned off with `--no-animation`, `ASCII_GENERATOR_NO_ANIMATION=1` or `TERM=dumb`; in terminals narrower than 66 columns it stays static, and it only animates the lines that are still visible (banner and menu fit in about 24 lines at 69 columns or more, and in about 29 lines at 66 to 68 columns, where the menu drops to 2 columns)
+- **Web version**: `web/` runs the real generator in the browser with Pyodide (no server); `make web` to try it locally; `?cmd=` in the URL runs a command on open; sizes above 300 are refused so the tab does not freeze
+- **Image to ASCII**: `convert image <path> [width N] [color]` converts a real image file (PNG/JPG/...) into a brightness-ramp ASCII picture, with an option for true 24-bit color per character (`ascii_art_generator/image_art.py`, needs Pillow: `pip install -r requirements.txt`)
 
-Ver a skill `ascii-art` (`.claude/skills/ascii-art/SKILL.md`) para o catálogo completo com funções/ficheiros/assinaturas.
+See the `ascii-art` skill (`.claude/skills/ascii-art/SKILL.md`) for the full catalog with functions, files and signatures.
 
-## Fluxo de Trabalho Padrão
-1. Analisa o comando do utilizador
-2. Extrai forma/texto e parâmetros
-3. Executa com os parâmetros extraídos
-4. Mostra o resultado com formatação adequada
-5. Testa sempre depois de implementar alterações
+## Standard Workflow
+1. Analyze the user's command
+2. Extract the shape/text and the parameters
+3. Run it with the extracted parameters
+4. Show the result with suitable formatting
+5. Always test after implementing changes
 
-## Exemplos de Comandos Válidos
+## Valid Command Examples
 ```
 draw a rectangle 10x5
 make a circle with radius 8
@@ -81,9 +81,9 @@ draw a big cat color yellow
 convert image /tmp/photo.png width 80 color
 ```
 
-## Limitações Conhecidas
-- Não suporta animações GIF (apenas terminal)
-- Cores dependem de suporte ANSI do terminal
-- Sem `pyfiglet` instalado, as fontes ficam limitadas às definições internas (small, block, banner, shadow: só A-Z e alguma pontuação; caracteres em falta aparecem como `?`)
-- A animação do menu usa a posição relativa das linhas já impressas: se o utilizador escrever no prompt uma linha mais comprida do que o terminal, o texto quebra e a animação pode desenhar uma linha fora do sítio até ao Enter
-- O separador de comandos compostos (`"and"`) é baseado em palavras — uma lista de cores numa única forma (`"with color red and blue"`) pode ser lida por engano como duas formas
+## Known Limitations
+- No GIF animations (terminal only)
+- Colors depend on the terminal's ANSI support
+- Without `pyfiglet` installed, fonts are limited to the built-in definitions (small, block, banner, shadow: only A-Z and some punctuation; missing characters appear as `?`)
+- The menu animation relies on the relative position of the lines already printed: if the user types a line longer than the terminal at the prompt, the text wraps and the animation may draw a line in the wrong place until Enter
+- The compound-command separator (`"and"`) is word-based: a color list on a single shape (`"with color red and blue"`) can be wrongly read as two shapes

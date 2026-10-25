@@ -1,94 +1,94 @@
 ---
 name: ascii-art
-description: Catálogo de referência das formas, fontes, cores, padrões de preenchimento e estilos de borda deste gerador de ASCII Art. Usar sempre que fores gerar/desenhar arte ASCII, adicionar uma forma nova, ou explicar a sintaxe de comandos do projeto.
+description: Reference catalog of the shapes, fonts, colors, fill patterns and border styles of this ASCII art generator. Use it whenever you generate/draw ASCII art, add a new shape, or explain the project's command syntax.
 ---
 
-# Catálogo do ASCII Art Generator
+# ASCII Art Generator catalog
 
-Referência com base no código real do projeto (não invenção) — usa isto para
-garantir consistência com o que já existe antes de gerar exemplos ou adicionar
-funcionalidades novas.
+A reference based on the project's real code (not invented). Use it to stay
+consistent with what already exists before generating examples or adding new
+features.
 
-## Onde vive cada coisa
+## Where everything lives
 
-- `ascii_art_generator/ascii_art.py` — formas base, fontes, padrões, banners/caixas, animações, cores ANSI.
-- `ascii_art_generator/smart_generator.py` — formas avançadas (estrela, hexágono, oval, seta, pentágono, borboleta, flor), padrões de preenchimento e bordas ricas, geração "inteligente" (`smart_gen`).
-- `ascii_art_generator/cli.py` — `ENCommandParser`, que converte comandos em inglês (linguagem natural) nos parâmetros das funções abaixo. É o único parser usado pela `ASCIIArtCLI` (o antigo `PTCommandParser`, nunca ligado à aplicação, foi removido).
-- `ascii_art_generator/animal_scenes.py` — `animal_scene(name, big, setting)`: animal numa moeda (`$NOME`), moldura ou cena temática (meadow, rain, snow, beach, space, forest); devolve `(linhas, tipo)` e `scene_color(tipo)` sugere a cor. Usado por `smart_gen.generate_animal_art()`.
-- `ascii_art_generator/emoji_art.py` — `emoji_face(mood)`: cara grande (11 linhas, ASCII puro) composta por cabeça, olhos, sobrancelhas, boca e extras (corações, lágrimas, `zZ`, brilhos); 13 humores (happy, laugh, wink, sad, angry, surprised, cool, love, sleepy, calm, dizzy, starstruck, silly). `mood` aceita também os humores do parser (`MOOD_FACES`: happy/sad/angry/calm/sleepy), por isso `draw a sad emoji` dá uma cara triste. Devolve `(linhas, humor)` e `emoji_color(humor)` sugere a cor. `random_emoji(big=True)` usa-o; `big=False` devolve o kaomoji de uma linha.
-- `ascii_art_generator/install_info.py` — `describe()` (`--version`) e `stale_copy_warning()` (aviso quando o comando instalado é uma cópia mais antiga da pasta de origem; ver `run.py`).
-- `ascii_art_generator/learned_words.py` / `console.py` — persistência dos moods ensinados (`~/.config/ascii_generator/learned_words.json`); configuração UTF-8 do stdout.
-- `ascii_art_generator/intro.py` — banner de arranque animado e menu animado, só biblioteca padrão. `show_intro()` toca a entrada (logo em arco-íris, régua `━`, subtítulo escrito letra a letra); `banner_lines()` devolve `(logo, [régua, subtítulo, régua])` em texto simples; `title_lines()` desenha `ASCII` com a fonte `solid` (alias do `banner` do pyfiglet, ou `block` interna sem pyfiglet) esticada 2x na horizontal; `LiveLines(targets, min_cols)` é a thread que redesenha linhas já impressas (ESC 7 / cursor-up / ESC 8) enquanto `input()` bloqueia. Desliga-se sozinha fora de um terminal, com `TERM=dumb`, com `--no-animation` ou `ASCII_GENERATOR_NO_ANIMATION=1`, e quando o terminal é mais estreito do que a linha mais larga.
-- `ascii_art_generator/web_bridge.py` — `run_command(texto)`: corre um comando pelo mesmo pipeline do CLI, captura o `stdout` e devolve-o (com códigos ANSI) como `str`; trata `teach`, comandos que não percebe, `q`/`exit`/`menu` e recusa tamanhos acima de 300. Usado só pela página web.
-- `web/` + `scripts/build_web.py` — versão estática para browser (`index.html`, `style.css`, `app.js`): corre o pacote dentro do Pyodide, converte ANSI em HTML. `python3 scripts/build_web.py [--serve]` (ou `make web`) gera `_site/`; `.github/workflows/pages.yml` publica no GitHub Pages.
-- `ascii_art_generator/image_art.py` — `image_to_ascii(path, width, ramp, color, invert)`, converte um ficheiro de imagem real (PNG/JPG/...) em ASCII art por rampa de brilho. Único módulo do projeto com dependência de terceiros (Pillow — ver `.claude/skills/generator-core/SKILL.md`).
+- `ascii_art_generator/ascii_art.py` — base shapes, fonts, patterns, banners/boxes, animations, ANSI colors.
+- `ascii_art_generator/smart_generator.py` — advanced shapes (star, hexagon, oval, arrow, pentagon, butterfly, flower), fill patterns and rich borders, "smart" generation (`smart_gen`).
+- `ascii_art_generator/cli.py` — `ENCommandParser`, which turns English (natural-language) commands into the parameters of the functions below. It is the only parser used by `ASCIIArtCLI` (the old `PTCommandParser`, which was never wired into the app, was removed).
+- `ascii_art_generator/animal_scenes.py` — `animal_scene(name, big, setting)`: an animal on a coin (`$NAME`), in a frame or in a themed scene (meadow, rain, snow, beach, space, forest); returns `(lines, kind)` and `scene_color(kind)` suggests the color. Used by `smart_gen.generate_animal_art()`.
+- `ascii_art_generator/emoji_art.py` — `emoji_face(mood)`: a large face (11 lines, plain ASCII) composed of a head, eyes, brows, a mouth and extras (hearts, tears, `zZ`, sparkles); 13 moods (happy, laugh, wink, sad, angry, surprised, cool, love, sleepy, calm, dizzy, starstruck, silly). `mood` also accepts the parser's moods (`MOOD_FACES`: happy/sad/angry/calm/sleepy), so `draw a sad emoji` gives a sad face. Returns `(lines, mood)` and `emoji_color(mood)` suggests the color. `random_emoji(big=True)` uses it; `big=False` returns the one-line kaomoji.
+- `ascii_art_generator/install_info.py` — `describe()` (`--version`) and `stale_copy_warning()` (a warning when the installed command is an older copy of the source folder; see `run.py`).
+- `ascii_art_generator/learned_words.py` / `console.py` — persistence of the taught moods (`~/.config/ascii_generator/learned_words.json`); UTF-8 setup for stdout.
+- `ascii_art_generator/intro.py` — animated startup banner and animated menu, standard library only. `show_intro()` plays the entrance (rainbow logo, `━` rule, subtitle typed letter by letter); `banner_lines()` returns `(logo, [rule, subtitle, rule])` as plain text; `title_lines()` draws `ASCII` with the `solid` font (an alias of pyfiglet's `banner`, or the built-in `block` without pyfiglet), stretched horizontally by inserting a blank after every second column so the strokes stay thin, and centered on the rule; `LiveLines(targets, min_cols)` is the thread that redraws lines that are already printed (ESC 7 / cursor-up / ESC 8) while `input()` blocks. It turns itself off outside a terminal, with `TERM=dumb`, with `--no-animation` or `ASCII_GENERATOR_NO_ANIMATION=1`, and when the terminal is narrower than the widest line.
+- `ascii_art_generator/web_bridge.py` — `run_command(text)`: runs a command through the same pipeline as the CLI, captures `stdout` and returns it (with ANSI codes) as a `str`; it handles `teach`, commands it does not understand, `q`/`exit`/`menu`, and refuses sizes above 300. Used only by the web page.
+- `web/` + `scripts/build_web.py` — static browser version (`index.html`, `style.css`, `app.js`): runs the package inside Pyodide and converts ANSI to HTML. `python3 scripts/build_web.py [--serve]` (or `make web`) builds `_site/`; `.github/workflows/pages.yml` publishes it to GitHub Pages.
+- `ascii_art_generator/image_art.py` — `image_to_ascii(path, width, ramp, color, invert)`, converts a real image file (PNG/JPG/...) to ASCII art with a brightness ramp. The only module in the project with a third-party dependency (Pillow — see `.claude/skills/generator-core/SKILL.md`).
 
-## Formas geométricas
+## Geometric shapes
 
-| Forma | Função | Ficheiro | Parâmetros principais |
+| Shape | Function | File | Main parameters |
 |---|---|---|---|
-| Retângulo | `draw_rectangle(width, height, char, filled)` | ascii_art.py | width, height, char, filled |
-| Triângulo | `draw_triangle(height, char, direction)` | ascii_art.py | height, char, direction: up/down/left/right |
-| Círculo | `draw_circle(radius, char)` | ascii_art.py | radius, char (corrige aspect-ratio do terminal — ver nota abaixo) |
-| Coração | `draw_heart(size, char)` | ascii_art.py | size: 1–12 na função, default 6; o parser limita a 1–8 (gerado algoritmicamente, escala com o tamanho) |
-| Diamante | `draw_diamond(size, char)` | ascii_art.py | size, char |
-| Árvore | `generate_tree(height, char)` | ascii_art.py | height, char |
-| Espiral | `generate_spiral(size, char)` | ascii_art.py | size, char (espiral de Arquimedes traçada na grelha, não um preenchimento sólido) |
-| Estrela | `draw_star(size, char)` | smart_generator.py | size 3–12, default 7; 5 pontas, ponta para cima |
-| Hexágono | `draw_hexagon(size, char)` | smart_generator.py | size mínimo 2, default 8 |
-| Oval | `draw_oval(width, height, char)` | smart_generator.py | width, height (default 40x8); amostra o centro de cada célula; no comando aceita `30x8` ou um só número (largura, com altura = largura // 5) |
-| Seta | `draw_arrow(direction, size, char)` | smart_generator.py | direction: right/left/up/down, size |
-| Pentágono | `draw_pentagon(size, char)` | smart_generator.py | size, default 8; pentágono regular com a ponta para cima |
-| Borboleta | `draw_butterfly(size, char)` | smart_generator.py | size mínimo 5; asas superiores e inferiores, corpo e antenas |
-| Flor | `draw_flower(size, char)` | smart_generator.py | size mínimo 4; 5 pétalas elípticas, anel oco e caule `\|` (o caule ignora `char`); corrige aspect-ratio |
+| Rectangle | `draw_rectangle(width, height, char, filled)` | ascii_art.py | width, height, char, filled |
+| Triangle | `draw_triangle(height, char, direction)` | ascii_art.py | height, char, direction: up/down/left/right |
+| Circle | `draw_circle(radius, char)` | ascii_art.py | radius, char (corrects the terminal aspect ratio — see the note below) |
+| Heart | `draw_heart(size, char)` | ascii_art.py | size: 1–12 in the function, default 6; the parser limits it to 1–8 (generated algorithmically, scales with the size) |
+| Diamond | `draw_diamond(size, char)` | ascii_art.py | size, char |
+| Tree | `generate_tree(height, char)` | ascii_art.py | height, char |
+| Spiral | `generate_spiral(size, char)` | ascii_art.py | size, char (an Archimedean spiral traced on the grid, not a solid fill) |
+| Star | `draw_star(size, char)` | smart_generator.py | size 3–12, default 7; 5 points, point up |
+| Hexagon | `draw_hexagon(size, char)` | smart_generator.py | minimum size 2, default 8 |
+| Oval | `draw_oval(width, height, char)` | smart_generator.py | width, height (default 40x8); samples the center of each cell; in a command it accepts `30x8` or a single number (the width, with height = width // 5) |
+| Arrow | `draw_arrow(direction, size, char)` | smart_generator.py | direction: right/left/up/down, size |
+| Pentagon | `draw_pentagon(size, char)` | smart_generator.py | size, default 8; a regular pentagon with the point up |
+| Butterfly | `draw_butterfly(size, char)` | smart_generator.py | minimum size 5; upper and lower wings, body and antennae |
+| Flower | `draw_flower(size, char)` | smart_generator.py | minimum size 4; 5 elliptical petals, a hollow ring and a `\|` stem (the stem ignores `char`); corrects the aspect ratio |
 
-**Aspect-ratio do terminal**: os carateres são ~2x mais altos que largos, por
-isso `draw_circle` e `draw_flower` fazem o scan do eixo `x` a
-resolução dupla e dividem por 2 antes do cálculo de distância — sem isto a
-forma sai "ovalada"/esticada na vertical em vez de redonda. Ao criar uma
-forma nova baseada em distância radial, replica esta correção. A estrela e o
-pentágono usam `_rasterize_polygon(poly, char)` (smart_generator.py), que
-rasteriza um polígono em unidades quadradas e estica o `x` 2x; `draw_heart`
-amostra a curva implícita `(x²+y²-1)³ - x²y³ ≤ 0` na mesma grelha
-(grelha de `5*size+1` linhas e ~2,1x de colunas; as linhas vazias das pontas são cortadas, por isso o desenho final tem 6, 11, 16, 21, 25, 30... linhas).
+**Terminal aspect ratio**: characters are ~2x taller than they are wide, so
+`draw_circle` and `draw_flower` scan the `x` axis at double resolution and
+divide by 2 before the distance calculation. Without this the shape comes out
+"oval"/stretched vertically instead of round. When you create a new shape based
+on radial distance, repeat this correction. The star and the pentagon use
+`_rasterize_polygon(poly, char)` (smart_generator.py), which rasterizes a
+polygon in square units and stretches `x` by 2; `draw_heart` samples the
+implicit curve `(x²+y²-1)³ - x²y³ ≤ 0` on the same grid (a grid of `5*size+1`
+rows and ~2.1x as many columns; the empty rows at the tips are trimmed, so the
+final drawing has 6, 11, 16, 21, 25, 30... lines).
 
-## Padrões
+## Patterns
 
-- `generate_gradient(width, height)` — degradê de densidade de caracteres
-- `generate_checkerboard(size, chars)` — tabuleiro/xadrez
-- Arte aleatória: `random`, `art` e `painting` (ex. `make random art`, `make a painting 20x10 color red`) vão para `ASCIIArtCLI._random_art()` → `smart_gen.generate_interesting_art("random", w, h)` (já não existe `random_abstract`; era ruído puro sem estrutura). O tamanho é só uma indicação para o gerador, não uma dimensão exata. Cor explícita substitui a que o gerador escolher. `abstract`/`pattern`/`design` são outra coisa: estilo `abstract` do modo inteligente (`generate_from_command`), sem tamanho nem cor
-- `random_animal()` (desenho simples; o comando/menu "random animal" usa `smart_gen.generate_animal_art()` → `animal_scenes.animal_scene()`: moeda `$NOME`, moldura ou cena, com decoração/cor aleatórias) / `random_emoji()` — geradores aleatórios de animais (gato, cão, coruja, pinguim, peixe, urso, coelho, corvo/gralha `crow`, corvo-real `raven`) e emojis. Cada animal com desenho próprio tem também uma versão maior em `ANIMALS_BIG` (mesmas chaves que `ANIMALS`), usada quando o comando inclui `big`/`large`/`huge`/`giant` (`ENCommandParser.BIG_WORDS` → `params['big']` → `get_animal_art(name, big)`), ex. `draw a big cat`. O `random animal`/`draw an animal` usa o desenho grande por omissão (`big=True`); `a random animal`/`a random emoji` são lidos como animal/emoji, não como arte aleatória
+- `generate_gradient(width, height)` — a character-density gradient
+- `generate_checkerboard(size, chars)` — a checkerboard
+- Random art: `random`, `art` and `painting` (e.g. `make random art`, `make a painting 20x10 color red`) go to `ASCIIArtCLI._random_art()` → `smart_gen.generate_interesting_art("random", w, h)` (`random_abstract` no longer exists; it was pure noise with no structure). The size is only a hint for the generator, not an exact dimension. An explicit color replaces the one the generator picks. `abstract`/`pattern`/`design` are something else: the `abstract` style of intelligent mode (`generate_from_command`), with no size or color
+- `random_animal()` (a simple drawing; the "random animal" command/menu entry uses `smart_gen.generate_animal_art()` → `animal_scenes.animal_scene()`: a `$NAME` coin, a frame or a scene, with random decoration/color) / `random_emoji()` — random generators of animals (cat, dog, owl, penguin, fish, bear, rabbit, `crow` the crow/jackdaw, `raven` the raven) and emojis. Each animal with its own drawing also has a bigger version in `ANIMALS_BIG` (same keys as `ANIMALS`), used when the command includes `big`/`large`/`huge`/`giant` (`ENCommandParser.BIG_WORDS` → `params['big']` → `get_animal_art(name, big)`), e.g. `draw a big cat`. `random animal`/`draw an animal` uses the big drawing by default (`big=True`); `a random animal`/`a random emoji` are read as an animal/emoji, not as random art
 
-## Texto para ASCII
+## Text to ASCII
 
-`text_to_ascii(text, font)` com 4 nomes de fonte: `small`, `block`, `banner`, `shadow` (mais o alias `solid` → fonte `banner` do pyfiglet, usado só pelo logo). Se o terminal for mais estreito do que uma letra, o pyfiglet lança `CharNotPrinted`; `_figlet_to_ascii` apanha-o e volta a renderizar sem quebra de linha.
+`text_to_ascii(text, font)` with 4 font names: `small`, `block`, `banner`, `shadow` (plus the alias `solid` → pyfiglet's `banner` font, used only by the logo). If the terminal is narrower than one letter, pyfiglet raises `CharNotPrinted`; `_figlet_to_ascii` catches it and renders again without line wrapping.
 
-- **Com `pyfiglet` instalado** (caminho principal): `_figlet_to_ascii()` mapeia esses nomes para fontes FIGlet reais via `FIGLET_FONT_ALIASES` (`small`→`small`, `block`→`block`, `banner`→`banner3`, `shadow`→`shadow`) e aceita também qualquer outro nome de fonte FIGlet (`slant`, `big`, `doom`, `ansi_shadow`, ... — 500+). Nome desconhecido → fonte `small`. Suporta dígitos, minúsculas e pontuação; a altura varia por fonte (não assumir 5 linhas). Quebra linha à largura do terminal.
-- **Sem `pyfiglet`** (fallback): fontes internas `FONTS` em ascii_art.py, 5 linhas de altura, só A-Z (algumas fontes também `!` e `?`), uma coluna de espaço entre letras; caracteres sem glifo aparecem como `?` (`_MISSING_GLYPH`).
+- **With `pyfiglet` installed** (the main path): `_figlet_to_ascii()` maps those names to real FIGlet fonts through `FIGLET_FONT_ALIASES` (`small`→`small`, `block`→`block`, `banner`→`banner3`, `shadow`→`shadow`) and also accepts any other FIGlet font name (`slant`, `big`, `doom`, `ansi_shadow`, ... — 500+). An unknown name → the `small` font. It supports digits, lowercase and punctuation; the height varies by font (do not assume 5 lines). It wraps lines at the terminal width.
+- **Without `pyfiglet`** (the fallback): the built-in `FONTS` in ascii_art.py, 5 lines tall, only A-Z (some fonts also `!` and `?`), one blank column between letters; characters without a glyph appear as `?` (`_MISSING_GLYPH`).
 
-## Banners e caixas
+## Banners and boxes
 
-- `create_banner(text, width, char)` — faixa com borda e texto centrado
-- `create_box(text, width, char)` — caixa à volta de texto (suporta multi-linha)
+- `create_banner(text, width, char)` — a strip with a border and centered text
+- `create_box(text, width, char)` — a box around text (supports multiple lines)
 
-## Cores (ANSI) — `get_color_code(color_name)`
+## Colors (ANSI) — `get_color_code(color_name)`
 
-`black, red, green, yellow, blue, magenta, cyan, white` + variantes `bright_*`.
-O `ENCommandParser` aceita sinónimos (`crimson/ruby→red`, `azure/cobalt→blue`, `purple/violet→magenta`, `pink→light_red`, etc.).
+`black, red, green, yellow, blue, magenta, cyan, white` + `bright_*` variants.
+`ENCommandParser` accepts synonyms (`crimson/ruby→red`, `azure/cobalt→blue`, `purple/violet→magenta`, `pink→light_red`, etc.).
 
-`rainbow`/`multicolor`/`multicolour` é um valor de cor especial: em vez de um
-único código ANSI, cicla `RAINBOW_COLORS` (`cli.py`) uma cor diferente por
-linha da arte (ex: `draw a heart size 4 color rainbow`). Tratado dentro de
-`ASCIIArtCLI._apply_color`, não em `get_color_code`.
+`rainbow`/`multicolor`/`multicolour` is a special color value: instead of a
+single ANSI code, it cycles through `RAINBOW_COLORS` (`cli.py`), a different
+color for each line of the art (e.g. `draw a heart size 4 color rainbow`). It
+is handled inside `ASCIIArtCLI._apply_color`, not in `get_color_code`.
 
-## Moods (ensináveis)
+## Moods (teachable)
 
-`ENCommandParser.MOOD_SYNONYMS`/`MOOD_EFFECTS` em cli.py — um mood reconhecido
-em qualquer posição do comando (não só depois da forma, ao contrário de
-cor/fonte/fill) aplica uma cor por omissão, só se o utilizador não tiver
-especificado `color` explicitamente:
+`ENCommandParser.MOOD_SYNONYMS`/`MOOD_EFFECTS` in cli.py — a mood recognized
+anywhere in the command (not only after the shape, unlike color/font/fill)
+applies a default color, only if the user did not specify `color` explicitly:
 
-| Mood | Sinónimos embutidos | Cor por omissão |
+| Mood | Built-in synonyms | Default color |
 |---|---|---|
 | happy | happy, joyful, cheerful | yellow |
 | sad | sad, unhappy, gloomy | blue |
@@ -96,75 +96,76 @@ especificado `color` explicitamente:
 | calm | calm, peaceful, relaxed | green |
 | sleepy | sleepy, tired, drowsy | cyan |
 
-Novos sinónimos podem ser ensinados em runtime, sem editar código, com
-`teach <word> as <mood>` no modo inteligente (ex: `teach ecstatic as happy`).
-Ficam persistidos em `~/.config/ascii_generator/learned_words.json`
-(`ascii_art_generator/learned_words.py`) e carregados em todas as sessões
-seguintes. `teach` só aceita um `<mood>` de entre os 5 acima — não cria
-moods/efeitos novos, só sinónimos para os existentes.
+New synonyms can be taught at runtime, without editing code, with
+`teach <word> as <mood>` in intelligent mode (e.g. `teach ecstatic as happy`).
+They persist in `~/.config/ascii_generator/learned_words.json`
+(`ascii_art_generator/learned_words.py`) and are loaded in every later session.
+`teach` only accepts a `<mood>` from the 5 above — it does not create new
+moods/effects, only synonyms for the existing ones.
 
-## Preenchimento (fill)
+## Fill
 
-Básico (`get_fill_style_pattern` em ascii_art.py): `empty, solid, dotted, striped_h, striped_v, crosshatch, plus, star, random, gradient`.
+Basic (`get_fill_style_pattern` in ascii_art.py): `empty, solid, dotted, striped_h, striped_v, crosshatch, plus, star, random, gradient`.
 
-Avançado (`SmartGenerator.FILL_PATTERNS` em smart_generator.py — 32 padrões):
+Advanced (`SmartGenerator.FILL_PATTERNS` in smart_generator.py — 32 patterns):
 `solid, empty, dotted, striped, horizontal_stripes, vertical_stripes, cross, crosshatch, diagonal, anti_diagonal, x_pattern, grid, checkerboard, dense_checkerboard, random, sparse_random, dense_random, dots, stars, plus_signs, mixed, left_gradient, right_gradient, top_gradient, bottom_gradient, center_gradient, dense_gradient, spiral_pattern, concentric, wave, zigzag, honeycomb`.
 
-Os 6 `*_gradient` usam `create_directional_gradient` — uma rampa de
-densidade suave (`GRADIENT_RAMP = ' .:-=+*#%@'`), não um corte binário
-metade/metade. `dense_gradient` é o da esquerda para a direita, mas com
-`DENSE_GRADIENT_RAMP = '=+*#%@'` (só a metade pesada), para formas sem
-células vazias ou quase vazias. `gradient` sozinho é sinónimo de
+The 6 `*_gradient` patterns use `create_directional_gradient` — a smooth
+density ramp (`GRADIENT_RAMP = ' .:-=+*#%@'`), not a binary half/half cut.
+`dense_gradient` is the left-to-right one, but with
+`DENSE_GRADIENT_RAMP = '=+*#%@'` (only the heavy half), for shapes with no
+empty or nearly empty cells. A bare `gradient` is a synonym of
 `left_gradient`.
 
-**Aplicação mascarada pela silhueta**: quando um destes padrões (≠ `solid`)
-é aplicado a uma forma (via `_apply_style_to_art` em cli.py, ou
-`_generate_shape`/`_generate_advanced_shape` em smart_generator.py), a
-textura só substitui as células onde a forma já tinha desenhado um
-carácter — `mask_fill_pattern` (smart_generator.py) trata disto. Nunca
-voltar a fazer `art = apply_fill_pattern(...)` diretamente sobre uma forma:
-isso substitui a silhueta inteira por um retângulo genérico (bug já
-corrigido uma vez).
+**Applied through the silhouette mask**: when one of these patterns (≠ `solid`)
+is applied to a shape (through `_apply_style_to_art` in cli.py, or
+`_generate_shape`/`_generate_advanced_shape` in smart_generator.py), the
+texture only replaces the cells where the shape had already drawn a
+character — `mask_fill_pattern` (smart_generator.py) takes care of this. Never
+go back to calling `art = apply_fill_pattern(...)` directly on a shape: that
+replaces the whole silhouette with a generic rectangle (a bug that was already
+fixed once).
 
-## Bordas
+## Borders
 
-Básico (`get_border_chars` em ascii_art.py): `simple, double, dashed, wavy, bold, light, star, plus`.
+Basic (`get_border_chars` in ascii_art.py): `simple, double, dashed, wavy, bold, light, star, plus`.
 
-Avançado (`SmartGenerator.BORDER_STYLES`): `none, simple, double, dashed, dotted, thick, bold, fancy, rounded, 3d, shadow, double_line`.
+Advanced (`SmartGenerator.BORDER_STYLES`): `none, simple, double, dashed, dotted, thick, bold, fancy, rounded, 3d, shadow, double_line`.
 
-`apply_border` mantém sempre o conteúdo da forma (já houve versões de
-`bold`/`thick`/`double_line`/`3d` que o apagavam) e a moldura tem a largura
-das linhas mais as margens (`fancy`, `rounded` e `thick` +4; `bold` e
-`double_line` +2; `3d` +3, contando o recuo da sombra). O fill `empty` não usa o retângulo da caixa: `mask_fill_pattern`
-desenha o contorno da própria silhueta.
+`apply_border` always keeps the shape's content (there were versions of
+`bold`/`thick`/`double_line`/`3d` that erased it) and the frame is as wide as
+the lines plus the margins (`fancy`, `rounded` and `thick` +4; `bold` and
+`double_line` +2; `3d` +3, counting the shadow offset). The `empty` fill does
+not use the box rectangle: `mask_fill_pattern` draws the outline of the
+silhouette itself.
 
-## Imagem para ASCII
+## Image to ASCII
 
 `image_to_ascii(path, width=100, ramp='standard', color=False, invert=False)`
-em `image_art.py` converte um ficheiro de imagem real em ASCII, mapeando o
-brilho de cada píxel (fórmula de luminância `0.299R+0.587G+0.114B`) para um
-carácter de `ASCII_RAMPS`: `standard` (10 níveis), `detailed` (rampa longa,
-mais gradação), `blocks` (blocos Unicode `░▒▓█`). Com `color=True`, cada
-carácter é envolto em código ANSI 24-bit (`\033[38;2;R;G;Bm`) da cor real do
-píxel, em vez de texto simples. Corrige o aspect-ratio do terminal ao
-derivar a altura amostrada (`_ASPECT_CORRECTION = 0.55`).
+in `image_art.py` converts a real image file to ASCII, mapping each pixel's
+brightness (the luminance formula `0.299R+0.587G+0.114B`) to a character of
+`ASCII_RAMPS`: `standard` (10 levels), `detailed` (a long ramp, more
+gradation), `blocks` (Unicode blocks `░▒▓█`). With `color=True`, each
+character is wrapped in a 24-bit ANSI code (`\033[38;2;R;G;Bm`) with the
+pixel's real color, instead of plain text. It corrects the terminal aspect
+ratio when deriving the sampled height (`_ASPECT_CORRECTION = 0.55`).
 
-Comando: `convert image <caminho> [width N] [color]` (ex: `convert image
-/tmp/foto.png width 80 color`) — reconhecido em `ENCommandParser._parse_image_command`,
-que corre ANTES do tokenizer genérico (que faz lower-case de tudo) para
-preservar o caso original do caminho do ficheiro.
+Command: `convert image <path> [width N] [color]` (e.g. `convert image
+/tmp/photo.png width 80 color`) — recognized in `ENCommandParser._parse_image_command`,
+which runs BEFORE the generic tokenizer (which lower-cases everything) so that
+the original case of the file path is preserved.
 
-Único ponto do projeto com dependência de terceiros (Pillow, em
-`requirements.txt`) — ver a exceção documentada em
+The only place in the project with a third-party dependency (Pillow, in
+`requirements.txt`) — see the exception documented in
 `.claude/skills/generator-core/SKILL.md`.
 
-## Animações
+## Animations
 
-`spinner_animation(duration)` e `progress_bar(duration, char)` — bloqueantes, correm no terminal (não devolvem string).
+`spinner_animation(duration)` and `progress_bar(duration, char)` — blocking, they run in the terminal (they do not return a string).
 
-## Sintaxe de comandos (linguagem natural, inglês)
+## Command syntax (natural language, English)
 
-O `ENCommandParser` extrai número(s), caracter, cor, fonte e estilo do texto livre, e suporta comandos compostos separados por `"and"` (cada parte é parseada independentemente por `_parse_single_command`, via `_split_compound_command`). Exemplos válidos:
+`ENCommandParser` extracts number(s), character, color, font and style from free text, and supports compound commands separated by `"and"` (each part is parsed independently by `_parse_single_command`, through `_split_compound_command`). Valid examples:
 
 ```
 draw a rectangle 10x5
@@ -184,21 +185,21 @@ draw a triangle 5
 convert image /tmp/photo.png width 80 color
 ```
 
-Um número solto vai para a chave que o executor lê: `height` (`triangle`,
-`tree`), `width`+`height` (`rectangle`, `oval`), `radius` (`circle`) e `size`
+A bare number goes to the key the executor reads: `height` (`triangle`,
+`tree`), `width`+`height` (`rectangle`, `oval`), `radius` (`circle`) and `size`
 (`heart`, `diamond`, `spiral`, `star`, `hexagon`, `pentagon`, `butterfly`,
-`flower`, `arrow`). Se a chave escrita pelo parser não coincidir com a lida
-em `execute_parsed_command`, o número é ignorado em silêncio.
+`flower`, `arrow`). If the key the parser writes does not match the one read
+in `execute_parsed_command`, the number is silently ignored.
 
-### Limitações conhecidas do `ENCommandParser`
+### Known limitations of `ENCommandParser`
 
-- **O separador `"and"` é baseado em palavras.** Uma lista de cores numa única forma (`"with color red and blue"`) é lida como um comando composto de uma só parte: aplica a primeira cor, descarta a segunda e imprime um cabeçalho `[1/1]` — não há forma de desambiguar sem aspas/parâmetros nomeados.
+- **The `"and"` separator is word-based.** A color list on a single shape (`"with color red and blue"`) is read as a one-part compound command: it applies the first color, drops the second and prints a `[1/1]` header — there is no way to disambiguate without quotes/named parameters.
 
-## Ao adicionar uma forma/estilo novo
+## When adding a new shape/style
 
-1. Implementar a função geradora em `ascii_art.py` (formas base) ou `smart_generator.py` (formas avançadas/padrões).
-2. Registar sinónimos em `ENCommandParser.SHAPE_SYNONYMS` em `cli.py` — cuidado com chaves duplicadas no dict (uma chave repetida substitui silenciosamente a anterior em vez de a somar).
-3. Adicionar/ajustar o mapeamento em `shape_to_command` e a lógica de `params` em `parse_command` (EN) que constrói o dict `{'command': ..., 'params': {...}}`.
-4. Se a função geradora for usada dentro de `smart_generator.py` (fills/bordas/`smart_gen`), envolve-a em `_normalize_lines(...)` antes de a tratar como lista de linhas — funções de `ascii_art.py` devolvem `str` (`'\n'.join(...)`), enquanto as de `smart_generator.py` devolvem `List[str]`; iterar uma `str` dá caracteres, não linhas.
-5. Atualizar esta skill com a nova entrada na tabela/lista relevante.
-6. Testar com um comando real antes de dar como concluído.
+1. Implement the generator function in `ascii_art.py` (base shapes) or `smart_generator.py` (advanced shapes/patterns).
+2. Register synonyms in `ENCommandParser.SHAPE_SYNONYMS` in `cli.py` — watch out for duplicate keys in the dict (a repeated key silently replaces the earlier one instead of adding to it).
+3. Add/adjust the mapping in `shape_to_command` and the `params` logic in `parse_command` (EN) that builds the `{'command': ..., 'params': {...}}` dict.
+4. If the generator function is used inside `smart_generator.py` (fills/borders/`smart_gen`), wrap it in `_normalize_lines(...)` before treating it as a list of lines — functions in `ascii_art.py` return a `str` (`'\n'.join(...)`), while those in `smart_generator.py` return `List[str]`; iterating a `str` gives characters, not lines.
+5. Update this skill with the new entry in the relevant table/list.
+6. Test with a real command before calling it done.
