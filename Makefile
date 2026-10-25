@@ -8,9 +8,6 @@ PYTHON ?= python3
 
 .PHONY: help run intelligent command test install clean
 
-# Debian and others ship no plain `python`; override with `make PYTHON=python`
-PYTHON ?= python3
-
 # Colors for output
 GREEN = \033[0;32m
 YELLOW = \033[1;33m
@@ -63,7 +60,7 @@ test-shape: ## Test shape generation
 	@echo ""
 	@$(PYTHON) run.py "make a circle with radius 5"
 
--test-text: ## Test text conversion
+test-text: ## Test text conversion
 	@echo "$(BLUE)Testing text...$(NC)"
 	@$(PYTHON) run.py "write TEST with font small"
 

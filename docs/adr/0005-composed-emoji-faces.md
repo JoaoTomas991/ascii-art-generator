@@ -20,7 +20,7 @@ round head (21 columns by 11 rows) plus eyes, brows, a mouth and optional
 extras such as hearts, tears, `zZ` or sparkles. It is plain ASCII and has no
 dependency on the other modules, like `animal_scenes.py`.
 
-- Each of 12 face moods (happy, laugh, wink, sad, angry, surprised, cool,
+- Each of 13 face moods (happy, laugh, wink, sad, angry, surprised, cool,
   love, sleepy, calm, dizzy, starstruck, silly) lists the eyes, brows,
   mouths and extras that fit it. A random face picks a mood first and the
   parts second, so the expression is always coherent.

@@ -54,6 +54,7 @@ ascii_art_generator/
 ├── learned_words.py    # persistence for user-taught mood synonyms
 ├── console.py          # UTF-8 stdout setup shared by the entry points
 ├── install_info.py     # `--version` info and stale installed-copy warning
+├── intro.py            # animated startup banner (static when not a terminal)
 └── main.py             # menu entry point (the packaged `ascii-generator` command is `run.py:main`)
 ```
 

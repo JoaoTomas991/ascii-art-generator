@@ -146,7 +146,7 @@ command, or help).
 - Shapes: rectangle, circle, triangle, heart, diamond, spiral, tree, star, hexagon, oval, arrow, pentagon, butterfly, flower
 - Text to ASCII: 4 named fonts (`small`, `block`, `banner`, `shadow`), rendered with real FIGlet fonts when pyfiglet is installed, which also accepts any other FIGlet font name (e.g. `write HELLO with font slant`). Without pyfiglet, simpler built-in 5-line fonts are used
 - Patterns: gradient, checkerboard, abstract/random art
-- Random generators: emojis and animals. A random emoji is a big face composed from a head, eyes, brows, a mouth and extras (12 moods, from happy and wink to angry and sleepy; see `emoji_art.py`), about the size of a big animal. Naming a mood (`draw a sad emoji`) picks a matching face. A random animal is composed as a coin, a framed portrait or a themed scene (meadow, rain, snow, beach, space, forest), e.g. a "$DOG" coin; see `animal_scenes.py`. Naming a specific animal (cat, dog, rabbit, bear, fish, penguin, owl, crow, raven) always draws that animal, while asking for "an animal" or "a creature" picks one of them at random. Add `big`/`large`/`huge`/`giant` for a bigger, more detailed drawing (e.g. `draw a big cat`)
+- Random generators: emojis and animals. A random emoji is a big face composed from a head, eyes, brows, a mouth and extras (13 moods, from happy and wink to angry and sleepy; see `emoji_art.py`), about the size of a big animal. Naming a mood (`draw a sad emoji`) picks a matching face. A random animal is composed as a coin, a framed portrait or a themed scene (meadow, rain, snow, beach, space, forest), e.g. a "$DOG" coin; see `animal_scenes.py`. Naming a specific animal (cat, dog, rabbit, bear, fish, penguin, owl, crow, raven) always draws that animal, while asking for "an animal" or "a creature" picks one of them at random. Add `big`/`large`/`huge`/`giant` for a bigger, more detailed drawing (e.g. `draw a big cat`)
 - Banners and boxes with custom text
 - Terminal animations: spinner, progress bar
 - Styling: color (ANSI: red, green, blue, yellow, cyan, magenta, white, black + `bright_*` variants, plus `rainbow`/`multicolor`, which cycles a color per line), up to 32 fill patterns (always applied inside the shape's own silhouette, never replacing it), and several border styles. See `.claude/skills/ascii-art/SKILL.md` for the full catalog with functions and files
@@ -273,6 +273,7 @@ ascii_art_generator/
 ├── emoji_art.py        # random emoji face composed from head, eyes, brows, mouth and extras
 ├── console.py          # UTF-8 stdout setup shared by the entry points
 ├── install_info.py     # `--version` info and stale installed-copy warning
+├── intro.py            # animated startup banner (static when not a terminal)
 └── main.py             # entry point
 
 run.py             # startup script (menu / intelligent / direct command)
@@ -301,3 +302,7 @@ python -c "from ascii_art_generator.cli import ENCommandParser; p = ENCommandPar
 Runs a smoke test against the main imports and the command parser. CI runs
 these on Windows, Linux, and macOS against Python 3.12, 3.13, and 3.14; see
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+
+## License
+
+MIT; see [`LICENSE`](LICENSE).

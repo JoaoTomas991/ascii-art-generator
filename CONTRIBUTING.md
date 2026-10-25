@@ -39,6 +39,7 @@ This is a personal project maintained by a single contributor. External contribu
 - Python **3.12 or newer**
 - `pip`
 - Pillow, installed through `requirements.txt`, when using image-to-ASCII conversion
+- pyfiglet, also in `requirements.txt` (optional), for the FIGlet fonts of `write`
 
 ## Issues
 
