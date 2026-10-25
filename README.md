@@ -58,6 +58,7 @@ The full list of what is understood, the three ways to run it and the known limi
 - [Usage](docs/usage.md): modes, commands, capabilities, limitations.
 - [Development](docs/development.md): project structure, tests, the browser build.
 - [Architecture decisions](docs/adr/): why things are built the way they are.
+- [Changelog](CHANGELOG.md) and [Roadmap](ROADMAP.md)
 - [Contributing](CONTRIBUTING.md)
 
 ## License
