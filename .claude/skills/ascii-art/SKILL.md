@@ -3,7 +3,7 @@ name: ascii-art
 description: Catálogo de referência das formas, fontes, cores, padrões de preenchimento e estilos de borda deste gerador de ASCII Art. Usar sempre que fores gerar/desenhar arte ASCII, adicionar uma forma nova, ou explicar a sintaxe de comandos do projeto.
 ---
 
-# Catálogo do ASCII Generator
+# Catálogo do ASCII Art Generator
 
 Referência com base no código real do projeto (não invenção) — usa isto para
 garantir consistência com o que já existe antes de gerar exemplos ou adicionar

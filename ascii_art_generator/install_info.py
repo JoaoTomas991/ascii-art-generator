@@ -20,7 +20,7 @@ import sys
 
 from . import __version__
 
-DIST_NAME = "ascii-generator"
+DIST_NAME = "ascii-art-generator"
 PACKAGE_DIR = Path(__file__).resolve().parent
 
 

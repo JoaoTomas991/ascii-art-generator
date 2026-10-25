@@ -19,7 +19,7 @@ from .ascii_art import _figlet_to_ascii, text_to_ascii
 TITLE = "ASCII"
 TITLE_FONT = "solid"    # pyfiglet's heavy-stroke font; the built-in "block" font stands in without pyfiglet
 RULE = "━"
-SUBTITLE = "G E N E R A T O R"
+SUBTITLE = "A R T   G E N E R A T O R"
 WIDTH = 66
 
 # 256-colour ramp, red -> yellow -> green -> cyan -> blue -> magenta.
@@ -54,11 +54,20 @@ def title_lines() -> List[str]:
     while lines and not lines[-1].strip():
         lines.pop()
     # Terminal cells are about twice as tall as wide, so stretch the letters
-    # horizontally (every column doubled) when there is room for it.
-    if max(len(line) for line in lines) * 2 <= WIDTH:
-        lines = [''.join(ch * 2 for ch in line) for line in lines]
+    # horizontally when there is room for it. A blank after every second column
+    # widens the logo by half while keeping the strokes thin (doubling every
+    # column made them heavy, a blank after each one made the logo too long).
+    # Centre on the ink only: drop the blank columns the font leaves on the left.
+    lead = min(len(line) - len(line.lstrip()) for line in lines if line.strip())
+    lines = [line[lead:].rstrip() for line in lines]
+    width = max(len(line) for line in lines)
+    if width * 3 // 2 + 1 <= WIDTH:
+        lines = [''.join(ch + (' ' if col % 2 else '') for col, ch in enumerate(line.ljust(width)))
+                 .rstrip() for line in lines]
+    # Pad both sides, so the block is as wide as the rule below and a page that
+    # centres the whole block (the browser version) keeps the logo centred.
     pad = max(0, (WIDTH - max(len(line) for line in lines)) // 2)
-    return [' ' * pad + line for line in lines]
+    return [(' ' * pad + line).ljust(WIDTH) for line in lines]
 
 
 def banner_lines() -> Tuple[List[str], List[str]]:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Build the static browser version of the ASCII Generator into _site/.
+Build the static browser version of the ASCII Art Generator into _site/.
 
 The page (web/) runs the real Python package inside Pyodide, so the build only
 has to copy the page, zip the package next to it, and bake the startup logo

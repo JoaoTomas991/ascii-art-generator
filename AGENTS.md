@@ -60,7 +60,7 @@ ascii_art_generator/
 ├── install_info.py     # `--version` info and stale installed-copy warning
 ├── intro.py            # animated startup banner + LiveLines (keeps menu lines animating while input() waits)
 ├── web_bridge.py       # run_command(): runs a command, returns its output as text (used by the web page)
-└── main.py             # menu entry point (the packaged `ascii-generator` command is `run.py:main`)
+└── main.py             # menu entry point (the packaged `ascii-art-generator` command is `run.py:main`)
 
 web/                    # static browser version: index.html, style.css, app.js (runs the package in Pyodide)
 scripts/build_web.py    # builds web/ + the zipped package into _site/ (`make web`, .github/workflows/pages.yml)

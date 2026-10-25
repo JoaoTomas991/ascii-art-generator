@@ -1,6 +1,6 @@
 ---
 name: generator-test-battery
-description: The ASCII Generator's regression test battery — setup check, representative commands, and a smart-mode stress test. Use whenever ascii_art_generator/ascii_art.py, cli.py, smart_generator.py, or main.py has changed, to verify nothing broke.
+description: The ASCII Art Generator's regression test battery — setup check, representative commands, and a smart-mode stress test. Use whenever ascii_art_generator/ascii_art.py, cli.py, smart_generator.py, or main.py has changed, to verify nothing broke.
 ---
 
 # Generator regression battery

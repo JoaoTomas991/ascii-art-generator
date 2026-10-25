@@ -1,5 +1,5 @@
 """
-Command Line Interface for ASCII Generator
+Command Line Interface for ASCII Art Generator
 """
 
 import itertools
@@ -78,7 +78,7 @@ RAINBOW_COLORS = ['red', 'yellow', 'green', 'cyan', 'blue', 'magenta']
 class Menu:
     """Interactive menu system."""
     
-    def __init__(self, title: str = "ASCII Generator"):
+    def __init__(self, title: str = "ASCII Art Generator"):
         self.title = title
         self.items: Dict[str, Dict[str, Any]] = {}
         self.exit_option = ('q', 'Quit')
@@ -96,7 +96,7 @@ class Menu:
         logo, frame = banner_lines()
         out = [f"{Colors.BOLD}{Colors.HEADER}{line}{Colors.ENDC}" for line in logo + frame]
         live = [(j, line) for j, line in enumerate(logo)]
-        live.append((len(logo) + 1, frame[1]))      # the 'G E N E R A T O R' subtitle
+        live.append((len(logo) + 1, frame[1]))      # the 'A R T   G E N E R A T O R' subtitle
         
         # One block per category, laid out in as many columns as the terminal
         # fits, so the whole menu (and with it the banner) stays on screen.
@@ -971,10 +971,10 @@ class ENCommandParser:
 
 
 class ASCIIArtCLI:
-    """Main CLI class for ASCII Generator."""
+    """Main CLI class for ASCII Art Generator."""
     
     def __init__(self):
-        self.menu = Menu("ASCII Generator")
+        self.menu = Menu("ASCII Art Generator")
         self.setup_menu()
         self.parser = ENCommandParser()
         self.intelligent_mode = False
@@ -1243,7 +1243,7 @@ class ASCIIArtCLI:
         """Display help."""
         print(f"\n{Colors.HEADER}=== Help ==={Colors.ENDC}")
         print("""
-ASCII Generator - Generate ASCII art from text, shapes and patterns
+ASCII Art Generator - Generate ASCII art from text, shapes and patterns
 
 Features:
 - Convert text to ASCII art with different fonts

@@ -19,14 +19,14 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            name: ascii_generator-windows
-            exe: ascii_generator-windows.exe
+            name: ascii-art-generator-windows
+            exe: ascii-art-generator-windows.exe
           - os: macos-latest
-            name: ascii_generator-macos
-            exe: ascii_generator-macos
+            name: ascii-art-generator-macos
+            exe: ascii-art-generator-macos
           - os: ubuntu-latest
-            name: ascii_generator-linux
-            exe: ascii_generator-linux
+            name: ascii-art-generator-linux
+            exe: ascii-art-generator-linux
     runs-on: ${{ matrix.os }}
     defaults:
       run:

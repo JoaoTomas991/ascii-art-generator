@@ -1,5 +1,5 @@
 #!/bin/bash
-# ASCII Generator - Start Script
+# ASCII Art Generator - Start Script
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -31,7 +31,7 @@ PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_DIR"
 
 echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}     ASCII Generator - Start      ${NC}"
+echo -e "${BLUE}     ASCII Art Generator - Start      ${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 

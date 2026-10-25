@@ -1,4 +1,4 @@
-// ASCII Generator in the browser: the real Python package runs inside Pyodide.
+// ASCII Art Generator in the browser: the real Python package runs inside Pyodide.
 // Flow: load Pyodide -> install Pillow and pyfiglet -> unpack ascii_art_generator.zip
 // -> call web_bridge.run_command(text) -> turn the ANSI colours in its output into HTML.
 "use strict";

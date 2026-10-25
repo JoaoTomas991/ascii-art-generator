@@ -1,4 +1,4 @@
-# ASCII Generator
+# ASCII Art Generator
 
 A Python ASCII Art generator: draws geometric shapes, converts text into ASCII letters, generates patterns, and runs simple terminal animations, all through natural-language (English) commands or an interactive menu.
 
@@ -24,14 +24,15 @@ The recommended way to install from source is [pipx](https://pipx.pypa.io/)
 environment and works even where the system Python is locked down:
 
 ```bash
-git clone https://github.com/JoaoTomas991/ascii_generator.git
-cd ascii_generator
+git clone https://github.com/JoaoTomas991/ascii-art-generator.git
+cd ascii-art-generator
 pipx install ".[all]"             # or: uv tool install ".[all]"
 ```
 
-That installs an `ascii-generator` command on your `PATH`, a native launcher
-on each platform (`ascii-generator.exe` on Windows), so you never have to work
-out which Python binary to call. `[all]` also enables image-to-ASCII
+That installs an `ascii-art-generator` command on your `PATH`, a native launcher
+on each platform (`ascii-art-generator.exe` on Windows), so you never have to work
+out which Python binary to call. The shorter `ascii-generator` also works as an
+alias. `[all]` also enables image-to-ASCII
 conversion (Pillow) and FIGlet text fonts (pyfiglet). Use `".[images]"` or
 `".[fonts]"` for only one of them, or plain `"."` for neither.
 
@@ -67,13 +68,13 @@ can always run the scripts in place instead (see
 ## Usage
 
 There are three ways to drive the generator, shown below with the installed
-`ascii-generator` command. The two sections after them cover running from a
+`ascii-art-generator` command. The two sections after them cover running from a
 clone without installing, and the Unix-only shortcuts.
 
 ### 1. Menu mode (interactive)
 
 ```bash
-ascii-generator
+ascii-art-generator
 ```
 
 Shows an animated banner and a menu with the basic shapes, patterns, text, image conversion, random generators and animations, laid out in up to three columns so it fits on a normal terminal. The other shapes (star, hexagon, oval, arrow, pentagon, butterfly, flower) are reached by typing a command in intelligent mode.
@@ -83,14 +84,14 @@ Shows an animated banner and a menu with the basic shapes, patterns, text, image
 From the menu, choose `i` to enter intelligent mode and type commands freely in English:
 
 ```bash
-ascii-generator --intelligent
+ascii-art-generator --intelligent
 ```
 
 The interactive modes open with an animated banner (plain ANSI, no extra
 packages). It is skipped automatically when the output is not a terminal; pass
 `--no-animation`, set `ASCII_GENERATOR_NO_ANIMATION=1`, or use `TERM=dumb` to turn it off.
 
-`ascii-generator --version` shows which code the command is running (editable
+`ascii-art-generator --version` shows which code the command is running (editable
 install, installed copy or source checkout, plus the git branch). A regular
 install is a snapshot of the sources; if it falls behind the project folder the
 command prints a warning on startup. For development, install it editable so it
@@ -99,9 +100,9 @@ always follows the folder: `uv tool install --editable .` or `pipx install --edi
 ### 3. Direct command (single line, non-interactive)
 
 ```bash
-ascii-generator "draw a rectangle 10x5"
-ascii-generator "make a circle with radius 8 color blue"
-ascii-generator "write HELLO with font banner"
+ascii-art-generator "draw a rectangle 10x5"
+ascii-art-generator "make a circle with radius 8 color blue"
+ascii-art-generator "write HELLO with font banner"
 ```
 
 ### Running without installing
@@ -117,7 +118,7 @@ python run.py "draw a heart"    # Windows
 
 On Windows, a bare `python3` is usually the Microsoft Store stub, which prints
 an install prompt instead of running anything. This is the reason
-the installed `ascii-generator` command (see Installation) is the recommended path.
+the installed `ascii-art-generator` command (see Installation) is the recommended path.
 
 ### Unix-only shortcuts
 
@@ -191,8 +192,8 @@ The generator itself is plain Python and runs natively on Windows; only the
 in PowerShell or Command Prompt instead:
 
 ```powershell
-git clone https://github.com/JoaoTomas991/ascii_generator.git
-cd ascii_generator
+git clone https://github.com/JoaoTomas991/ascii-art-generator.git
+cd ascii-art-generator
 
 # optional: image-to-ASCII and FIGlet fonts
 py -m pip install -r requirements.txt
@@ -259,20 +260,20 @@ To run it:
 
 ```powershell
 # Windows: double-click for the menu, or from PowerShell / cmd:
-.\ascii_generator-windows.exe "draw a heart size 2 color red"
+.\ascii-art-generator-windows.exe "draw a heart size 2 color red"
 ```
 
 ```bash
 # macOS / Linux: mark it executable first
-chmod +x ascii_generator-linux
-./ascii_generator-linux "draw a heart size 2 color red"
+chmod +x ascii-art-generator-linux
+./ascii-art-generator-linux "draw a heart size 2 color red"
 ```
 
 Notes:
 
 - The executables aren't code-signed. Windows SmartScreen or antivirus
   software may warn about them (choose *More info* → *Run anyway*). On
-  macOS, run `xattr -d com.apple.quarantine ascii_generator-macos` once, or
+  macOS, run `xattr -d com.apple.quarantine ascii-art-generator-macos` once, or
   allow it under *System Settings → Privacy & Security*.
 - The macOS build targets Apple Silicon (M1 and later).
 - A single-file build unpacks itself on each launch, so it takes a second
@@ -282,8 +283,8 @@ To build one locally instead (PyInstaller can only target the OS it runs on):
 
 ```bash
 pip install pyinstaller -r requirements.txt
-pyinstaller --onefile --name ascii_generator --collect-data pyfiglet run.py
-# output: dist/ascii_generator (dist\ascii_generator.exe on Windows)
+pyinstaller --onefile --name ascii-art-generator --collect-data pyfiglet run.py
+# output: dist/ascii-art-generator (dist\ascii-art-generator.exe on Windows)
 ```
 
 ## Project structure
@@ -306,7 +307,7 @@ ascii_art_generator/
 run.py             # startup script (menu / intelligent / direct command)
 web/               # static browser version (index.html, style.css, app.js)
 scripts/build_web.py  # builds web/ + the zipped package into _site/
-setup.py           # packaging; provides the "ascii-generator" command
+setup.py           # packaging; provides the "ascii-art-generator" command
 start.sh           # interactive startup menu (Unix only)
 Makefile           # run, test and `make web` shortcuts (Unix only)
 requirements.txt   # Pillow (image-to-ASCII) and pyfiglet (FIGlet text fonts), both optional

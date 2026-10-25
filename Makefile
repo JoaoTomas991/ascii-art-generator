@@ -1,5 +1,5 @@
-# ASCII Generator - Makefile
-# Easier execution and development for the ASCII Generator project
+# ASCII Art Generator - Makefile
+# Easier execution and development for the ASCII Art Generator project
 
 # Interpreter used by every target. Linux/macOS generally only ship "python3";
 # override on platforms where the binary has another name, e.g.:
@@ -15,17 +15,17 @@ BLUE = \033[0;34m
 NC = \033[0m
 
 help: ## Show this help
-	@echo "ASCII Generator - Available Commands:"
+	@echo "ASCII Art Generator - Available Commands:"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
 	@echo ""
 
 run: ## Start the project in menu mode
-	@echo "$(BLUE)Starting ASCII Generator (menu mode)...$(NC)"
+	@echo "$(BLUE)Starting ASCII Art Generator (menu mode)...$(NC)"
 	$(PYTHON) run.py
 
 intelligent: ## Start in intelligent mode
-	@echo "$(BLUE)Starting ASCII Generator (intelligent mode)...$(NC)"
+	@echo "$(BLUE)Starting ASCII Art Generator (intelligent mode)...$(NC)"
 	$(PYTHON) run.py --intelligent
 
 # Command shortcuts
@@ -90,5 +90,5 @@ dev: run ## Start in development mode (alias for run)
 
 # Show version
 version: ## Show version
-	@echo "$(BLUE)ASCII Generator v1.0.0$(NC)"
+	@echo "$(BLUE)ASCII Art Generator v1.0.0$(NC)"
 	@$(PYTHON) -c "import sys; print(f'Python: {sys.version}')"

@@ -63,7 +63,7 @@ jobs:
           python -c "from ascii_art_generator.cli import ENCommandParser; p = ENCommandParser(); print('Parser tests: OK')"
 
       - name: Verify the installed command-line entry point
-        run: ascii-generator --help
+        run: ascii-art-generator --help
 
       - name: Run a direct command smoke test
         run: python run.py "draw a rectangle 10x5"

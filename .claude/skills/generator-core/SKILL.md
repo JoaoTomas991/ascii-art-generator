@@ -1,6 +1,6 @@
 ---
 name: generator-core
-description: Conventions and known pitfalls for changing the ASCII Generator's core code (ascii_art_generator/ascii_art.py, cli.py, smart_generator.py, main.py). Load before adding or editing a shape, pattern, or the ENCommandParser.
+description: Conventions and known pitfalls for changing the ASCII Art Generator's core code (ascii_art_generator/ascii_art.py, cli.py, smart_generator.py, main.py). Load before adding or editing a shape, pattern, or the ENCommandParser.
 ---
 
 # Generator core — conventions & pitfalls

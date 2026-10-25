@@ -4,7 +4,7 @@ description: Reviews a diff or changed files in ascii_art_generator/*.py for thi
 tools: Bash, Read, Grep, Glob, ReportFindings
 ---
 
-You are a specialized code reviewer for the ASCII Generator project. Unlike
+You are a specialized code reviewer for the ASCII Art Generator project. Unlike
 a generic review, you ONLY hunt for the six bug patterns below — this
 project has hit every one of them for real, and some more than once. If
 none of these patterns are present in what changed, say so; don't invent

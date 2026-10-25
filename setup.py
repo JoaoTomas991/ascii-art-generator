@@ -1,4 +1,4 @@
-"""Packaging configuration for ASCII Generator."""
+"""Packaging configuration for ASCII Art Generator."""
 
 from pathlib import Path
 
@@ -18,13 +18,13 @@ EXTRAS["all"] = [dep for deps in EXTRAS.values() for dep in deps]
 
 
 setup(
-    name="ascii-generator",
+    name="ascii-art-generator",
     version="1.0.0",
     description="Generate ASCII art from text, shapes, patterns, images, and natural-language commands.",
     long_description=README_PATH.read_text(encoding="utf-8"),
     long_description_content_type="text/markdown",
     author="JoaoTomas991",
-    url="https://github.com/JoaoTomas991/ascii_generator",
+    url="https://github.com/JoaoTomas991/ascii-art-generator",
     license="MIT",
     packages=find_packages(),
     py_modules=["run"],
@@ -33,7 +33,8 @@ setup(
     extras_require=EXTRAS,
     entry_points={
         "console_scripts": [
-            "ascii-generator=run:main",
+            "ascii-art-generator=run:main",
+            "ascii-generator=run:main",  # short alias, kept from the first name
         ],
     },
     classifiers=[

@@ -1,6 +1,6 @@
-# Contributing to ASCII Generator
+# Contributing to ASCII Art Generator
 
-Thank you for your interest in contributing to **ASCII Generator**.
+Thank you for your interest in contributing to **ASCII Art Generator**.
 
 This is a personal project maintained by a single contributor. External contributions are welcome, but all changes should be proposed through issues and pull requests to keep the project organized.
 
@@ -10,14 +10,14 @@ This is a personal project maintained by a single contributor. External contribu
 2. Clone your fork:
 
    ```bash
-   git clone https://github.com/YOUR_USERNAME/ascii_generator.git
-   cd ascii_generator
+   git clone https://github.com/YOUR_USERNAME/ascii-art-generator.git
+   cd ascii-art-generator
    ```
 
 3. Add the original repository as `upstream`:
 
    ```bash
-   git remote add upstream https://github.com/JoaoTomas991/ascii_generator.git
+   git remote add upstream https://github.com/JoaoTomas991/ascii-art-generator.git
    ```
 
 4. Create a virtual environment and install the dependencies:
@@ -205,4 +205,4 @@ Do not publish sensitive information, credentials, or details about a security v
 
 Contributions will be distributed under the same license selected for the project. The project is licensed under the MIT License; see [`LICENSE`](LICENSE) for details.
 
-Thank you for contributing to ASCII Generator!
+Thank you for contributing to ASCII Art Generator!

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-ASCII Generator - Main Entry Point
+ASCII Art Generator - Main Entry Point
 
-Run this file to start the interactive ASCII Generator CLI.
+Run this file to start the interactive ASCII Art Generator CLI.
 """
 
 from .cli import main

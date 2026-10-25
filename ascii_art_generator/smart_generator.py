@@ -1,5 +1,5 @@
 """
-ASCII Generator - Smart Generator
+ASCII Art Generator - Smart Generator
 
 This module provides intelligent ASCII art generation with:
 - Automatic style selection
