@@ -20,7 +20,7 @@ ascii-art-generator                                   # interactive menu
 ascii-art-generator --intelligent                     # type commands freely
 ```
 
-No Python? Download a ready-made executable for Windows, macOS or Linux from [Releases](https://github.com/JoaoTomas991/ascii-art-generator/releases). Other ways to install, including Windows notes, are in [docs/installation.md](docs/installation.md).
+No Python? Download a ready-made executable for Windows, macOS (Apple Silicon) or Linux from [Releases](https://github.com/JoaoTomas991/ascii-art-generator/releases). Other ways to install, including Windows notes, are in [docs/installation.md](docs/installation.md).
 
 ![The interactive menu in a terminal](docs/images/cli-menu.png)
 

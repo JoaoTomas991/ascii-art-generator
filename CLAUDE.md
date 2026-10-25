@@ -39,7 +39,7 @@ Gerador de ASCII Art que cria arte a partir de texto, formas geométricas e padr
 ## Capacidades do Projeto
 O projeto suporta:
 - **Formas geométricas**: retângulo, círculo, triângulo, coração, diamante, espiral, árvore, estrela (5 pontas), hexágono, oval, seta, pentágono, borboleta, flor. Um número solto no comando dá o tamanho da forma (`draw a star 8`, `draw a triangle 5`); o oval aceita `30x8`
-- **Texto para ASCII**: conversão de texto com múltiplas fontes (small, block, banner, shadow), (nota: `banner` aponta para a fonte FIGlet `banner3`, que a versão atual do pyfiglet não traz, por isso `write ... with font banner` acaba na `small`; mais o alias `solid`, a fonte `banner` do pyfiglet usada no logo), renderizadas com fontes FIGlet reais via `pyfiglet` (opcional; aceita também qualquer outro nome de fonte FIGlet, ex. `slant`) e com fallback para as fontes internas de 5 linhas se o pyfiglet não estiver instalado
+- **Texto para ASCII**: conversão de texto com múltiplas fontes (small, block, banner, shadow), (mais o alias `solid`, a fonte `banner` do pyfiglet usada no logo), renderizadas com fontes FIGlet reais via `pyfiglet` (opcional; aceita também qualquer outro nome de fonte FIGlet, ex. `slant`) e com fallback para as fontes internas de 5 linhas se o pyfiglet não estiver instalado
 - **Padrões**: gradiente, tabuleiro (checkerboard), aleatório, abstrato
 - **Animações**: spinner, barra de progresso
 - **Banners e Caixas**: com texto personalizado

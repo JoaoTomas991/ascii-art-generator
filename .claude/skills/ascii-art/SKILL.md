@@ -61,7 +61,7 @@ amostra a curva implícita `(x²+y²-1)³ - x²y³ ≤ 0` na mesma grelha
 
 ## Texto para ASCII
 
-`text_to_ascii(text, font)` com 4 nomes de fonte: `small`, `block`, `banner`, `shadow` (mais o alias `solid` → fonte `banner` do pyfiglet, usado só pelo logo). Nota: o alias `banner` aponta para `banner3`, que a versão atual do pyfiglet não traz, por isso `write ... with font banner` acaba na `small`. Se o terminal for mais estreito do que uma letra, o pyfiglet lança `CharNotPrinted`; `_figlet_to_ascii` apanha-o e volta a renderizar sem quebra de linha.
+`text_to_ascii(text, font)` com 4 nomes de fonte: `small`, `block`, `banner`, `shadow` (mais o alias `solid` → fonte `banner` do pyfiglet, usado só pelo logo). Se o terminal for mais estreito do que uma letra, o pyfiglet lança `CharNotPrinted`; `_figlet_to_ascii` apanha-o e volta a renderizar sem quebra de linha.
 
 - **Com `pyfiglet` instalado** (caminho principal): `_figlet_to_ascii()` mapeia esses nomes para fontes FIGlet reais via `FIGLET_FONT_ALIASES` (`small`→`small`, `block`→`block`, `banner`→`banner3`, `shadow`→`shadow`) e aceita também qualquer outro nome de fonte FIGlet (`slant`, `big`, `doom`, `ansi_shadow`, ... — 500+). Nome desconhecido → fonte `small`. Suporta dígitos, minúsculas e pontuação; a altura varia por fonte (não assumir 5 linhas). Quebra linha à largura do terminal.
 - **Sem `pyfiglet`** (fallback): fontes internas `FONTS` em ascii_art.py, 5 linhas de altura, só A-Z (algumas fontes também `!` e `?`), uma coluna de espaço entre letras; caracteres sem glifo aparecem como `?` (`_MISSING_GLYPH`).

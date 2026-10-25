@@ -54,7 +54,7 @@ published, see [development.md](development.md#browser-version).
 ## What it can do
 
 - Shapes: rectangle, circle, triangle, heart, diamond, spiral, tree, star, hexagon, oval, arrow, pentagon, butterfly, flower
-- Text to ASCII: 4 named fonts (`small`, `block`, `banner`, `shadow`; with the current pyfiglet, `banner` falls back to the `small` look because the FIGlet font it points to is not bundled), rendered with real FIGlet fonts when pyfiglet is installed, which also accepts any other FIGlet font name (e.g. `write HELLO with font slant`). Without pyfiglet, simpler built-in 5-line fonts are used
+- Text to ASCII: 4 named fonts (`small`, `block`, `banner`, `shadow`), rendered with real FIGlet fonts when pyfiglet is installed, which also accepts any other FIGlet font name (e.g. `write HELLO with font slant`). Without pyfiglet, simpler built-in 5-line fonts are used
 - Patterns: gradient, checkerboard, abstract/random art
 - Random generators: emojis and animals. A random emoji is a big face composed from a head, eyes, brows, a mouth and extras (13 moods, from happy and wink to angry and sleepy; see `emoji_art.py`), about the size of a big animal. Naming a mood (`draw a sad emoji`) picks a matching face. A random animal is composed as a coin, a framed portrait or a themed scene (meadow, rain, snow, beach, space, forest), e.g. a "$DOG" coin; see `animal_scenes.py`. Naming a specific animal (cat, dog, rabbit, bear, fish, penguin, owl, crow, raven) always draws that animal, while asking for "an animal" or "a creature" picks one of them at random. Add `big`/`large`/`huge`/`giant` for a bigger, more detailed drawing (e.g. `draw a big cat`)
 - Banners and boxes with custom text
