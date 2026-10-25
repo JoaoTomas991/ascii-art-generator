@@ -307,10 +307,11 @@ def draw_heart(size: int = 6, char: str = '*') -> str:
     """Draw a heart shape, scaled by size (round lobes, smooth pointed base).
 
     Samples the classic implicit heart curve (x^2 + y^2 - 1)^3 - x^2 * y^3 <= 0
-    on a character grid. The grid is 5 * size + 1 rows tall and about 2.1x as
-    many columns wide, which compensates for terminal characters being
-    roughly twice as tall as they are wide. The result is left-right
-    symmetric, with a dip between the lobes and no trailing padding.
+    on a character grid. The grid starts 5 * size + 1 rows tall (blank edge
+    rows are trimmed afterwards) and about 2.1x as many columns wide, which
+    compensates for terminal characters being roughly twice as tall as they
+    are wide. The result is left-right symmetric, with a dip between the lobes
+    and no trailing padding.
     """
     size = min(max(size, 1), 12)
     rows = 5 * size + 1

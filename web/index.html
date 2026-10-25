@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ASCII Generator</title>
+  <meta name="description" content="Draw ASCII art from plain English commands, right in your browser. The Python generator runs locally through Pyodide; nothing is sent to a server.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%230d1117%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2716%27 font-weight=%27bold%27 text-anchor=%27middle%27 fill=%27%23d2a8ff%27%3E%23%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="banner" aria-label="ASCII Generator">
+    <pre class="logo" aria-hidden="true"><!--BANNER_LOGO--></pre>
+    <div class="rule" aria-hidden="true"></div>
+    <p class="subtitle" aria-hidden="true">G E N E R A T O R</p>
+    <div class="rule" aria-hidden="true"></div>
+  </header>
+
+  <main>
+    <p class="lead">Type a command in plain English, like <button class="inline-example" type="button" data-cmd="draw a heart size 3 color red">draw a heart size 3 color red</button>.
+      The real Python generator runs in your browser, so nothing leaves this page.</p>
+
+    <form id="command-form" autocomplete="off">
+      <label for="command" class="sr-only">Command</label>
+      <span class="prompt" aria-hidden="true">&gt;</span>
+      <input id="command" name="command" type="text" spellcheck="false" autocapitalize="off"
+             placeholder="draw a star 8 color yellow" disabled>
+      <button id="run" type="submit" disabled>Run</button>
+    </form>
+
+    <p id="status" class="status" role="status">Loading Python (first visit downloads about 10 MB)...</p>
+
+    <section class="output-wrap" aria-label="Result">
+      <div class="output-bar">
+        <span>Result</span>
+        <span class="actions">
+          <button id="copy-text" type="button" disabled>Copy text</button>
+          <button id="copy-link" type="button" disabled>Copy link</button>
+        </span>
+      </div>
+      <pre id="output" class="output" aria-live="polite" tabindex="0">Pick an example below or type your own command.</pre>
+    </section>
+
+    <section class="examples" aria-label="Examples">
+      <h2>Try one</h2>
+      <div id="chips"></div>
+    </section>
+
+    <section class="image-box" aria-label="Convert an image">
+      <h2>Convert an image</h2>
+      <p>Turns a PNG or JPG from your computer into ASCII art. The file stays in your browser.</p>
+      <form id="image-form">
+        <input id="image-file" type="file" accept="image/*" disabled>
+        <label>Width <input id="image-width" type="number" min="10" max="200" value="80"></label>
+        <label class="check"><input id="image-color" type="checkbox"> True colour</label>
+        <button id="image-run" type="submit" disabled>Convert</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <a href="https://github.com/JoaoTomas991/ascii_generator">Source on GitHub</a>
+    <span>Runs on <a href="https://pyodide.org">Pyodide</a>. Commands are understood in English.</span>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"
+          integrity="sha384-90so5tCKvl0xs9agU29IMKlAVzhfzFX7QO//YxQkRhJG58bBZrFN+2ZTRB026X5X"
+          crossorigin="anonymous"></script>
+  <script src="app.js"></script>
+</body>
+</html>

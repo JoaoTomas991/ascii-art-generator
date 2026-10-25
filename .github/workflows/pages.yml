@@ -1,0 +1,50 @@
+# Publishes the browser version of the generator (web/) to GitHub Pages.
+# One-time setup in the repository: Settings > Pages > Source = "GitHub Actions".
+name: Deploy web version
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'ascii_art_generator/**'
+      - 'scripts/build_web.py'
+      - '.github/workflows/pages.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # pyfiglet only draws the startup logo at build time; the page installs
+      # its own copy in the browser.
+      - run: python -m pip install pyfiglet
+
+      - run: python scripts/build_web.py
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
