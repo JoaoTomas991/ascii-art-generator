@@ -228,7 +228,7 @@ class ENCommandParser:
         'checkerboard': ['checkerboard', 'chessboard'],
         'random': ['random'],
         # Random
-        'emoji': ['emoji', 'emoticon'],
+        'emoji': ['emoji', 'emoticon', 'face', 'smiley', 'smile'],
         # 'animal'/'creature' pick a fully random animal; every other word
         # here names one specific animal and is recognized even when it has
         # no bespoke drawing of its own - see get_animal_art in ascii_art.py
