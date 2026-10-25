@@ -63,4 +63,4 @@ The full list of what is understood, the three ways to run it and the known limi
 
 ## License
 
-MIT; see [LICENSE](LICENSE).
+MIT; see [LICENSE](LICENSE). Two bundled Claude Code skills by other authors keep their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

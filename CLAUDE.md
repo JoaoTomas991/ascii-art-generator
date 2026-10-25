@@ -35,6 +35,8 @@ An ASCII art generator that creates art from text, geometric shapes and patterns
 - `.claude/skills/adr/SKILL.md` — how to document significant architecture decisions in `docs/adr/`
 - `.claude/skills/pre-commit/SKILL.md` — runs `generator-tester` + `pitfall-reviewer` in parallel and merges the reports into one verdict; use it before a commit/PR that touches `ascii_art_generator/*.py`
 - `.claude/skills/release-check/SKILL.md` — runs `generator-tester`, `shape-coverage-auditor`, `docs-sync-auditor` (and `pitfall-reviewer` since the last tag) in parallel; use it before a release (`v*` tag) or before publishing the repository
+- `.claude/skills/humanizer/SKILL.md` — third-party skill (MIT, see `THIRD_PARTY_NOTICES.md`) that removes common signs of AI writing from prose; use it when writing or reviewing the README, the changelog, release notes and other text meant for readers
+- `.claude/skills/architecture-diagram/SKILL.md` — third-party skill (MIT, see `THIRD_PARTY_NOTICES.md`) that produces architecture diagrams as self-contained HTML with inline SVG; GitHub does not render HTML in Markdown, so export a diagram as SVG or PNG into `docs/images/` before linking it from a document
 
 ## Project Capabilities
 The project supports:

@@ -2,6 +2,14 @@
 
 For the contribution workflow (issues, branches, pull requests) see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
+## Architecture
+
+![How a command becomes ASCII art: the terminal or the browser sends an English command to ENCommandParser, ASCIIArtCLI runs a generator and styles the result, and the output goes back as ANSI text](images/architecture.svg)
+
+A command typed in the terminal goes to `ENCommandParser` (in `cli.py`), which turns the English text into a `{command, params}` dictionary. `ASCIIArtCLI.execute_parsed_command` calls the matching generator, then applies color, fill and border, and prints ANSI text.
+
+The browser version runs the same Python code inside Pyodide. `web_bridge.run_command` uses the same parser and executor, captures what they print, and the page turns the ANSI codes into HTML. Taught mood words are the only data that persists, in `learned_words.json`. `pyfiglet` and Pillow are optional: without `pyfiglet` the built-in fonts are used, and without Pillow only `convert image` stops working.
+
 ## Project structure
 
 ```
