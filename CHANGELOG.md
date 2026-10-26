@@ -8,7 +8,7 @@ All notable changes to this project are listed here. The format follows
 
 ### Added
 
-- `convert image` options `auto`, `contrast N`, `gamma N`, `dither`, `invert` and `ramp NAME`, in any order after the path.
+- `convert image` options `auto`, `contrast N`, `gamma N`, `dither`, `invert`, `ramp NAME`, `edges` and `crop L T W H`, in any order after the path.
 
 ### Changed
 

@@ -45,7 +45,7 @@ Text to ASCII works, but the result is fixed once it is drawn. Ideas to make it 
 `convert image` maps brightness to a character ramp. It could produce better pictures:
 
 - ~~Contrast and gamma controls, plus automatic contrast stretching.~~ Done.
-- Edge detection, so outlines stay sharp.
+- ~~Edge detection, so outlines stay sharp.~~ A first version is done (`edges`); it still picks up a lot of fur and fabric texture on photos.
 - ~~Dithering (Floyd-Steinberg) for smoother shading.~~ Done.
 - Aspect-ratio correction per font. The `ramp NAME` option already picks the character ramp.
 - Better color handling, with palette reduction for terminals that lack 24-bit color.

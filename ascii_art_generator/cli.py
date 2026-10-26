@@ -467,7 +467,8 @@ class ENCommandParser:
         """Parse 'convert image <path> [width N] [color] ...' style commands.
 
         Trailing options: width N, color, invert, auto, dither, contrast N,
-        gamma N, ramp NAME (see image_to_ascii), in any order.
+        gamma N, ramp NAME, edges, crop L T W H (percentages; see
+        image_to_ascii), in any order.
 
         Kept separate from _parse_single_command's generic tokenizer
         because a file path must keep its original case and can contain
@@ -489,12 +490,15 @@ class ENCommandParser:
             'invert': (r'invert(?:ed)?', 'invert'),
             'auto': (r'auto(?:\s+contrast)?', 'auto_contrast'),
             'dither': (r'dither(?:ed|ing)?', 'dither'),
+            'edges': (r'edges?', 'edges'),
         }
         valued = {
             'width': (r'width\s+(\d+)', 'width', int),
             'contrast': (r'contrast\s+(\d+(?:\.\d+)?)', 'contrast', float),
             'gamma': (r'gamma\s+(\d+(?:\.\d+)?)', 'gamma', float),
             'ramp': (r'ramp\s+(\w+)', 'ramp', str.lower),
+            'crop': (r'crop\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)',
+                     'crop', None),
         }
         # Options are stripped from the end of the command in any order, so
         # whatever is left is the file path.
@@ -509,7 +513,8 @@ class ENCommandParser:
                 for pattern, key, cast in valued.values():
                     m = re.search(r'\s+' + pattern + r'\s*$', remainder, re.IGNORECASE)
                     if m:
-                        options[key] = cast(m.group(1))
+                        options[key] = (tuple(float(g) for g in m.groups())
+                                        if key == 'crop' else cast(m.group(1)))
                         remainder = remainder[:m.start()].strip()
                         break
                 else:
@@ -1231,7 +1236,7 @@ class ASCIIArtCLI:
         width = params.get('width', 100)
         color = params.get('color', False)
         extra = {k: params[k] for k in ('ramp', 'invert', 'contrast', 'gamma',
-                                        'auto_contrast', 'dither') if k in params}
+                                        'auto_contrast', 'dither', 'edges', 'crop') if k in params}
         try:
             art = image_to_ascii(path, width=width, color=color, **extra)
         except ImportError as exc:
