@@ -100,11 +100,53 @@ def _levels(brightness: List[List[float]], count: int, dither: bool) -> List[Lis
     return out
 
 
+# Bit for each dot of a Braille cell, indexed [row][column] (Unicode order:
+# dots 1-3 and 7 are the left column, dots 4-6 and 8 the right).
+_BRAILLE_BITS = ((0x01, 0x08), (0x02, 0x10), (0x04, 0x20), (0x40, 0x80))
+
+
+def _braille_lines(pixels, levels: List[List[int]], width: int, height: int,
+                   color: bool, invert: bool) -> str:
+    """Pack a 2x4 block of on/off dots into each Braille character.
+
+    Dots are lit where the image is bright (as the ASCII ramp does, for dark
+    terminals); `invert` lights the dark ones instead. With `color`, each
+    character takes the average color of its 8 source pixels.
+    """
+    lines: List[str] = []
+    for cy in range(height):
+        row = []
+        for cx in range(width):
+            code = 0
+            r_sum = g_sum = b_sum = 0
+            for dy in range(4):
+                for dx in range(2):
+                    x, y = cx * 2 + dx, cy * 4 + dy
+                    on = levels[y][x] == 1
+                    if on != invert:
+                        code |= _BRAILLE_BITS[dy][dx]
+                    if color:
+                        r, g, b = pixels[x, y]
+                        r_sum += r
+                        g_sum += g
+                        b_sum += b
+            ch = chr(0x2800 + code)
+            if color:
+                row.append(f"\033[38;2;{r_sum // 8};{g_sum // 8};{b_sum // 8}m{ch}")
+            else:
+                row.append(ch)
+        line = ''.join(row)
+        if color:
+            line += '\033[0m'
+        lines.append(line)
+    return '\n'.join(lines)
+
+
 def image_to_ascii(path: str, width: int = 100, ramp: str = 'standard',
                     color: bool = False, invert: bool = False,
                     contrast: float = 1.0, gamma: float = 1.0,
                     auto_contrast: bool = False, dither: bool = False,
-                    edges: bool = False,
+                    edges: bool = False, braille: bool = False,
                     crop: Optional[Tuple[float, float, float, float]] = None) -> str:
     """Convert an image file to ASCII art using a brightness ramp.
 
@@ -124,6 +166,10 @@ def image_to_ascii(path: str, width: int = 100, ramp: str = 'standard',
             (Floyd-Steinberg) for smoother shading.
         edges: emphasize outlines by mixing an edge map into the shading, so
             features such as eyes and contours stay readable.
+        braille: draw with Unicode Braille characters (a 2x4 grid of dots per
+            character) instead of the ASCII ramp. This gives about eight
+            times the detail, always uses dithering, and needs a font with
+            Braille glyphs. `invert` flips which dots are on; `ramp` is ignored.
         crop: (left, top, width, height) of the region to convert, each as a
             percentage (0-100) of the image; the default is the whole image.
 
@@ -165,16 +211,24 @@ def image_to_ascii(path: str, width: int = 100, ramp: str = 'standard',
         if box[2] - box[0] >= 1 and box[3] - box[1] >= 1:
             img = img.crop(box)
     orig_w, orig_h = img.size
-    height = max(1, round(width * (orig_h / orig_w) * _ASPECT_CORRECTION))
-    edge_grid = _edge_map(img, width, height) if edges else None
-    img = img.resize((width, height), Image.LANCZOS)
+    if braille:
+        # One character is a 2x4 block of dots, so sample twice as many
+        # columns and four times as many rows as the output has characters.
+        # The dots are close to square, so no aspect correction is needed.
+        height = max(1, round(width * 2 * (orig_h / orig_w) / 4))
+        grid_w, grid_h = width * 2, height * 4
+    else:
+        height = max(1, round(width * (orig_h / orig_w) * _ASPECT_CORRECTION))
+        grid_w, grid_h = width, height
+    edge_grid = _edge_map(img, grid_w, grid_h) if edges else None
+    img = img.resize((grid_w, grid_h), Image.LANCZOS)
     img = _adjust(img, contrast, gamma, auto_contrast)
     pixels = img.load()
 
     brightness = [
         [(0.299 * r + 0.587 * g + 0.114 * b) / 255
-         for r, g, b in (pixels[x, y] for x in range(width))]
-        for y in range(height)
+         for r, g, b in (pixels[x, y] for x in range(grid_w))]
+        for y in range(grid_h)
     ]
     if edge_grid:
         # Keep a dimmed copy of the shading and let strong edges push a
@@ -183,6 +237,9 @@ def image_to_ascii(path: str, width: int = 100, ramp: str = 'standard',
             [min(1.0, 0.4 * b + 1.1 * e) for b, e in zip(b_row, e_row)]
             for b_row, e_row in zip(brightness, edge_grid)
         ]
+    if braille:
+        return _braille_lines(pixels, _levels(brightness, 2, True), width, height,
+                              color, invert)
     levels = _levels(brightness, len(chars), dither)
 
     lines: List[str] = []

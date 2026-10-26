@@ -467,7 +467,7 @@ class ENCommandParser:
         """Parse 'convert image <path> [width N] [color] ...' style commands.
 
         Trailing options: width N, color, invert, auto, dither, contrast N,
-        gamma N, ramp NAME, edges, crop L T W H (percentages; see
+        gamma N, ramp NAME, edges, braille, crop L T W H (percentages; see
         image_to_ascii), in any order.
 
         Kept separate from _parse_single_command's generic tokenizer
@@ -491,6 +491,7 @@ class ENCommandParser:
             'auto': (r'auto(?:\s+contrast)?', 'auto_contrast'),
             'dither': (r'dither(?:ed|ing)?', 'dither'),
             'edges': (r'edges?', 'edges'),
+            'braille': (r'(?:style\s+)?braille', 'braille'),
         }
         valued = {
             'width': (r'width\s+(\d+)', 'width', int),
@@ -1236,7 +1237,7 @@ class ASCIIArtCLI:
         width = params.get('width', 100)
         color = params.get('color', False)
         extra = {k: params[k] for k in ('ramp', 'invert', 'contrast', 'gamma',
-                                        'auto_contrast', 'dither', 'edges', 'crop') if k in params}
+                                        'auto_contrast', 'dither', 'edges', 'braille', 'crop') if k in params}
         try:
             art = image_to_ascii(path, width=width, color=color, **extra)
         except ImportError as exc:

@@ -6,7 +6,7 @@ Ideas for what could come after 1.0. There are no dates, and nothing here is a p
 
 Right now the drawings are outlines made of ASCII characters. A Braille character packs a grid of 2 by 4 dots into one cell, which is enough for shading and a lot more detail, the way many image-to-text converters work. It would come in three steps, and each one is useful alone:
 
-1. A Braille mode for `convert image`, with dithering, so a photo turns into a shaded picture.
+1. ~~A Braille mode for `convert image`, with dithering, so a photo turns into a shaded picture.~~ A first version is done (`convert image <path> braille`). Still open: a `style braille` form for shapes, and testing on Windows terminals.
 2. A small pixel drawing engine with shading, used first for emoji faces.
 3. The animals redrawn on that engine.
 
