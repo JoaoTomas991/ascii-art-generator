@@ -44,12 +44,12 @@ Text to ASCII works, but the result is fixed once it is drawn. Ideas to make it 
 
 `convert image` maps brightness to a character ramp. It could produce better pictures:
 
-- Contrast, brightness and gamma controls, plus automatic contrast stretching.
+- ~~Contrast and gamma controls, plus automatic contrast stretching.~~ Done.
 - Edge detection, so outlines stay sharp.
-- Dithering (Floyd-Steinberg) for smoother shading.
-- Aspect-ratio correction per font, and a choice of character ramps.
+- ~~Dithering (Floyd-Steinberg) for smoother shading.~~ Done.
+- Aspect-ratio correction per font. The `ramp NAME` option already picks the character ramp.
 - Better color handling, with palette reduction for terminals that lack 24-bit color.
-- Support for transparency and for animated images (see the ASCII animation section).
+- Support for animated images (see the ASCII animation section).
 - The Braille mode described above is the other half of this work.
 
 ## Smaller fixes

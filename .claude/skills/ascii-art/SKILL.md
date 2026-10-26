@@ -141,7 +141,7 @@ silhouette itself.
 
 ## Image to ASCII
 
-`image_to_ascii(path, width=100, ramp='standard', color=False, invert=False)`
+`image_to_ascii(path, width=100, ramp='standard', color=False, invert=False, contrast=1.0, gamma=1.0, auto_contrast=False, dither=False)`
 in `image_art.py` converts a real image file to ASCII, mapping each pixel's
 brightness (the luminance formula `0.299R+0.587G+0.114B`) to a character of
 `ASCII_RAMPS`: `standard` (10 levels), `detailed` (a long ramp, more
@@ -150,7 +150,9 @@ character is wrapped in a 24-bit ANSI code (`\033[38;2;R;G;Bm`) with the
 pixel's real color, instead of plain text. It corrects the terminal aspect
 ratio when deriving the sampled height (`_ASPECT_CORRECTION = 0.55`).
 
-Command: `convert image <path> [width N] [color]` (e.g. `convert image
+The tone options run after the LANCZOS resize: `auto_contrast` stretches the histogram, `contrast`/`gamma` adjust it, and `dither` applies Floyd-Steinberg error diffusion over the ramp levels. Transparent pixels are composited onto white.
+
+Command: `convert image <path> [width N] [color] [invert] [auto] [dither] [contrast N] [gamma N] [ramp NAME]` (e.g. `convert image
 /tmp/photo.png width 80 color`) — recognized in `ENCommandParser._parse_image_command`,
 which runs BEFORE the generic tokenizer (which lower-cases everything) so that
 the original case of the file path is preserved.

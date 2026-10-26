@@ -6,7 +6,15 @@ All notable changes to this project are listed here. The format follows
 
 ## [Unreleased]
 
-Nothing yet. Ideas for what comes next are in [ROADMAP.md](ROADMAP.md).
+### Added
+
+- `convert image` options `auto`, `contrast N`, `gamma N`, `dither`, `invert` and `ramp NAME`, in any order after the path.
+
+### Changed
+
+- `convert image` resizes with LANCZOS and draws transparent areas as white instead of black.
+
+Ideas for what comes next are in [ROADMAP.md](ROADMAP.md).
 
 ## [1.0.0] - 2026-10-25
 

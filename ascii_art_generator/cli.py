@@ -464,7 +464,10 @@ class ENCommandParser:
         return self._parse_single_command(command)
 
     def _parse_image_command(self, command: str) -> Optional[Dict[str, Any]]:
-        """Parse 'convert image <path> [width N] [color]' style commands.
+        """Parse 'convert image <path> [width N] [color] ...' style commands.
+
+        Trailing options: width N, color, invert, auto, dither, contrast N,
+        gamma N, ramp NAME (see image_to_ascii), in any order.
 
         Kept separate from _parse_single_command's generic tokenizer
         because a file path must keep its original case and can contain
@@ -480,17 +483,37 @@ class ENCommandParser:
 
         remainder = match.group(1).strip()
 
-        color = False
-        color_match = re.search(r'\s+(?:with\s+)?colou?r\s*$', remainder, re.IGNORECASE)
-        if color_match:
-            remainder = remainder[:color_match.start()].strip()
-            color = True
-
-        width = 100
-        width_match = re.search(r'\s+width\s+(\d+)\s*$', remainder, re.IGNORECASE)
-        if width_match:
-            width = int(width_match.group(1))
-            remainder = remainder[:width_match.start()].strip()
+        options: Dict[str, Any] = {'width': 100, 'color': False}
+        flags = {
+            'color': (r'(?:with\s+)?colou?r', 'color'),
+            'invert': (r'invert(?:ed)?', 'invert'),
+            'auto': (r'auto(?:\s+contrast)?', 'auto_contrast'),
+            'dither': (r'dither(?:ed|ing)?', 'dither'),
+        }
+        valued = {
+            'width': (r'width\s+(\d+)', 'width', int),
+            'contrast': (r'contrast\s+(\d+(?:\.\d+)?)', 'contrast', float),
+            'gamma': (r'gamma\s+(\d+(?:\.\d+)?)', 'gamma', float),
+            'ramp': (r'ramp\s+(\w+)', 'ramp', str.lower),
+        }
+        # Options are stripped from the end of the command in any order, so
+        # whatever is left is the file path.
+        while True:
+            for pattern, key in flags.values():
+                m = re.search(r'\s+' + pattern + r'\s*$', remainder, re.IGNORECASE)
+                if m:
+                    options[key] = True
+                    remainder = remainder[:m.start()].strip()
+                    break
+            else:
+                for pattern, key, cast in valued.values():
+                    m = re.search(r'\s+' + pattern + r'\s*$', remainder, re.IGNORECASE)
+                    if m:
+                        options[key] = cast(m.group(1))
+                        remainder = remainder[:m.start()].strip()
+                        break
+                else:
+                    break
 
         path = remainder.strip('"\'')
         if not path:
@@ -499,7 +522,7 @@ class ENCommandParser:
         return {
             'raw': command,
             'command': 'image_to_ascii',
-            'params': {'path': path, 'width': width, 'color': color},
+            'params': {'path': path, **options},
         }
 
     def _split_compound_command(self, command: str) -> List[str]:
@@ -1207,8 +1230,10 @@ class ASCIIArtCLI:
         path = params.get('path', '')
         width = params.get('width', 100)
         color = params.get('color', False)
+        extra = {k: params[k] for k in ('ramp', 'invert', 'contrast', 'gamma',
+                                        'auto_contrast', 'dither') if k in params}
         try:
-            art = image_to_ascii(path, width=width, color=color)
+            art = image_to_ascii(path, width=width, color=color, **extra)
         except ImportError as exc:
             print(f"{Colors.FAIL}{exc}{Colors.ENDC}")
         except FileNotFoundError:
