@@ -52,14 +52,19 @@ def _edge_map(img, width: int, height: int) -> List[List[float]]:
     from PIL import Image, ImageFilter, ImageOps
 
     big = img.convert('L').resize((width * 3, height * 3), Image.LANCZOS)
-    big = big.filter(ImageFilter.GaussianBlur(3)).filter(ImageFilter.FIND_EDGES)
+    # A median pass flattens fine texture (fur, fabric weave) while keeping
+    # real contours, then a blur of about one and a half cells keeps only
+    # edges that are larger than a single character.
+    big = big.filter(ImageFilter.MedianFilter(5)).filter(ImageFilter.GaussianBlur(4.5))
+    big = big.filter(ImageFilter.FIND_EDGES)
     # FIND_EDGES leaves a false bright frame on the image border; trim it
     # off and stretch the rest back to the output size.
-    big = big.crop((3, 3, big.width - 3, big.height - 3))
+    big = big.crop((6, 6, big.width - 6, big.height - 6))
     small = ImageOps.autocontrast(big.resize((width, height), Image.BOX), cutoff=1)
     px = small.load()
-    # Squaring suppresses weak texture (fur, fabric weave) and keeps outlines.
-    return [[(px[x, y] / 255) ** 2 for x in range(width)] for y in range(height)]
+    # Drop weak responses and keep a soft knee, so only clear outlines remain.
+    return [[max(0.0, (px[x, y] / 255 - 0.2) / 0.8) ** 1.5 for x in range(width)]
+            for y in range(height)]
 
 
 def _levels(brightness: List[List[float]], count: int, dither: bool) -> List[List[int]]:
