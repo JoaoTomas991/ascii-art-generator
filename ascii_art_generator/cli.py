@@ -1244,6 +1244,8 @@ class ASCIIArtCLI:
             print(f"{Colors.FAIL}{exc}{Colors.ENDC}")
         except FileNotFoundError:
             print(f"{Colors.FAIL}Image not found: {path}{Colors.ENDC}")
+        except ValueError as exc:
+            print(f"{Colors.FAIL}{exc}{Colors.ENDC}")
         except Exception as exc:
             print(f"{Colors.FAIL}Could not read image '{path}': {exc}{Colors.ENDC}")
         else:

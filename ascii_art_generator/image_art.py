@@ -36,6 +36,7 @@ def _adjust(img, contrast: float, gamma: float, auto_contrast: bool):
     if contrast != 1.0:
         img = ImageEnhance.Contrast(img).enhance(contrast)
     if gamma != 1.0:
+        gamma = max(gamma, 0.05)
         # gamma > 1 brightens the midtones, gamma < 1 darkens them.
         table = [round(255 * ((i / 255) ** (1 / gamma))) for i in range(256)]
         img = img.point(table * 3)
@@ -59,7 +60,9 @@ def _edge_map(img, width: int, height: int) -> List[List[float]]:
     big = big.filter(ImageFilter.FIND_EDGES)
     # FIND_EDGES leaves a false bright frame on the image border; trim it
     # off and stretch the rest back to the output size.
-    big = big.crop((6, 6, big.width - 6, big.height - 6))
+    margin = min(6, (big.width - 1) // 2, (big.height - 1) // 2)
+    if margin > 0:
+        big = big.crop((margin, margin, big.width - margin, big.height - margin))
     small = ImageOps.autocontrast(big.resize((width, height), Image.BOX), cutoff=1)
     px = small.load()
     # Drop weak responses and keep a soft knee, so only clear outlines remain.
@@ -187,7 +190,11 @@ def image_to_ascii(path: str, width: int = 100, ramp: str = 'standard',
             "(for a uv tool install: uv tool install --editable \".[images]\" --force)"
         ) from exc
 
-    chars = ASCII_RAMPS.get(ramp, ASCII_RAMPS['standard'])
+    if ramp not in ASCII_RAMPS:
+        raise ValueError(
+            f"Unknown ramp '{ramp}'. Available ramps: {', '.join(ASCII_RAMPS)}"
+        )
+    chars = ASCII_RAMPS[ramp]
     if invert:
         chars = chars[::-1]
 
@@ -208,8 +215,11 @@ def image_to_ascii(path: str, width: int = 100, ramp: str = 'standard',
             round(iw * min(100, max(1, left + crop_w)) / 100),
             round(ih * min(100, max(1, top + crop_h)) / 100),
         )
-        if box[2] - box[0] >= 1 and box[3] - box[1] >= 1:
-            img = img.crop(box)
+        # A region that rounds to nothing still keeps one pixel, rather than
+        # silently falling back to the whole image.
+        box = (min(box[0], iw - 1), min(box[1], ih - 1),
+               max(box[2], min(box[0], iw - 1) + 1), max(box[3], min(box[1], ih - 1) + 1))
+        img = img.crop(box)
     orig_w, orig_h = img.size
     if braille:
         # One character is a 2x4 block of dots, so sample twice as many
