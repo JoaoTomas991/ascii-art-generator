@@ -8,7 +8,7 @@ All notable changes to this project are listed here. The format follows
 
 ### Added
 
-- Browser version: a **Copy for WhatsApp, Telegram…** button that wraps the drawing in triple backticks, so WhatsApp, Telegram, Discord and Slack show it in a monospace font instead of a proportional one that breaks the alignment. It also warns when the drawing is wider than 36 columns, which a phone screen may wrap.
+- Browser version: a **Copy as image** button that copies the drawing as a PNG, for sharing in WhatsApp, Telegram and other chat apps. A picture keeps the colours and the shape on any screen, including a phone, where the same drawing pasted as text loses its colours and wraps. Browsers that cannot copy images download the file instead.
 
 ### Changed
 

@@ -1,5 +1,6 @@
 # Architecture Decision Records
 
+- [0006](0006-share-drawings-as-images.md): drawings are shared to chat apps as a PNG (`Copy as image`), not as a triple-backtick text block, which loses color and wraps differently on each app and screen
 - [0005](0005-composed-emoji-faces.md): random emoji is a composed ASCII face, as big as a big animal, with one-line kaomoji kept behind `big=False`
 - [0004](0004-detect-stale-installed-copies.md): a stale installed copy is detected and reported (`--version`, stderr warning, editable installs), never auto-reinstalled
 - [0003](0003-composed-random-art-and-animals.md): random art and random animals are composed (coin / frame / themed scene via the smart generator), not fixed drawings or character noise

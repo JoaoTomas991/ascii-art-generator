@@ -10,6 +10,8 @@ Draw ASCII art by typing plain English: shapes, text, patterns, emoji faces, ani
 
 [![The browser version drawing a rainbow heart](docs/images/web-demo.png)](https://joaotomas991.github.io/ascii-art-generator/)
 
+In the browser, **Copy as image** copies a drawing as a picture with its colors, ready to paste into WhatsApp, Telegram or any other chat.
+
 ## Quick start
 
 ```bash
