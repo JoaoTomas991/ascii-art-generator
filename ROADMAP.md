@@ -6,7 +6,7 @@ Ideas for what could come after 1.0. There are no dates, and nothing here is a p
 
 Right now the drawings are outlines made of ASCII characters. A Braille character packs a grid of 2 by 4 dots into one cell, which is enough for shading and a lot more detail, the way many image-to-text converters work. It would come in three steps, and each one is useful alone:
 
-1. A Braille mode for `convert image`, with dithering, so a photo turns into a shaded picture.
+1. ~~A Braille mode for `convert image`, with dithering, so a photo turns into a shaded picture.~~ A first version is done (`convert image <path> braille`). Still open: a `style braille` form for shapes, and testing on Windows terminals.
 2. A small pixel drawing engine with shading, used first for emoji faces.
 3. The animals redrawn on that engine.
 
@@ -44,12 +44,12 @@ Text to ASCII works, but the result is fixed once it is drawn. Ideas to make it 
 
 `convert image` maps brightness to a character ramp. It could produce better pictures:
 
-- Contrast, brightness and gamma controls, plus automatic contrast stretching.
-- Edge detection, so outlines stay sharp.
-- Dithering (Floyd-Steinberg) for smoother shading.
-- Aspect-ratio correction per font, and a choice of character ramps.
+- ~~Contrast and gamma controls, plus automatic contrast stretching.~~ Done.
+- ~~Edge detection, so outlines stay sharp.~~ A first version is done (`edges`), with a median pass and blur to ignore fine texture; it is still weak on low-contrast photos.
+- ~~Dithering (Floyd-Steinberg) for smoother shading.~~ Done.
+- Aspect-ratio correction per font. The `ramp NAME` option already picks the character ramp.
 - Better color handling, with palette reduction for terminals that lack 24-bit color.
-- Support for transparency and for animated images (see the ASCII animation section).
+- Support for animated images (see the ASCII animation section).
 - The Braille mode described above is the other half of this work.
 
 ## Smaller fixes
