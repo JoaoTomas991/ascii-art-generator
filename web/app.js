@@ -18,7 +18,7 @@ const EXAMPLES = {
 const $ = (selector) => document.querySelector(selector);
 const els = {
   form: $("#command-form"), input: $("#command"), run: $("#run"), status: $("#status"),
-  output: $("#output"), chips: $("#chips"), copyText: $("#copy-text"), copyLink: $("#copy-link"),
+  output: $("#output"), chips: $("#chips"), copyText: $("#copy-text"), copyImage: $("#copy-image"), copyLink: $("#copy-link"),
   imageForm: $("#image-form"), imageFile: $("#image-file"), imageWidth: $("#image-width"),
   imageColor: $("#image-color"), imageRun: $("#image-run"),
 };
@@ -26,6 +26,7 @@ const els = {
 let runCommand = null;      // set once Python is ready
 let pyodide = null;
 let lastText = "";          // plain text of the last result, for "Copy text"
+let lastRaw = "";           // the same result with its ANSI colours, for "Copy as image"
 const commandHistory = [];     // not `history`: that name is window.history
 let historyPos = 0;
 
@@ -50,11 +51,10 @@ function escapeHtml(text) {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function ansiToHtml(text) {
+// Calls emit(chunk, state) for every run of text that shares one colour and weight.
+function walkAnsi(text, emit) {
   text = text.replace(/\x1b\[[0-9;?]*[A-Za-ln-z]/g, "");          // cursor moves etc.: not needed here
   const state = { fg: null, bold: false, underline: false };
-  let html = "";
-  let open = false;
   let last = 0;
 
   const applyCodes = (codes) => {
@@ -75,27 +75,104 @@ function ansiToHtml(text) {
     }
   };
 
-  const emit = (chunk) => {
-    if (!chunk) return;
+  const pattern = /\x1b\[([0-9;]*)m/g;
+  let match;
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > last) emit(text.slice(last, match.index), state);
+    applyCodes(match[1] === "" ? [0] : match[1].split(";").map(Number));
+    last = pattern.lastIndex;
+  }
+  if (last < text.length) emit(text.slice(last), state);
+}
+
+function ansiToHtml(text) {
+  let html = "";
+  walkAnsi(text, (chunk, state) => {
     const style = [];
     if (state.fg) style.push(`color:${state.fg}`);
     if (state.bold) style.push("font-weight:700");
     if (state.underline) style.push("text-decoration:underline");
     html += style.length ? `<span style="${style.join(";")}">${escapeHtml(chunk)}</span>` : escapeHtml(chunk);
-  };
-
-  const pattern = /\x1b\[([0-9;]*)m/g;
-  let match;
-  while ((match = pattern.exec(text)) !== null) {
-    emit(text.slice(last, match.index));
-    applyCodes(match[1] === "" ? [0] : match[1].split(";").map(Number));
-    last = pattern.lastIndex;
-  }
-  emit(text.slice(last));
+  });
   return html;
 }
 
 const stripAnsi = (text) => text.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, "");
+
+// The drawing as plain text: no colour codes, no trailing spaces, no blank lines at either end.
+function plainText(text) {
+  const lines = stripAnsi(text).split("\n").map((line) => line.replace(/\s+$/, ""));
+  while (lines.length && !lines[0]) lines.shift();
+  while (lines.length && !lines[lines.length - 1]) lines.pop();
+  return lines.join("\n");
+}
+
+// --- drawing -> PNG ------------------------------------------------------
+// Pasted as text, a drawing loses its colours in a chat app and wraps on a phone. A picture does neither.
+const IMAGE_MAX_SIDE = 4096;      // longest side in pixels; larger canvases fail in some browsers
+
+// The drawing as rows of coloured cells, trimmed the same way as plainText().
+function colourCells(text) {
+  const rows = [[]];
+  walkAnsi(text, (chunk, state) => {
+    for (const ch of chunk) {
+      if (ch === "\n") rows.push([]);
+      else rows[rows.length - 1].push({ ch, fg: state.fg, bold: state.bold });
+    }
+  });
+  for (const row of rows) {
+    while (row.length && /\s/.test(row[row.length - 1].ch)) row.pop();
+  }
+  while (rows.length && !rows[0].length) rows.shift();
+  while (rows.length && !rows[rows.length - 1].length) rows.pop();
+  return rows;
+}
+
+// Paints the drawing with the result panel's own font and colours; null when there is nothing to paint.
+function drawingCanvas(text) {
+  const rows = colourCells(text);
+  if (!rows.length) return null;
+  const style = getComputedStyle(els.output);
+  const size = parseFloat(style.fontSize);
+  const font = (bold) => `${bold ? 700 : 400} ${size}px ${style.fontFamily}`;
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  ctx.font = font(false);
+  const cellW = ctx.measureText("M").width;
+  const cellH = parseFloat(style.lineHeight) || size * 1.15;
+  const pad = size;
+  const width = Math.max(...rows.map((row) => row.length)) * cellW + 2 * pad;
+  const height = rows.length * cellH + 2 * pad;
+  const scale = Math.min(2, IMAGE_MAX_SIDE / Math.max(width, height));      // 2x keeps it sharp when zoomed
+
+  canvas.width = Math.ceil(width * scale);
+  canvas.height = Math.ceil(height * scale);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = getComputedStyle(els.output.parentElement).backgroundColor;
+  ctx.fillRect(0, 0, width, height);
+  ctx.textBaseline = "middle";
+  rows.forEach((row, y) => {
+    // one character per cell, so a glyph from a fallback font cannot shift the rest of the line
+    row.forEach((cell, x) => {
+      ctx.font = font(cell.bold);
+      ctx.fillStyle = cell.fg ?? style.color;
+      ctx.fillText(cell.ch, pad + x * cellW, pad + (y + 0.5) * cellH);
+    });
+  });
+  return canvas;
+}
+
+const canvasBlob = (canvas) => new Promise((resolve, reject) => {
+  canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("could not encode the image"))), "image/png");
+});
+
+function download(blob, name) {
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = name;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+}
 
 // --- UI helpers ----------------------------------------------------------
 function setStatus(message, isError = false) {
@@ -104,7 +181,7 @@ function setStatus(message, isError = false) {
 }
 
 function setReady(ready) {
-  for (const el of [els.input, els.run, els.copyText, els.copyLink, els.imageFile, els.imageRun]) {
+  for (const el of [els.input, els.run, els.copyText, els.copyImage, els.copyLink, els.imageFile, els.imageRun]) {
     el.disabled = !ready;
   }
   document.querySelectorAll(".chip").forEach((chip) => { chip.disabled = !ready; });
@@ -112,7 +189,8 @@ function setReady(ready) {
 
 function show(raw) {
   const text = raw.replace(/^\n+/, "");
-  lastText = stripAnsi(text).trimEnd();
+  lastText = plainText(text);
+  lastRaw = text;
   els.output.innerHTML = ansiToHtml(text);
   els.output.scrollTop = 0;
   document.body.dataset.rendered = String(lastText.length);    // handy for automated checks
@@ -218,17 +296,61 @@ els.input.addEventListener("keydown", (event) => {
   }
 });
 
-async function copy(text, button, done) {
-  const label = button.textContent;
+// navigator.clipboard only exists in a secure context (https or localhost). Opening the page over
+// plain http, for example from a phone on the local network, needs the older execCommand route.
+function legacyCopy(text) {
+  const area = document.createElement("textarea");
+  area.value = text;
+  area.setAttribute("readonly", "");
+  area.style.cssText = "position:fixed;top:0;left:0;opacity:0";
+  document.body.appendChild(area);
+  area.select();
+  area.setSelectionRange(0, text.length);
   try {
-    await navigator.clipboard.writeText(text);
-    button.textContent = done;
-  } catch (_) {
-    button.textContent = "Copy failed";
+    return document.execCommand("copy");
+  } finally {
+    area.remove();
   }
+}
+
+// Shows a short message on the button, then puts its label back.
+function flash(button, message) {
+  const label = button.dataset.label ?? (button.dataset.label = button.textContent);
+  button.textContent = message;
   setTimeout(() => { button.textContent = label; }, 1400);
 }
+
+async function copy(text, button, done) {
+  try {
+    if (navigator.clipboard) await navigator.clipboard.writeText(text);
+    else if (!legacyCopy(text)) throw new Error("copy command refused");
+    flash(button, done);
+  } catch (_) {
+    flash(button, "Copy failed");
+  }
+}
 els.copyText.addEventListener("click", () => copy(lastText, els.copyText, "Copied"));
+els.copyImage.addEventListener("click", async () => {
+  const canvas = drawingCanvas(lastRaw);
+  if (!canvas) { setStatus("Nothing to copy yet. Run a command first.", true); return; }
+  const blob = canvasBlob(canvas);
+  try {
+    // The promise goes in as it is: Safari only allows the write while the click is being handled.
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+    flash(els.copyImage, "Copied");
+    setStatus("Copied as an image. Paste it into the chat.");
+  } catch (_) {
+    // No image clipboard here (an older browser, or a page opened over plain http): save the file.
+    try {
+      download(await blob, "ascii-art.png");
+      flash(els.copyImage, "Downloaded");
+      setStatus("This browser cannot copy images, so the picture was downloaded as ascii-art.png.");
+    } catch (error) {
+      flash(els.copyImage, "Copy failed");
+      setStatus(`Could not make the image: ${error.message || error}`, true);
+    }
+  }
+});
 els.copyLink.addEventListener("click", () => copy(location.href, els.copyLink, "Copied"));
 
 els.imageForm.addEventListener("submit", async (event) => {

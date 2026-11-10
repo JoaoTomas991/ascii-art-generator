@@ -14,12 +14,12 @@ Braille is Unicode and not ASCII, and it needs a font that has the Braille glyph
 
 ## Sharing to WhatsApp and Telegram
 
-Pasting ASCII art into a chat app often breaks it: the font is proportional, long lines wrap, and ANSI colors show up as garbage. Better copy support would include:
+Pasting ASCII art into a chat app as text often breaks it: the font is proportional, long lines wrap on a phone, and the colors are lost. Wrapping the text in a monospace block was tried and dropped, because it still wraps on a phone screen and cannot carry color.
 
-- A `copy` output mode that strips ANSI codes and trims trailing spaces.
-- Wrapping the art in a monospace block (triple backticks for Telegram, WhatsApp and Markdown chats) so the alignment survives.
-- A width limit that fits a phone screen, so the art does not wrap.
-- A copy-to-clipboard button in the web version that uses these rules.
+The browser version now has a **Copy as image** button that copies the drawing as a PNG, which keeps the colors and the shape on any screen. What is left:
+
+- The same from the terminal: a way to save a drawing as a PNG.
+- A share button on phones that opens the system share sheet, so the picture goes straight to a chat app.
 
 ## ASCII animation
 

@@ -46,7 +46,7 @@ ascii-art-generator "write HELLO with font banner"
 ## In the browser
 
 Open <https://joaotomas991.github.io/ascii-art-generator/>, type the same commands or click an example, and
-convert an image from your computer; nothing is uploaded. After you run a command, **Copy link** copies a URL
+convert an image from your computer; nothing is uploaded. **Copy text** copies the drawing as plain text. **Copy as image** copies it as a PNG picture, which is the way to share a drawing in WhatsApp, Telegram or another chat app: pasted as text it loses its colours and wraps on a phone screen, and a picture does neither. A browser that cannot copy images downloads the file instead. After you run a command, **Copy link** copies a URL
 like `https://joaotomas991.github.io/ascii-art-generator/?cmd=draw+a+heart` that opens the page with that
 command already run. The first visit downloads about 10 MB of Python runtime. For how the page is built and
 published, see [development.md](development.md#browser-version).

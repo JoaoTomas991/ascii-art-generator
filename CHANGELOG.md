@@ -9,10 +9,12 @@ All notable changes to this project are listed here. The format follows
 ### Added
 
 - `convert image` options `auto`, `contrast N`, `gamma N`, `dither`, `invert`, `ramp NAME`, `edges`, `braille` and `crop L T W H`, in any order after the path.
+- Browser version: a **Copy as image** button that copies the drawing as a PNG, for sharing in WhatsApp, Telegram and other chat apps. A picture keeps the colours and the shape on any screen, including a phone, where the same drawing pasted as text loses its colours and wraps. Browsers that cannot copy images download the file instead.
 
 ### Changed
 
 - `convert image` resizes with LANCZOS and draws transparent areas as white instead of black.
+- Browser version: **Copy text** no longer includes trailing spaces on each line or blank lines at the start and end.
 
 Ideas for what comes next are in [ROADMAP.md](ROADMAP.md).
 
