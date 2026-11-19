@@ -16,6 +16,7 @@ An ASCII art generator that creates art from text, geometric shapes and patterns
 - `ascii_art_generator/image_art.py` — conversion of a real image (PNG/JPG/...) to ASCII with a brightness ramp; third-party dependency Pillow (see `requirements.txt`); the other optional dependency is `pyfiglet`, imported only inside `text_to_ascii()` in `ascii_art.py`
 - `ascii_art_generator/animal_scenes.py` — random animal on a coin, in a frame or in a themed scene
 - `ascii_art_generator/emoji_art.py` — large emoji face composed of a head, eyes, brows, a mouth and extras
+- `ascii_art_generator/pixel_canvas.py` — `PixelCanvas`, a dot grid printed as Unicode Braille characters (2x4 dots per character), and `braille_art(lines, shaded)`, which redraws character art in dots; standard library only; `image_art.py` takes `BRAILLE_BITS` from here
 - `ascii_art_generator/learned_words.py` — persistence of the taught mood synonyms (`teach`)
 - `ascii_art_generator/console.py` / `install_info.py` — UTF-8 on stdout; `--version` and the warning about a stale installed copy
 - `ascii_art_generator/intro.py` — animated startup banner (`show_intro`, `banner_lines`) and `LiveLines`, the thread that keeps animating lines that are already printed while the menu waits on `input()`; standard library only
@@ -46,13 +47,14 @@ The project supports:
 - **Animations**: spinner, progress bar
 - **Banners and boxes**: with custom text
 - **Styles**:
-  - **Colors**: red, green, blue, yellow, cyan, magenta, white, black (and the `bright_*`/`light_*` variants), plus `rainbow`/`multicolor` (cycles one color per line)
+  - **Colors**: red, green, blue, yellow, cyan, magenta, white, black (and the `bright_*`/`light_*` variants), plus `rainbow`/`multicolor` (cycles one color per line) and a color list (`color red and blue`, cycled per line the same way); a color may also come before the shape (`draw a red heart`)
   - **Fill**: solid, empty, dotted, striped, crosshatch, checkerboard, gradient (a real density ramp, not binary), random, among others (32 patterns in `smart_generator.py`, including `dense_gradient`, which uses only the heavy half of the ramp). Always applied only inside the shape's silhouette (`mask_fill_pattern`), never replacing it with a rectangle
+  - **Braille styles**: `style braille` redraws a shape in Braille dots, with smoother edges, in the same lines and columns; `style shaded` also shades the inside, lit from the top left. Opt-in: the classic ASCII output is the default (Unicode, needs a font with Braille glyphs)
   - **Borders**: simple, double, dashed, wavy, bold, light, fancy, rounded, among others (12 in `smart_generator.py`); all of them keep the shape's content and the frame is as wide as the lines. The `empty` fill draws the silhouette's outline, not the box rectangle
 - **Moods**: happy, sad, angry, calm, sleepy. Each applies a default color (unless the user already gave a `color`). New synonyms can be taught at runtime in intelligent mode with `teach <word> as <mood>`, and they persist between sessions in `~/.config/ascii_generator/learned_words.json`
 - **Animated banner and menu**: the menu is a banner (the `ASCII` logo in a heavy font with thin strokes stretched horizontally, and the subtitle `A R T   G E N E R A T O R`) plus the categories in up to 3 columns; the logo, the subtitle and the `━` line above the prompt animate in rainbow colors while the menu waits. The animation only runs in an interactive terminal and is turned off with `--no-animation`, `ASCII_GENERATOR_NO_ANIMATION=1` or `TERM=dumb`; in terminals narrower than 66 columns it stays static, and it only animates the lines that are still visible (banner and menu fit in about 24 lines at 69 columns or more, and in about 29 lines at 66 to 68 columns, where the menu drops to 2 columns)
 - **Web version**: `web/` runs the real generator in the browser with Pyodide (no server); `make web` to try it locally; `?cmd=` in the URL runs a command on open; sizes above 300 are refused so the tab does not freeze
-- **Image to ASCII**: `convert image <path> [width N] [color]` converts a real image file (PNG/JPG/...) into a brightness-ramp ASCII picture, with an option for true 24-bit color per character (`ascii_art_generator/image_art.py`, needs Pillow: `pip install -r requirements.txt`)
+- **Image to ASCII**: `convert image <path> [width N] [color] [invert] [auto] [dither] [contrast N] [gamma N] [ramp NAME] [edges] [braille] [crop L T W H]` converts a real image file (PNG/JPG/...) into a brightness-ramp ASCII picture, with an option for true 24-bit color per character (`ascii_art_generator/image_art.py`, needs Pillow: `pip install -r requirements.txt`)
 
 See the `ascii-art` skill (`.claude/skills/ascii-art/SKILL.md`) for the full catalog with functions, files and signatures.
 
@@ -88,4 +90,4 @@ convert image /tmp/photo.png width 80 color
 - Colors depend on the terminal's ANSI support
 - Without `pyfiglet` installed, fonts are limited to the built-in definitions (small, block, banner, shadow: only A-Z and some punctuation; missing characters appear as `?`)
 - The menu animation relies on the relative position of the lines already printed: if the user types a line longer than the terminal at the prompt, the text wraps and the animation may draw a line in the wrong place until Enter
-- The compound-command separator (`"and"`) is word-based: a color list on a single shape (`"with color red and blue"`) can be wrongly read as two shapes
+- The compound-command separator (`"and"`) is word-based: a color list works after the `color` keyword (`"with color red and blue"`), but without it (`"a red and blue heart"`) it is still read as two commands and only the last color is kept

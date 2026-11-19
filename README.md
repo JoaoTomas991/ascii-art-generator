@@ -30,7 +30,7 @@ No Python? Download a ready-made executable for Windows, macOS (Apple Silicon) o
 
 - **Shapes:** rectangle, circle, triangle, heart, diamond, spiral, tree, star, hexagon, oval, arrow, pentagon, butterfly, flower.
 - **Text:** `write HELLO with font slant`, with real FIGlet fonts when `pyfiglet` is installed.
-- **Styling:** colors (including `rainbow`), 32 fill patterns and several border styles.
+- **Styling:** colors (including `rainbow` and lists such as `color red and blue`), 32 fill patterns and several border styles. `style braille` and `style shaded` redraw a shape in Braille dots, with smoother edges and shading.
 - **Emoji and animals:** a face with a mood (`draw a sad emoji`), or a cat, dog, rabbit, owl and more.
 - **Images:** `convert image photo.png width 80 color` turns a picture into colored ASCII.
 - **Banners, boxes, patterns and small animations.**

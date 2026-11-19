@@ -15,7 +15,7 @@ from .ascii_art import (
     generate_spiral, generate_tree,
     random_animal, random_emoji, create_banner, create_box,
     get_available_fonts, spinner_animation, progress_bar,
-    get_color_code, get_border_chars, get_fill_style_pattern,
+    get_border_chars, get_fill_style_pattern,
     get_animal_art, KNOWN_ANIMAL_WORDS
 )
 from .smart_generator import (
@@ -25,6 +25,7 @@ from .smart_generator import (
     get_available_border_styles, get_available_shapes
 )
 from .emoji_art import emoji_face, emoji_color, MOOD_FACES
+from .pixel_canvas import braille_art
 from .image_art import image_to_ascii
 from .learned_words import load_learned_moods, save_learned_mood
 from .console import enable_utf8_output
@@ -352,6 +353,10 @@ class ENCommandParser:
         'wave': ['wave'],
         'zigzag': ['zigzag'],
         'honeycomb': ['honeycomb'],
+        # Not fill patterns: these redraw the whole shape in Braille dots
+        # (see pixel_canvas.py and _apply_style_to_art).
+        'braille': ['braille'],
+        'shaded': ['shaded', 'shading'],
     }
     
     # Border style synonyms
@@ -461,10 +466,14 @@ class ENCommandParser:
                 return {'command': 'compound', 'params': {}, 'compound': True, 'parts': parsed_parts}
             return None
 
-        return self._parse_single_command(command)
+        return self._parse_single_command(parts[0])
 
     def _parse_image_command(self, command: str) -> Optional[Dict[str, Any]]:
-        """Parse 'convert image <path> [width N] [color]' style commands.
+        """Parse 'convert image <path> [width N] [color] ...' style commands.
+
+        Trailing options: width N, color, invert, auto, dither, contrast N,
+        gamma N, ramp NAME, edges, braille, crop L T W H (percentages; see
+        image_to_ascii), in any order.
 
         Kept separate from _parse_single_command's generic tokenizer
         because a file path must keep its original case and can contain
@@ -480,17 +489,69 @@ class ENCommandParser:
 
         remainder = match.group(1).strip()
 
-        color = False
-        color_match = re.search(r'\s+(?:with\s+)?colou?r\s*$', remainder, re.IGNORECASE)
-        if color_match:
-            remainder = remainder[:color_match.start()].strip()
-            color = True
+        options: Dict[str, Any] = {'width': 100, 'color': False}
+        number = r'(\d+(?:\.\d+)?|\.\d+)'
+        flags = {
+            'color': (r'(?:with\s+)?colou?r', 'color'),
+            'invert': (r'invert(?:ed)?', 'invert'),
+            'auto': (r'auto(?:\s+contrast)?', 'auto_contrast'),
+            'dither': (r'dither(?:ed|ing)?', 'dither'),
+            'edges': (r'edges?', 'edges'),
+            'braille': (r'(?:style\s+)?braille', 'braille'),
+        }
+        valued = {
+            'width': (r'width\s+(\d+)', 'width', int),
+            'contrast': (r'contrast\s+' + number, 'contrast', float),
+            'gamma': (r'gamma\s+' + number, 'gamma', float),
+            'ramp': (r'ramp\s+(\w+)', 'ramp', str.lower),
+            'crop': (r'crop\s+' + r'\s+'.join([number] * 4), 'crop', None),
+        }
+        # How each valued option is written, for the message about a bad value.
+        usage = {
+            'width': 'width N (a whole number, such as width 80)',
+            'contrast': 'contrast N (a number, such as contrast 1.5)',
+            'gamma': 'gamma N (a number, such as gamma 0.8)',
+            'ramp': 'ramp NAME (such as ramp blocks)',
+            'crop': 'crop L T W H (four numbers in percent, such as crop 10 20 50 50)',
+        }
+        # Options are stripped from the end of the command in any order, so
+        # whatever is left is the file path.
+        while True:
+            for pattern, key in flags.values():
+                m = re.search(r'\s+' + pattern + r'\s*$', remainder, re.IGNORECASE)
+                if m:
+                    options[key] = True
+                    remainder = remainder[:m.start()].strip()
+                    break
+            else:
+                for pattern, key, cast in valued.values():
+                    m = re.search(r'\s+' + pattern + r'\s*$', remainder, re.IGNORECASE)
+                    if m:
+                        options[key] = (tuple(float(g) for g in m.groups())
+                                        if key == 'crop' else cast(m.group(1)))
+                        remainder = remainder[:m.start()].strip()
+                        break
+                else:
+                    break
 
-        width = 100
-        width_match = re.search(r'\s+width\s+(\d+)\s*$', remainder, re.IGNORECASE)
-        if width_match:
-            width = int(width_match.group(1))
-            remainder = remainder[:width_match.start()].strip()
+        # A valued option that is still here has a value the patterns above
+        # refused (gamma -1, crop with three numbers, ramp without a name).
+        # Say so, rather than let it become part of a path that is "not found".
+        # Only when a file name with an extension comes before it and no file
+        # name comes after, so a path such as "my gamma photo.png" is left alone.
+        leftovers = list(re.finditer(r'\s(' + '|'.join(valued) + r')\b', remainder, re.IGNORECASE))
+        if leftovers:
+            last = leftovers[-1]
+            before, bad = remainder[:last.start()], remainder[last.start():].strip()
+            has_file_before = re.search(r'\.\w{1,5}["\']?(?:\s|$)', before)
+            has_file_after = re.search(r'[/\\]|\.[A-Za-z]\w*$', bad)
+            if has_file_before and not has_file_after:
+                return {
+                    'raw': command,
+                    'command': 'image_to_ascii',
+                    'params': {'path': before.strip().strip('"\''),
+                               'error': f"Invalid option '{bad}'. Expected: {usage[last.group(1).lower()]}"},
+                }
 
         path = remainder.strip('"\'')
         if not path:
@@ -499,8 +560,27 @@ class ENCommandParser:
         return {
             'raw': command,
             'command': 'image_to_ascii',
-            'params': {'path': path, 'width': width, 'color': color},
+            'params': {'path': path, **options},
         }
+
+    # Words that introduce a parameter value.
+    PARAM_KEYWORDS = {
+        'color', 'colour', 'font', 'style', 'fill', 'filled', 'pattern',
+        'border', 'edge', 'size', 'width', 'height', 'radius', 'base',
+        'diameter', 'direction', 'dir', 'text',
+    }
+
+    @staticmethod
+    def _add_color(params: Dict[str, Any], color: str) -> None:
+        """Set the color, or extend it into a list ('red,blue') when one is already set.
+
+        A list is cycled one color per line, like 'rainbow' (see _apply_color).
+        """
+        current = params.get('color')
+        if not current:
+            params['color'] = color
+        elif color not in current.split(','):
+            params['color'] = f'{current},{color}'
 
     def _split_compound_command(self, command: str) -> List[str]:
         """Split a compound command like 'X and Y' into individual command strings."""
@@ -510,11 +590,7 @@ class ENCommandParser:
 
         # Words that mean "and" is joining parameter values, not two shapes
         # (e.g. "with color red and blue"), so we shouldn't split there.
-        param_keywords = {
-            'color', 'colour', 'font', 'style', 'fill', 'filled', 'pattern',
-            'border', 'edge', 'size', 'width', 'height', 'radius', 'base',
-            'diameter', 'direction', 'dir', 'text',
-        }
+        param_keywords = self.PARAM_KEYWORDS
 
         split_positions = [
             i for i, word in enumerate(words_lower)
@@ -534,7 +610,50 @@ class ENCommandParser:
         if start < len(words):
             parts.append(' '.join(words[start:]))
 
-        return parts if len(parts) > 1 else [command]
+        if len(parts) < 2:
+            return [command]
+
+        # "color red and blue" is one color list, not two commands. A part
+        # that starts with a color name goes back to the part before it when
+        # that one ends in a color list and this one only carries on with
+        # colors and parameters ("blue style dotted" does; "blue heart" is a
+        # second shape). The 'color' keyword is required, so text such as
+        # "write RED and BLUE" is left alone.
+        merged: List[str] = []
+        for part in parts:
+            if merged and self._continues_color_list(merged[-1], part):
+                merged[-1] += ' ' + part
+            else:
+                merged.append(part)
+
+        return merged
+
+    def _continues_color_list(self, previous: str, part: str) -> bool:
+        """True when `part` carries on a color list that `previous` ends with."""
+        words = part.lower().split()
+        if not words or not self._color_key(words[0]):
+            return False
+        before = previous.lower().split()
+        keyword = max((i for i, word in enumerate(before) if word in ('color', 'colour')), default=-1)
+        listed = before[keyword + 1:]
+        if keyword < 0 or not listed or any(not self._color_key(word) for word in listed):
+            return False
+        rest = [word for word in words if not self._color_key(word)]
+        while rest and rest[0] in ('with', 'in', 'using', 'and', 'a', 'an', 'the'):
+            rest.pop(0)
+        # What follows the colors must be a parameter ("style checkerboard",
+        # "with border star": the value may happen to be a shape name), not a shape.
+        if rest and rest[0] in self.PARAM_KEYWORDS:
+            return True
+        return self._parse_single_command(part) is None
+
+    def _color_key(self, word: str) -> Optional[str]:
+        """The color a word names, or None. Also the bright_*/light_* names, which have no synonyms."""
+        if word in self.color_to_key:
+            return self.color_to_key[word]
+        if re.fullmatch(r'(?:bright|light)_(?:black|red|green|yellow|blue|magenta|cyan|white)', word):
+            return word
+        return None
 
     def _parse_single_command(self, command: str) -> Optional[Dict[str, Any]]:
         """Parse a single (non-compound) command."""
@@ -627,7 +746,11 @@ class ENCommandParser:
 
         # Extract parameters
         params = {}
-        
+
+        # True while reading the colors that follow the 'color' keyword
+        # ("color red blue green"): only there do colors add up into a list.
+        in_color_list = False
+
         if shape_idx >= 0 and shape_idx + 1 < len(tokens):
             # Get remaining tokens after shape
             remaining = tokens[shape_idx + 1:]
@@ -635,6 +758,8 @@ class ENCommandParser:
             i = 0
             while i < len(remaining):
                 token = remaining[i]
+                if in_color_list and not self._color_key(token):
+                    in_color_list = False
                 
                 # Check for "with", "of", "in", "using" etc.
                 if token in ['with', 'of', 'in', 'using', 'for', 'as']:
@@ -657,10 +782,10 @@ class ENCommandParser:
                     
                     # Check for color
                     elif token in ['color', 'colour']:
-                        if next_token in self.color_to_key:
-                            params['color'] = self.color_to_key[next_token]
-                        else:
-                            params['color'] = next_token
+                        params['color'] = self.color_to_key.get(next_token, next_token)
+                        # Only a real color starts a list: after "color light
+                        # blue" or "color of red" the next color replaces the word.
+                        in_color_list = self._color_key(next_token) is not None
                         i += 2
                         continue
                     
@@ -706,6 +831,11 @@ class ENCommandParser:
                     i += 1
                     continue
                 
+                if in_color_list:
+                    self._add_color(params, self._color_key(token))
+                    i += 1
+                    continue
+
                 if token in self.color_to_key:
                     params['color'] = self.color_to_key[token]
                     i += 1
@@ -856,6 +986,15 @@ class ENCommandParser:
             elif command_name in ['checkerboard', 'gradient']:
                 if numbers:
                     final_params['size'] = numbers[0]
+
+        # A color named before the shape counts ("a red heart"), unless one was
+        # given after it. Not for text, where the words are the text itself,
+        # and not black: "a black cat" describes the cat, and black ink is
+        # invisible on a dark terminal ("color black" still works).
+        if 'color' not in final_params and shape not in (None, 'text'):
+            for token in tokens[:max(shape_idx, 0)]:
+                if token in self.color_to_key and self.color_to_key[token] != 'black':
+                    self._add_color(final_params, self.color_to_key[token])
 
         # Apply the mood's default color, unless the user already gave one
         if mood_key:
@@ -1204,15 +1343,22 @@ class ASCIIArtCLI:
 
     def _render_image(self, params: Dict[str, Any]) -> None:
         """Convert an image file to ASCII art and print it (see image_art.py)."""
+        if params.get('error'):
+            print(f"{Colors.FAIL}{params['error']}{Colors.ENDC}")
+            return
         path = params.get('path', '')
         width = params.get('width', 100)
         color = params.get('color', False)
+        extra = {k: params[k] for k in ('ramp', 'invert', 'contrast', 'gamma',
+                                        'auto_contrast', 'dither', 'edges', 'braille', 'crop') if k in params}
         try:
-            art = image_to_ascii(path, width=width, color=color)
+            art = image_to_ascii(path, width=width, color=color, **extra)
         except ImportError as exc:
             print(f"{Colors.FAIL}{exc}{Colors.ENDC}")
         except FileNotFoundError:
             print(f"{Colors.FAIL}Image not found: {path}{Colors.ENDC}")
+        except ValueError as exc:
+            print(f"{Colors.FAIL}{exc}{Colors.ENDC}")
         except Exception as exc:
             print(f"{Colors.FAIL}Could not read image '{path}': {exc}{Colors.ENDC}")
         else:
@@ -1289,9 +1435,7 @@ INTELLIGENT MODE (type 'i' to activate):
         result = '\n'.join(lines)
         
         # Apply color
-        if color:
-            color_code = get_color_code(color)
-            result = color_code + result + get_color_code('reset')
+        result = self._apply_color(result, color)
         
         return result
 
@@ -1317,9 +1461,7 @@ INTELLIGENT MODE (type 'i' to activate):
         output = '\n'.join(result)
         
         # Apply color
-        if color:
-            color_code = get_color_code(color)
-            output = color_code + output + get_color_code('reset')
+        output = self._apply_color(output, color)
         
         return output
 
@@ -1343,10 +1485,14 @@ INTELLIGENT MODE (type 'i' to activate):
     def _apply_color(self, content: str, color: Optional[str] = None) -> str:
         """Apply color to content if specified."""
         if color:
-            if color.lower() in ('rainbow', 'multicolor', 'multicolour'):
+            names = color.lower().split(',')
+            # 'rainbow', or a list such as 'red,blue': one color per line, cycling.
+            cycle = RAINBOW_COLORS if any(n in ('rainbow', 'multicolor', 'multicolour') for n in names) \
+                else names if len(names) > 1 else None
+            if cycle:
                 lines = content.split('\n')
                 return '\n'.join(
-                    self._apply_color(line, RAINBOW_COLORS[i % len(RAINBOW_COLORS)])
+                    self._apply_color(line, cycle[i % len(cycle)])
                     for i, line in enumerate(lines)
                 )
             # Use smart generator's color mapping which includes light colors
@@ -1494,7 +1640,11 @@ INTELLIGENT MODE (type 'i' to activate):
         
         # Apply fill pattern, masked to the shape's own silhouette (a naive
         # whole-grid swap would replace e.g. a hexagon with a plain rectangle)
-        if fill_pattern != 'solid' and isinstance(art, list) and art:
+        if fill_pattern in ('braille', 'shaded') and isinstance(art, list) and art:
+            # Redrawn in Braille dots, in the same lines and columns: smoother
+            # edges, and with 'shaded' a lit-from-the-top-left inside.
+            art = braille_art(art, shaded=fill_pattern == 'shaded')
+        elif fill_pattern != 'solid' and isinstance(art, list) and art:
             art = mask_fill_pattern(art, fill_pattern, char)
 
         # Apply border if specified

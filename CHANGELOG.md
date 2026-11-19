@@ -8,10 +8,19 @@ All notable changes to this project are listed here. The format follows
 
 ### Added
 
+- `convert image` options `auto`, `contrast N`, `gamma N`, `dither`, `invert`, `ramp NAME`, `edges`, `braille` and `crop L T W H`, in any order after the path.
+- `style braille` and `style shaded` for shapes: the shape is redrawn in Unicode Braille dots, in the same lines and columns, with smoother edges. `shaded` also shades the inside, lit from the top left. For example `draw a heart size 4 style shaded color red`.
+- A color list on one shape, as in `make a rectangle 8x4 color red and blue` or `color red, blue, green`: the colors cycle one per line, like `rainbow`. It used to keep only the first color.
+- A color named before the shape is applied: `draw a red heart`, `make a pink banner with text HI`.
 - Browser version: a **Copy as image** button that copies the drawing as a PNG, for sharing in WhatsApp, Telegram and other chat apps. A picture keeps the colours and the shape on any screen, including a phone, where the same drawing pasted as text loses its colours and wraps. Browsers that cannot copy images download the file instead.
 
 ### Changed
 
+- Fill patterns keep the parts of a shape that are one character wide. The tip of a star's leg, the point of a triangle or a stretch of the spiral used to vanish where the pattern had a gap (`draw a star 5 style dotted` lost one of its two feet).
+- Banners and boxes accept every color the shapes do, including `rainbow` and the `light_*` colors, which they used to ignore.
+- `convert image` resizes with LANCZOS and draws transparent areas as white instead of black.
+- `convert image` output is at most 400 lines tall. A very tall image, or a thin `crop`, is made narrower to keep its proportions, where it used to print thousands of lines.
+- `convert image` reports an option with a bad value (`gamma -1`, `crop` with three numbers, `ramp` without a name) instead of answering that the image was not found.
 - Browser version: **Copy text** no longer includes trailing spaces on each line or blank lines at the start and end.
 
 Ideas for what comes next are in [ROADMAP.md](ROADMAP.md).

@@ -1,5 +1,6 @@
 # Architecture Decision Records
 
+- [0007](0007-opt-in-braille-dot-canvas.md): Braille drawings are opt-in (`style braille`, `style shaded`) and come from one dot canvas, `pixel_canvas.py`, which redraws the ASCII shape in dots instead of a second geometry per shape
 - [0006](0006-share-drawings-as-images.md): drawings are shared to chat apps as a PNG (`Copy as image`), not as a triple-backtick text block, which loses color and wraps differently on each app and screen
 - [0005](0005-composed-emoji-faces.md): random emoji is a composed ASCII face, as big as a big animal, with one-line kaomoji kept behind `big=False`
 - [0004](0004-detect-stale-installed-copies.md): a stale installed copy is detected and reported (`--version`, stderr warning, editable installs), never auto-reinstalled
