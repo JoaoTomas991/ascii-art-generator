@@ -32,7 +32,7 @@ No Python? Download a ready-made executable for Windows, macOS (Apple Silicon) o
 - **Text:** `write HELLO with font slant`, with real FIGlet fonts when `pyfiglet` is installed.
 - **Styling:** colors (including `rainbow` and lists such as `color red and blue`), 32 fill patterns and several border styles. `style braille` and `style shaded` redraw a shape in Braille dots, with smoother edges and shading.
 - **Emoji and animals:** a face with a mood (`draw a sad emoji`), or a cat, dog, rabbit, owl and more.
-- **Images:** `convert image photo.png width 80 color` turns a picture into colored ASCII.
+- **Images:** `convert image photo.png width 80 color` turns a picture into colored ASCII. Options for tone (`auto`, `contrast N`, `gamma N`, `dither`, `invert`), edges (`edges`), a region (`crop L T W H`), the character set (`ramp NAME`) and Braille dots (`braille`).
 - **Banners, boxes, patterns and small animations.**
 - **Teachable moods:** `teach ecstatic as happy`, remembered between sessions.
 
@@ -46,10 +46,12 @@ make a circle with radius 8 color blue
 draw a heart size 4 color rainbow
 write HELLO with font slant color cyan
 make a rectangle 12x5 color cyan style dotted
+draw a heart size 4 style shaded color red
 draw a happy face
 draw a big cat color yellow
 make a circle with radius 5 color blue and a rectangle 10x5 color red
 convert image /path/to/photo.png width 80 color
+convert image /path/to/photo.png width 100 auto edges braille
 ```
 
 The full list of what is understood, the three ways to run it and the known limitations are in [docs/usage.md](docs/usage.md).
