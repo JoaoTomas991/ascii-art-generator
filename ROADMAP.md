@@ -6,8 +6,8 @@ Ideas for what could come after 1.0. There are no dates, and nothing here is a p
 
 Right now the drawings are outlines made of ASCII characters. A Braille character packs a grid of 2 by 4 dots into one cell, which is enough for shading and a lot more detail, the way many image-to-text converters work. It would come in three steps, and each one is useful alone:
 
-1. ~~A Braille mode for `convert image`, with dithering, so a photo turns into a shaded picture.~~ A first version is done (`convert image <path> braille`). Still open: a `style braille` form for shapes, and testing on Windows terminals.
-2. A small pixel drawing engine with shading, used first for emoji faces.
+1. ~~A Braille mode for `convert image`, with dithering, so a photo turns into a shaded picture.~~ A first version is done (`convert image <path> braille`). Shapes have it too: `style braille` and `style shaded`. Still open: testing on Windows terminals.
+2. A small pixel drawing engine with shading, used first for emoji faces. The engine exists (`pixel_canvas.py`) and the shapes use it; the faces are next.
 3. The animals redrawn on that engine.
 
 Braille is Unicode and not ASCII, and it needs a font that has the Braille glyphs, so it would be opt-in (something like `style braille`) and the classic ASCII output would stay the default. It also needs testing on Windows terminals.
@@ -54,4 +54,4 @@ Text to ASCII works, but the result is fixed once it is drawn. Ideas to make it 
 
 ## Smaller fixes
 
-- A color list on a single shape, as in `make a rectangle with color red and blue`, is read as two commands and the second color is dropped. See the known limitations in [docs/usage.md](docs/usage.md#known-limitations).
+- ~~A color list on a single shape, as in `make a rectangle with color red and blue`, is read as two commands and the second color is dropped.~~ Done: the colors cycle one per line. A list without the `color` keyword (`a red and blue heart`) still keeps only the last color. See the known limitations in [docs/usage.md](docs/usage.md#known-limitations).

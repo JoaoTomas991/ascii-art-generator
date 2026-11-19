@@ -16,6 +16,7 @@ features.
 - `ascii_art_generator/cli.py` — `ENCommandParser`, which turns English (natural-language) commands into the parameters of the functions below. It is the only parser used by `ASCIIArtCLI` (the old `PTCommandParser`, which was never wired into the app, was removed).
 - `ascii_art_generator/animal_scenes.py` — `animal_scene(name, big, setting)`: an animal on a coin (`$NAME`), in a frame or in a themed scene (meadow, rain, snow, beach, space, forest); returns `(lines, kind)` and `scene_color(kind)` suggests the color. Used by `smart_gen.generate_animal_art()`.
 - `ascii_art_generator/emoji_art.py` — `emoji_face(mood)`: a large face (11 lines, plain ASCII) composed of a head, eyes, brows, a mouth and extras (hearts, tears, `zZ`, sparkles); 13 moods (happy, laugh, wink, sad, angry, surprised, cool, love, sleepy, calm, dizzy, starstruck, silly). `mood` also accepts the parser's moods (`MOOD_FACES`: happy/sad/angry/calm/sleepy), so `draw a sad emoji` gives a sad face. Returns `(lines, mood)` and `emoji_color(mood)` suggests the color. `random_emoji(big=True)` uses it; `big=False` returns the one-line kaomoji.
+- `ascii_art_generator/pixel_canvas.py` — `PixelCanvas` (a dot grid, 2x4 dots per character, printed as Unicode Braille) and `braille_art(lines, shaded=False) -> List[str]`, which redraws character art in dots with smoothed edges, in the same lines and columns. Used by `_apply_style_to_art` in `cli.py` for `style braille` and `style shaded` (parsed as fill values, but they replace `mask_fill_pattern` instead of going through it). `BRAILLE_BITS` lives here and `image_art.py` imports it.
 - `ascii_art_generator/install_info.py` — `describe()` (`--version`) and `stale_copy_warning()` (a warning when the installed command is an older copy of the source folder; see `run.py`).
 - `ascii_art_generator/learned_words.py` / `console.py` — persistence of the taught moods (`~/.config/ascii_generator/learned_words.json`); UTF-8 setup for stdout.
 - `ascii_art_generator/intro.py` — animated startup banner and animated menu, standard library only. `show_intro()` plays the entrance (rainbow logo, `━` rule, subtitle typed letter by letter); `banner_lines()` returns `(logo, [rule, subtitle, rule])` as plain text; `title_lines()` draws `ASCII` with the `solid` font (an alias of pyfiglet's `banner`, or the built-in `block` without pyfiglet), stretched horizontally by inserting a blank after every second column so the strokes stay thin, and centered on the rule; `LiveLines(targets, min_cols)` is the thread that redraws lines that are already printed (ESC 7 / cursor-up / ESC 8) while `input()` blocks. It turns itself off outside a terminal, with `TERM=dumb`, with `--no-animation` or `ASCII_GENERATOR_NO_ANIMATION=1`, and when the terminal is narrower than the widest line.
@@ -81,6 +82,11 @@ final drawing has 6, 11, 16, 21, 25, 30... lines).
 single ANSI code, it cycles through `RAINBOW_COLORS` (`cli.py`), a different
 color for each line of the art (e.g. `draw a heart size 4 color rainbow`). It
 is handled inside `ASCIIArtCLI._apply_color`, not in `get_color_code`.
+
+A color list (`color red and blue`, `color red, blue, green`) is stored by the
+parser as one comma-joined value (`'red,blue'`, built by `ENCommandParser._add_color`)
+and cycled per line by the same code in `_apply_color`. A color word before the
+shape (`draw a red heart`) is read too, except `black`.
 
 ## Moods (teachable)
 
@@ -195,7 +201,7 @@ in `execute_parsed_command`, the number is silently ignored.
 
 ### Known limitations of `ENCommandParser`
 
-- **The `"and"` separator is word-based.** A color list on a single shape (`"with color red and blue"`) is read as a one-part compound command: it applies the first color, drops the second and prints a `[1/1]` header — there is no way to disambiguate without quotes/named parameters.
+- **The `"and"` separator is word-based.** A color list after the `color` keyword works (`"with color red and blue"`: `_continues_color_list` in `cli.py` gives the color-only part back to the shape before it), but a list without the keyword (`"a red and blue heart"`) is still read as two commands, and only the last color is kept.
 
 ## When adding a new shape/style
 

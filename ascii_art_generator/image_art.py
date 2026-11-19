@@ -11,6 +11,8 @@ CLI.
 
 from typing import List, Optional, Tuple
 
+from .pixel_canvas import BRAILLE_BITS
+
 # Character ramps, ordered lightest -> heaviest. 'standard' is the classic
 # 10-level ramp; 'detailed' gives finer gradation for larger renders;
 # 'blocks' uses Unicode shade blocks for a bolder, more graphic look.
@@ -25,6 +27,11 @@ ASCII_RAMPS = {
 # vertically stretched. Scaling the sampled height down compensates, the
 # same correction draw_circle/draw_star apply to shapes.
 _ASPECT_CORRECTION = 0.55
+
+# Height follows the image's proportions, so a very tall image or a thin crop
+# could ask for thousands of lines. Past this many, the picture is made
+# narrower instead, which keeps its proportions.
+_MAX_HEIGHT = 400
 
 
 def _adjust(img, contrast: float, gamma: float, auto_contrast: bool):
@@ -103,11 +110,6 @@ def _levels(brightness: List[List[float]], count: int, dither: bool) -> List[Lis
     return out
 
 
-# Bit for each dot of a Braille cell, indexed [row][column] (Unicode order:
-# dots 1-3 and 7 are the left column, dots 4-6 and 8 the right).
-_BRAILLE_BITS = ((0x01, 0x08), (0x02, 0x10), (0x04, 0x20), (0x40, 0x80))
-
-
 def _braille_lines(pixels, levels: List[List[int]], width: int, height: int,
                    color: bool, invert: bool) -> str:
     """Pack a 2x4 block of on/off dots into each Braille character.
@@ -127,7 +129,7 @@ def _braille_lines(pixels, levels: List[List[int]], width: int, height: int,
                     x, y = cx * 2 + dx, cy * 4 + dy
                     on = levels[y][x] == 1
                     if on != invert:
-                        code |= _BRAILLE_BITS[dy][dx]
+                        code |= BRAILLE_BITS[dy][dx]
                     if color:
                         r, g, b = pixels[x, y]
                         r_sum += r
@@ -156,7 +158,8 @@ def image_to_ascii(path: str, width: int = 100, ramp: str = 'standard',
     Args:
         path: path to an image file (any format Pillow can open).
         width: output width in characters; height is derived from the
-            image's own aspect ratio.
+            image's own aspect ratio. A picture that would be taller than
+            _MAX_HEIGHT lines is made narrower than `width` to fit.
         ramp: key into ASCII_RAMPS choosing which characters to shade with.
         color: if True, wrap each character in a 24-bit ANSI color code
             sampled from that pixel, instead of plain brightness-only text.
@@ -221,14 +224,17 @@ def image_to_ascii(path: str, width: int = 100, ramp: str = 'standard',
                max(box[2], min(box[0], iw - 1) + 1), max(box[3], min(box[1], ih - 1) + 1))
         img = img.crop(box)
     orig_w, orig_h = img.size
+    # Lines per column. In Braille one character is a 2x4 block of dots that
+    # are close to square, so it needs no aspect correction.
+    lines_per_column = (orig_h / orig_w) * (0.5 if braille else _ASPECT_CORRECTION)
+    if width * lines_per_column > _MAX_HEIGHT:
+        width = max(1, int(_MAX_HEIGHT / lines_per_column))
+    height = max(1, min(_MAX_HEIGHT, round(width * lines_per_column)))
     if braille:
-        # One character is a 2x4 block of dots, so sample twice as many
-        # columns and four times as many rows as the output has characters.
-        # The dots are close to square, so no aspect correction is needed.
-        height = max(1, round(width * 2 * (orig_h / orig_w) / 4))
+        # Sample twice as many columns and four times as many rows as the
+        # output has characters.
         grid_w, grid_h = width * 2, height * 4
     else:
-        height = max(1, round(width * (orig_h / orig_w) * _ASPECT_CORRECTION))
         grid_w, grid_h = width, height
     edge_grid = _edge_map(img, grid_w, grid_h) if edges else None
     img = img.resize((grid_w, grid_h), Image.LANCZOS)

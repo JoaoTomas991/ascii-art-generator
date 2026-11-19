@@ -242,12 +242,20 @@ def mask_fill_pattern(art: List[str], fill: str, char: str) -> List[str]:
 
     result = []
     for y, row in enumerate(art):
-        row = row.ljust(width)
+        # Blank on both ends, so every cell has a left and a right neighbour.
+        row = ' ' + row.ljust(width) + ' '
         pattern_row = pattern[y].ljust(width) if y < len(pattern) else ' ' * width
-        result.append(''.join(
-            pattern_row[x] if row[x] != ' ' else ' '
-            for x in range(width)
-        ).rstrip())
+        cells = []
+        for x in range(width):
+            if row[x + 1] == ' ':
+                cells.append(' ')
+            elif pattern_row[x] == ' ' and row[x] == ' ' and row[x + 2] == ' ':
+                # A part of the shape that is one cell wide (the tip of a
+                # star's leg) would vanish where the pattern has a gap: keep it.
+                cells.append(char)
+            else:
+                cells.append(pattern_row[x])
+        result.append(''.join(cells).rstrip())
     return result
 
 

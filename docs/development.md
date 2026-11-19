@@ -21,6 +21,7 @@ ascii_art_generator/
 ├── learned_words.py    # persistence for user-taught mood synonyms
 ├── animal_scenes.py    # random animal in a coin / frame / scene
 ├── emoji_art.py        # random emoji face composed from head, eyes, brows, mouth and extras
+├── pixel_canvas.py     # dot canvas printed as Braille characters (`style braille`, `style shaded`)
 ├── console.py          # UTF-8 stdout setup shared by the entry points
 ├── install_info.py     # `--version` info and stale installed-copy warning
 ├── intro.py            # animated startup banner and the live menu animation

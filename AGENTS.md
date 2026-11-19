@@ -54,6 +54,7 @@ ascii_art_generator/
 ├── smart_generator.py  # advanced shapes, fill/border patterns, random generation
 ├── animal_scenes.py    # random animal composed as a coin / frame / themed scene
 ├── emoji_art.py        # random emoji face composed from head, eyes, brows, mouth and extras
+├── pixel_canvas.py     # dot canvas printed as Braille characters (`style braille`, `style shaded`)
 ├── image_art.py        # image-to-ASCII conversion (the one module that needs Pillow)
 ├── learned_words.py    # persistence for user-taught mood synonyms
 ├── console.py          # UTF-8 stdout setup shared by the entry points
@@ -93,7 +94,7 @@ scripts/build_web.py    # builds web/ + the zipped package into _site/ (`make we
 
 ## Known limitations
 
-- The `"and"` compound-command splitter is word-based: a color list on a single shape (`"with color red and blue"`) is read as a compound command with one part: the first color is applied, the second is silently dropped and a spurious `[1/1]` header is printed.
+- The `"and"` compound-command separator is word-based. A color list after the `color` keyword works (`"with color red and blue"`), but a list without the keyword (`"a red and blue heart"`) is still read as two commands, and only the last color is kept.
 
 ## Safety and changes
 
